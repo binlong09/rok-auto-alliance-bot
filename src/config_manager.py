@@ -1,0 +1,120 @@
+import os
+import sys
+import logging
+import configparser
+
+
+class ConfigManager:
+    """Configuration manager for the application"""
+
+    def __init__(self, config_path="config.ini"):
+        self.logger = logging.getLogger(__name__)
+        self.config_path = config_path
+        self.config = self.load_config()
+
+        # Load and validate BlueStacks paths
+        self.validate_paths()
+
+    def load_config(self):
+        """Load configuration from ini file"""
+        config = configparser.ConfigParser()
+
+        # Default config values
+        default_config = {
+            'BlueStacks': {
+                'bluestacks_exe_path': 'C:\\Program Files\\BlueStacks_nxt\\HD-Player.exe',
+                'bluestacks_instance_name': 'Nougat32',
+                'adb_path': 'C:\\Program Files\\BlueStacks_nxt\\HD-Adb.exe',
+                'wait_for_startup_seconds': '30'
+            },
+            'RiseOfKingdoms': {
+                'package_name': 'com.lilithgame.roc.gp',
+                'activity_name': 'com.harry.engine.MainActivity',
+                'game_load_wait_seconds': '30'
+            },
+            'OCR': {
+                'tesseract_path': 'C:\\Program Files\\Tesseract-OCR\\tesseract.exe',
+                'text_region_x': '200',
+                'text_region_y': '20',
+                'text_region_width': '600',
+                'text_region_height': '150',
+                'preprocess_image': 'True'
+            },
+            'Navigation': {
+                'map_button_x': '65',
+                'map_button_y': '650',
+                'click_delay_ms': '1000'
+            }
+        }
+
+        # Create default config if not exists
+        if not os.path.exists(self.config_path):
+            self.logger.info(f"Creating default configuration at {self.config_path}")
+            config.read_dict(default_config)
+            with open(self.config_path, 'w') as configfile:
+                config.write(configfile)
+        else:
+            config.read(self.config_path)
+
+        return config
+
+    def validate_paths(self):
+        """Validate that required paths exist"""
+        bs_config = self.config['BlueStacks']
+
+        bluestacks_exe_path = bs_config.get('bluestacks_exe_path')
+        adb_path = bs_config.get('adb_path')
+
+        if not os.path.exists(bluestacks_exe_path):
+            self.logger.error(f"BlueStacks executable not found at: {bluestacks_exe_path}")
+            self.logger.info("Please update the config.ini file with the correct path")
+            sys.exit(1)
+
+        if not os.path.exists(adb_path):
+            self.logger.error(f"ADB executable not found at: {adb_path}")
+            self.logger.info("Please update the config.ini file with the correct path")
+            sys.exit(1)
+
+    def get_bluestacks_config(self):
+        """Get BlueStacks configuration"""
+        return self.config['BlueStacks']
+
+    def get_rok_config(self):
+        """Get Rise of Kingdoms configuration"""
+        return self.config['RiseOfKingdoms']
+
+    def get_ocr_config(self):
+        """Get OCR configuration"""
+        return self.config['OCR']
+
+    def get_navigation_config(self):
+        """Get navigation configuration"""
+        return self.config['Navigation']
+
+    def get_config(self, section, key, default=None):
+        """Get a specific configuration value"""
+        try:
+            return self.config[section][key]
+        except (KeyError, configparser.NoSectionError):
+            return default
+
+    def get_int(self, section, key, default=0):
+        """Get configuration value as integer"""
+        try:
+            return int(self.config[section][key])
+        except (KeyError, ValueError, configparser.NoSectionError):
+            return default
+
+    def get_float(self, section, key, default=0.0):
+        """Get configuration value as float"""
+        try:
+            return float(self.config[section][key])
+        except (KeyError, ValueError, configparser.NoSectionError):
+            return default
+
+    def get_bool(self, section, key, default=False):
+        """Get configuration value as boolean"""
+        try:
+            return self.config.getboolean(section, key)
+        except (KeyError, ValueError, configparser.NoSectionError):
+            return default

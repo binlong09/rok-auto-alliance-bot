@@ -1,0 +1,2946 @@
+2025-03-08 23:59:02,038 - INFO - Starting BlueStacks Rise of Kingdoms Launcher
+2025-03-08 23:59:02,039 - ERROR - Error in main process: 'Navigation'
+2025-03-08 23:59:02,039 - ERROR - Stack trace:
+Traceback (most recent call last):
+  File "C:\Users\binlo\PycharmProjects\ROK\rok-auto-alliance-bot\src\main.py", line 33, in main
+    rok_game = RoKGameController(config, bluestacks)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\binlo\PycharmProjects\ROK\rok-auto-alliance-bot\src\rok_game_controller.py", line 36, in __init__
+    nav_config = config_manager.get_navigation_config()
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\binlo\PycharmProjects\ROK\rok-auto-alliance-bot\src\config_manager.py", line 93, in get_navigation_config
+    return self.config['Navigation']
+           ~~~~~~~~~~~^^^^^^^^^^^^^^
+  File "C:\Users\binlo\AppData\Local\Programs\Python\Python312\Lib\configparser.py", line 941, in __getitem__
+    raise KeyError(key)
+KeyError: 'Navigation'
+2025-03-08 23:59:50,513 - INFO - Starting BlueStacks Rise of Kingdoms Launcher
+2025-03-08 23:59:50,514 - INFO - Starting BlueStacks instance: Nougat64
+2025-03-08 23:59:50,523 - INFO - Waiting 30 seconds for BlueStacks to initialize...
+2025-03-09 00:00:20,524 - INFO - Connecting to BlueStacks via ADB...
+2025-03-09 00:00:20,559 - INFO - Connecting to ADB on port 5555...
+2025-03-09 00:00:20,593 - INFO - ADB connect result: connected to 127.0.0.1:5555
+2025-03-09 00:00:20,622 - INFO - Successfully connected to BlueStacks via ADB
+2025-03-09 00:00:20,622 - INFO - Starting Rise of Kingdoms...
+2025-03-09 00:00:20,914 - INFO - Rise of Kingdoms started successfully
+2025-03-09 00:00:20,914 - INFO - Waiting for Rise of Kingdoms to load...
+2025-03-09 00:00:20,915 - INFO - Waiting 30 seconds for game to load...
+2025-03-09 00:00:52,497 - INFO - OCR detected text (adaptive): Owe = th BAS
+‘ Sa. Se le SSR Gee
+
+2025-03-09 00:00:52,738 - INFO - OCR detected text (otsu): > a ?
+
+2025-03-09 00:00:53,012 - INFO - OCR detected text (inverted): > ee?
+
+2025-03-09 00:00:53,231 - INFO - OCR detected text (contrast): 
+2025-03-09 00:00:53,430 - INFO - OCR detected text (original): > ne 3
+
+2025-03-09 00:00:53,430 - INFO - No age keywords detected in any preprocessing method - Not in home village
+2025-03-09 00:00:53,431 - INFO - In home village: False
+2025-03-09 00:00:53,431 - INFO - BlueStacks and Rise of Kingdoms started successfully
+2025-03-09 00:04:50,520 - INFO - Starting BlueStacks Rise of Kingdoms Launcher
+2025-03-09 00:04:50,521 - INFO - Connecting to BlueStacks via ADB...
+2025-03-09 00:04:50,577 - INFO - Connecting to ADB on port 5555...
+2025-03-09 00:04:50,629 - INFO - ADB connect result: already connected to 127.0.0.1:5555
+2025-03-09 00:04:50,672 - INFO - Successfully connected to BlueStacks via ADB
+2025-03-09 00:04:52,006 - INFO - OCR detected text (adaptive): ere eT AOA CR ABI SUSY RCO
+FO SON Neo en OS ©
+Held ESO Ne WEN N oyna sya w ene icae
+0a Sao CAT eeu ff eS ee eos te
+Reape LEY boosts ay Lec OAR ae Te
+
+2025-03-09 00:04:52,183 - INFO - OCR detected text (otsu): eS AP oe ke “a 2)
+
+2025-03-09 00:04:52,378 - INFO - OCR detected text (inverted): Dialell eiaieaile EP 7 ee Te ee 2)
+
+2025-03-09 00:04:52,572 - INFO - OCR detected text (contrast): a i Mie ay aS
+Edy AO Ub et gee
+
+2025-03-09 00:04:52,780 - INFO - OCR detected text (original): ded Limi age 7 eee SS BF a >
+
+2025-03-09 00:04:52,780 - INFO - No age keywords detected in any preprocessing method - Not in home village
+2025-03-09 00:04:52,781 - INFO - In home village: False
+2025-03-09 00:04:52,781 - INFO - BlueStacks and Rise of Kingdoms started successfully
+2025-03-09 00:05:16,630 - INFO - Starting BlueStacks Rise of Kingdoms Launcher
+2025-03-09 00:05:16,630 - INFO - Connecting to BlueStacks via ADB...
+2025-03-09 00:05:16,675 - INFO - Connecting to ADB on port 5555...
+2025-03-09 00:05:16,715 - INFO - ADB connect result: already connected to 127.0.0.1:5555
+2025-03-09 00:05:16,750 - INFO - Successfully connected to BlueStacks via ADB
+2025-03-09 00:05:18,202 - INFO - OCR detected text (adaptive): nee Se SRT We HN Mere MALY | Lerma Tt Pa ee,
+PH Cae Ce SNR UR Eee © Daas ©
+CARAS IPN, | RRR rn Rane &
+eer Se ea INE Reet phe eae
+eT SAAS pee eee
+HS Par CONAN @ WU GE PE 1S
+
+2025-03-09 00:05:18,423 - INFO - OCR detected text (otsu): 656 [Feudal a oF ae ce 4 oF 31
+W433 Tae te ee B® i
+
+2025-03-09 00:05:18,423 - INFO - Age keyword 'Feudal' detected with method otsu - Currently in home village
+2025-03-09 00:05:18,423 - INFO - In home village: True
+2025-03-09 00:05:18,423 - INFO - Clicking on map button...
+2025-03-09 00:05:18,423 - INFO - Clicking at coordinates: (65, 650)
+2025-03-09 00:05:22,586 - INFO - OCR detected text (adaptive): 56 | Tees 1x) EMSs
+‘F Ray
+05 ry
+
+2025-03-09 00:05:22,760 - INFO - OCR detected text (otsu): 656 | 3174 X24 86 Kad AE 731M
+ae” -
+05, ,
+
+}
+
+2025-03-09 00:05:22,941 - INFO - OCR detected text (inverted): 656 | 3174 X24 867 Se Kad AE 731M
+ae” -
+05 ,
+
+qi
+
+2025-03-09 00:05:23,091 - INFO - OCR detected text (contrast): PP 731m &
+656 | Egress ley j )
+
+2025-03-09 00:05:23,270 - INFO - OCR detected text (original): 656 | 3174x624 1867 {xy fF 731m &
+2 aly
+05 -
+
+Li
+
+|
+
+2025-03-09 00:05:23,270 - INFO - No age keywords detected in any preprocessing method - Not in home village
+2025-03-09 00:05:23,271 - INFO - Successfully navigated to map: True
+2025-03-09 00:05:23,271 - INFO - BlueStacks and Rise of Kingdoms started successfully
+2025-03-09 01:18:18,549 - INFO - Starting BlueStacks Rise of Kingdoms Launcher
+2025-03-09 01:18:18,550 - INFO - Starting BlueStacks instance: Nougat64
+2025-03-09 01:18:18,560 - INFO - Waiting 30 seconds for BlueStacks to initialize...
+2025-03-09 01:18:48,561 - INFO - Connecting to BlueStacks via ADB...
+2025-03-09 01:18:48,599 - INFO - Connecting to ADB on port 5555...
+2025-03-09 01:18:48,641 - INFO - ADB connect result: already connected to 127.0.0.1:5555
+2025-03-09 01:18:48,674 - INFO - Successfully connected to BlueStacks via ADB
+2025-03-09 01:18:48,674 - INFO - Starting Rise of Kingdoms...
+2025-03-09 01:18:48,956 - INFO - Rise of Kingdoms started successfully
+2025-03-09 01:18:48,957 - INFO - Waiting for Rise of Kingdoms to load...
+2025-03-09 01:18:48,957 - INFO - Waiting 30 seconds for game to load...
+2025-03-09 01:19:20,366 - INFO - OCR detected text (adaptive): OO Bahk SNS] GY Z4 UE eget TA Xue DOB La SS ores YN 0-100 7
+036-{Feudal ABE Se Be] eters aan a
+
+Beh NS eS ARPS 6 Se ys
+Zaks EXGiC ES FIR SEAR Rei ee ag ia ¢:
+Bale es natn | Nea Bio] ooo oO
+19 Ge Sar eA eeu i ee SG un
+Hs Ser te @ yi . AEE ee ae
+
+2025-03-09 01:19:20,638 - INFO - OCR detected text (otsu): oon Feudata; d¥: 2.4 1 Xv 0.0 +,- sR)
+’ Feudal Ages 2.39) ) ok. Se
+i NO J ilgoke ee ae
+
+I: S re, a ge mS 7s
+
+Wg Eee ae aa oe
+
+2025-03-09 01:19:20,638 - INFO - Keyword 'Feudal Age' detected with method otsu
+2025-03-09 01:19:20,639 - INFO - Currently in home village
+2025-03-09 01:19:20,639 - INFO - In home village: True
+2025-03-09 01:19:20,639 - INFO - Clicking on map button...
+2025-03-09 01:19:20,639 - INFO - Clicking at coordinates: (65, 650)
+2025-03-09 01:19:24,750 - INFO - OCR detected text (adaptive): : 0.0) rere YE 102 Fy (aT Xv: 0.0 RTS Ny 0.0.29
+036 (ue Dar ep Sin
+DS
+
+A vi { @®
+
+2025-03-09 01:19:24,953 - INFO - OCR detected text (otsu): 0.0 (dv: 0.0 Xv 0.0 [¥v: 0.0
+020 | A. Lo) pam)
+19 r
+
+2025-03-09 01:19:25,158 - INFO - OCR detected text (inverted): 0.0 (dv: 0.0 Xv 0.0 [Yv: 0.0
+020 | ee. Lo) pam)
+19 r
+
+2025-03-09 01:19:25,306 - INFO - OCR detected text (contrast): A
+19 I:
+
+2025-03-09 01:19:25,500 - INFO - OCR detected text (original): : 0.0 id¥: 0.0 Xv: 0.0 \Yv: 0.0
+ODD PUREED |=] ame)
+19 x
+
+2025-03-09 01:19:25,501 - INFO - No keywords detected in any preprocessing method
+2025-03-09 01:19:25,501 - INFO - Not in home village
+2025-03-09 01:19:25,501 - INFO - Successfully navigated to map: True
+2025-03-09 01:19:25,501 - INFO - BlueStacks and Rise of Kingdoms started successfully
+2025-03-09 03:03:53,674 - INFO - Starting BlueStacks Rise of Kingdoms Launcher
+2025-03-09 03:03:53,675 - INFO - Scrolling down character list
+2025-03-09 03:03:53,675 - ERROR - Cannot perform swipe: Not connected to ADB
+2025-03-09 03:03:53,676 - ERROR - Failed to scroll down
+2025-03-09 03:04:02,658 - INFO - Starting BlueStacks Rise of Kingdoms Launcher
+2025-03-09 03:04:02,659 - INFO - Connecting to BlueStacks via ADB...
+2025-03-09 03:04:02,703 - INFO - Connecting to ADB on port 5555...
+2025-03-09 03:04:02,748 - INFO - ADB connect result: already connected to 127.0.0.1:5555
+2025-03-09 03:04:02,797 - INFO - Successfully connected to BlueStacks via ADB
+2025-03-09 03:04:02,797 - INFO - Scrolling down character list
+2025-03-09 03:04:02,797 - INFO - Swiping from (700, 700) to (700, 300)
+2025-03-09 03:04:09,997 - INFO - Starting BlueStacks Rise of Kingdoms Launcher
+2025-03-09 03:04:09,998 - INFO - Connecting to BlueStacks via ADB...
+2025-03-09 03:04:10,045 - INFO - Connecting to ADB on port 5555...
+2025-03-09 03:04:10,086 - INFO - ADB connect result: already connected to 127.0.0.1:5555
+2025-03-09 03:04:10,126 - INFO - Successfully connected to BlueStacks via ADB
+2025-03-09 03:04:10,126 - INFO - Scrolling down character list
+2025-03-09 03:04:10,126 - INFO - Swiping from (700, 700) to (700, 300)
+2025-03-09 03:05:16,770 - INFO - Starting BlueStacks Rise of Kingdoms Launcher
+2025-03-09 03:05:16,772 - INFO - Connecting to BlueStacks via ADB...
+2025-03-09 03:05:16,813 - INFO - Connecting to ADB on port 5555...
+2025-03-09 03:05:16,850 - INFO - ADB connect result: already connected to 127.0.0.1:5555
+2025-03-09 03:05:16,883 - INFO - Successfully connected to BlueStacks via ADB
+2025-03-09 03:05:16,883 - INFO - Scrolling down character list
+2025-03-09 03:05:16,883 - INFO - Swiping from (640, 600) to (640, 200)
+2025-03-09 03:05:25,329 - INFO - Starting BlueStacks Rise of Kingdoms Launcher
+2025-03-09 03:05:25,330 - INFO - Connecting to BlueStacks via ADB...
+2025-03-09 03:05:25,366 - INFO - Connecting to ADB on port 5555...
+2025-03-09 03:05:25,402 - INFO - ADB connect result: already connected to 127.0.0.1:5555
+2025-03-09 03:05:25,435 - INFO - Successfully connected to BlueStacks via ADB
+2025-03-09 03:05:25,435 - INFO - Scrolling down character list
+2025-03-09 03:05:25,435 - INFO - Swiping from (640, 600) to (640, 200)
+2025-03-09 03:05:37,655 - INFO - Starting BlueStacks Rise of Kingdoms Launcher
+2025-03-09 03:05:37,656 - INFO - Connecting to BlueStacks via ADB...
+2025-03-09 03:05:37,694 - INFO - Connecting to ADB on port 5555...
+2025-03-09 03:05:37,730 - INFO - ADB connect result: already connected to 127.0.0.1:5555
+2025-03-09 03:05:37,763 - INFO - Successfully connected to BlueStacks via ADB
+2025-03-09 03:05:37,763 - INFO - Scrolling down character list
+2025-03-09 03:05:37,763 - INFO - Swiping from (640, 600) to (640, 200)
+2025-03-09 03:06:35,532 - INFO - Starting BlueStacks Rise of Kingdoms Launcher
+2025-03-09 03:06:35,534 - INFO - Connecting to BlueStacks via ADB...
+2025-03-09 03:06:35,611 - INFO - Connecting to ADB on port 5555...
+2025-03-09 03:06:35,687 - INFO - ADB connect result: already connected to 127.0.0.1:5555
+2025-03-09 03:06:35,741 - INFO - Successfully connected to BlueStacks via ADB
+2025-03-09 03:06:35,741 - INFO - Scrolling down character list
+2025-03-09 03:06:35,741 - INFO - Swiping from (640, 600) to (640, 300)
+2025-03-09 03:06:42,779 - INFO - Starting BlueStacks Rise of Kingdoms Launcher
+2025-03-09 03:06:42,780 - INFO - Connecting to BlueStacks via ADB...
+2025-03-09 03:06:42,820 - INFO - Connecting to ADB on port 5555...
+2025-03-09 03:06:42,857 - INFO - ADB connect result: already connected to 127.0.0.1:5555
+2025-03-09 03:06:42,889 - INFO - Successfully connected to BlueStacks via ADB
+2025-03-09 03:06:42,889 - INFO - Scrolling down character list
+2025-03-09 03:06:42,889 - INFO - Swiping from (640, 600) to (640, 300)
+2025-03-09 03:12:20,478 - INFO - Starting BlueStacks Rise of Kingdoms Launcher
+2025-03-09 03:12:20,479 - INFO - Connecting to BlueStacks via ADB...
+2025-03-09 03:12:20,517 - INFO - Connecting to ADB on port 5555...
+2025-03-09 03:12:20,554 - INFO - ADB connect result: already connected to 127.0.0.1:5555
+2025-03-09 03:12:20,588 - INFO - Successfully connected to BlueStacks via ADB
+2025-03-09 03:12:20,588 - INFO - Scrolling down character list
+2025-03-09 03:12:20,588 - INFO - Swiping from (640, 600) to (640, 300)
+2025-03-09 03:13:46,911 - INFO - Starting BlueStacks Rise of Kingdoms Launcher
+2025-03-09 03:13:46,912 - INFO - Connecting to BlueStacks via ADB...
+2025-03-09 03:13:46,953 - INFO - Connecting to ADB on port 5555...
+2025-03-09 03:13:46,989 - INFO - ADB connect result: already connected to 127.0.0.1:5555
+2025-03-09 03:13:47,021 - INFO - Successfully connected to BlueStacks via ADB
+2025-03-09 03:13:47,021 - INFO - Scrolling down character list
+2025-03-09 03:13:47,021 - INFO - Swiping from (640, 600) to (640, 350)
+2025-03-09 03:13:56,228 - INFO - Starting BlueStacks Rise of Kingdoms Launcher
+2025-03-09 03:13:56,230 - INFO - Connecting to BlueStacks via ADB...
+2025-03-09 03:13:56,301 - INFO - Connecting to ADB on port 5555...
+2025-03-09 03:13:56,353 - INFO - ADB connect result: already connected to 127.0.0.1:5555
+2025-03-09 03:13:56,394 - INFO - Successfully connected to BlueStacks via ADB
+2025-03-09 03:13:56,394 - INFO - Scrolling down character list
+2025-03-09 03:13:56,394 - INFO - Swiping from (640, 600) to (640, 350)
+2025-03-09 03:14:10,551 - INFO - Starting BlueStacks Rise of Kingdoms Launcher
+2025-03-09 03:14:10,552 - INFO - Connecting to BlueStacks via ADB...
+2025-03-09 03:14:10,593 - INFO - Connecting to ADB on port 5555...
+2025-03-09 03:14:10,631 - INFO - ADB connect result: already connected to 127.0.0.1:5555
+2025-03-09 03:14:10,665 - INFO - Successfully connected to BlueStacks via ADB
+2025-03-09 03:14:10,665 - INFO - Scrolling down character list
+2025-03-09 03:14:10,665 - INFO - Swiping from (640, 600) to (640, 250)
+2025-03-09 03:14:27,121 - INFO - Starting BlueStacks Rise of Kingdoms Launcher
+2025-03-09 03:14:27,122 - INFO - Connecting to BlueStacks via ADB...
+2025-03-09 03:14:27,169 - INFO - Connecting to ADB on port 5555...
+2025-03-09 03:14:27,213 - INFO - ADB connect result: already connected to 127.0.0.1:5555
+2025-03-09 03:14:27,255 - INFO - Successfully connected to BlueStacks via ADB
+2025-03-09 03:14:27,255 - INFO - Scrolling down character list
+2025-03-09 03:14:27,255 - INFO - Swiping from (640, 600) to (640, 225)
+2025-03-09 03:14:55,728 - INFO - Starting BlueStacks Rise of Kingdoms Launcher
+2025-03-09 03:14:55,729 - INFO - Connecting to BlueStacks via ADB...
+2025-03-09 03:14:55,770 - INFO - Connecting to ADB on port 5555...
+2025-03-09 03:14:55,809 - INFO - ADB connect result: already connected to 127.0.0.1:5555
+2025-03-09 03:14:55,843 - INFO - Successfully connected to BlueStacks via ADB
+2025-03-09 03:14:55,843 - INFO - Scrolling down character list
+2025-03-09 03:14:55,843 - INFO - Swiping from (640, 600) to (640, 275)
+2025-03-09 03:15:29,667 - INFO - Starting BlueStacks Rise of Kingdoms Launcher
+2025-03-09 03:15:29,668 - INFO - Connecting to BlueStacks via ADB...
+2025-03-09 03:15:29,716 - INFO - Connecting to ADB on port 5555...
+2025-03-09 03:15:29,756 - INFO - ADB connect result: already connected to 127.0.0.1:5555
+2025-03-09 03:15:29,791 - INFO - Successfully connected to BlueStacks via ADB
+2025-03-09 03:15:29,791 - INFO - Scrolling down character list
+2025-03-09 03:15:29,791 - INFO - Swiping from (640, 600) to (640, 250)
+2025-03-09 03:15:45,629 - INFO - Starting BlueStacks Rise of Kingdoms Launcher
+2025-03-09 03:15:45,630 - INFO - Connecting to BlueStacks via ADB...
+2025-03-09 03:15:45,666 - INFO - Connecting to ADB on port 5555...
+2025-03-09 03:15:45,701 - INFO - ADB connect result: already connected to 127.0.0.1:5555
+2025-03-09 03:15:45,733 - INFO - Successfully connected to BlueStacks via ADB
+2025-03-09 03:15:45,733 - INFO - Scrolling down character list
+2025-03-09 03:15:45,733 - INFO - Swiping from (640, 600) to (640, 285)
+2025-03-09 03:16:13,999 - INFO - Starting BlueStacks Rise of Kingdoms Launcher
+2025-03-09 03:16:14,000 - INFO - Connecting to BlueStacks via ADB...
+2025-03-09 03:16:14,050 - INFO - Connecting to ADB on port 5555...
+2025-03-09 03:16:14,097 - INFO - ADB connect result: already connected to 127.0.0.1:5555
+2025-03-09 03:16:14,132 - INFO - Successfully connected to BlueStacks via ADB
+2025-03-09 03:16:14,132 - INFO - Scrolling down character list
+2025-03-09 03:16:14,132 - INFO - Swiping from (640, 600) to (640, 290)
+2025-03-09 03:16:30,006 - INFO - Starting BlueStacks Rise of Kingdoms Launcher
+2025-03-09 03:16:30,008 - INFO - Connecting to BlueStacks via ADB...
+2025-03-09 03:16:30,053 - INFO - Connecting to ADB on port 5555...
+2025-03-09 03:16:30,096 - INFO - ADB connect result: already connected to 127.0.0.1:5555
+2025-03-09 03:16:30,128 - INFO - Successfully connected to BlueStacks via ADB
+2025-03-09 03:16:30,128 - INFO - Scrolling down character list
+2025-03-09 03:16:30,128 - INFO - Swiping from (640, 600) to (640, 325)
+2025-03-09 03:17:24,936 - INFO - Starting BlueStacks Rise of Kingdoms Launcher
+2025-03-09 03:17:24,937 - INFO - Connecting to BlueStacks via ADB...
+2025-03-09 03:17:24,994 - INFO - Connecting to ADB on port 5555...
+2025-03-09 03:17:25,036 - INFO - ADB connect result: already connected to 127.0.0.1:5555
+2025-03-09 03:17:25,070 - INFO - Successfully connected to BlueStacks via ADB
+2025-03-09 03:17:25,070 - INFO - Scrolling down character list
+2025-03-09 03:17:25,071 - INFO - Swiping from (640, 600) to (640, 325)
+2025-03-09 03:18:01,413 - INFO - Starting BlueStacks Rise of Kingdoms Launcher
+2025-03-09 03:18:01,414 - INFO - Connecting to BlueStacks via ADB...
+2025-03-09 03:18:01,451 - INFO - Connecting to ADB on port 5555...
+2025-03-09 03:18:01,487 - INFO - ADB connect result: already connected to 127.0.0.1:5555
+2025-03-09 03:18:01,520 - INFO - Successfully connected to BlueStacks via ADB
+2025-03-09 03:18:01,520 - INFO - Scrolling down character list
+2025-03-09 03:18:01,520 - INFO - Swiping from (640, 600) to (640, 325)
+2025-03-09 03:20:05,093 - INFO - Starting BlueStacks Rise of Kingdoms Launcher
+2025-03-09 03:20:05,094 - INFO - Connecting to BlueStacks via ADB...
+2025-03-09 03:20:05,132 - INFO - Connecting to ADB on port 5555...
+2025-03-09 03:20:05,169 - INFO - ADB connect result: already connected to 127.0.0.1:5555
+2025-03-09 03:20:05,202 - INFO - Successfully connected to BlueStacks via ADB
+2025-03-09 03:20:05,202 - INFO - Scrolling down character list
+2025-03-09 03:20:05,202 - INFO - Swiping from (640, 600) to (640, 325)
+2025-03-09 03:20:18,878 - INFO - Starting BlueStacks Rise of Kingdoms Launcher
+2025-03-09 03:20:18,880 - INFO - Connecting to BlueStacks via ADB...
+2025-03-09 03:20:18,920 - INFO - Connecting to ADB on port 5555...
+2025-03-09 03:20:18,958 - INFO - ADB connect result: already connected to 127.0.0.1:5555
+2025-03-09 03:20:18,991 - INFO - Successfully connected to BlueStacks via ADB
+2025-03-09 03:20:18,991 - INFO - Scrolling down character list
+2025-03-09 03:20:18,991 - INFO - Swiping from (640, 600) to (640, 325)
+2025-03-09 03:20:31,837 - INFO - Starting BlueStacks Rise of Kingdoms Launcher
+2025-03-09 03:20:31,838 - INFO - Connecting to BlueStacks via ADB...
+2025-03-09 03:20:31,874 - INFO - Connecting to ADB on port 5555...
+2025-03-09 03:20:31,910 - INFO - ADB connect result: already connected to 127.0.0.1:5555
+2025-03-09 03:20:31,942 - INFO - Successfully connected to BlueStacks via ADB
+2025-03-09 03:20:31,942 - INFO - Scrolling down character list
+2025-03-09 03:20:31,942 - INFO - Swiping from (640, 600) to (640, 325)
+2025-03-09 03:22:45,410 - INFO - Starting BlueStacks Rise of Kingdoms Launcher
+2025-03-09 03:22:45,411 - INFO - Connecting to BlueStacks via ADB...
+2025-03-09 03:22:45,446 - INFO - Connecting to ADB on port 5555...
+2025-03-09 03:22:45,485 - INFO - ADB connect result: already connected to 127.0.0.1:5555
+2025-03-09 03:22:45,530 - INFO - Successfully connected to BlueStacks via ADB
+2025-03-09 03:22:45,530 - INFO - Scrolling down character list
+2025-03-09 03:22:45,531 - INFO - Swiping from (640, 600) to (640, 325)
+2025-03-09 03:23:24,275 - INFO - Starting BlueStacks Rise of Kingdoms Launcher
+2025-03-09 03:23:24,275 - INFO - Connecting to BlueStacks via ADB...
+2025-03-09 03:23:24,312 - INFO - Connecting to ADB on port 5555...
+2025-03-09 03:23:24,348 - INFO - ADB connect result: already connected to 127.0.0.1:5555
+2025-03-09 03:23:24,382 - INFO - Successfully connected to BlueStacks via ADB
+2025-03-09 03:23:24,383 - INFO - Scrolling down character list
+2025-03-09 03:23:24,383 - INFO - Swiping from (640, 600) to (640, 325)
+2025-03-09 03:23:37,924 - INFO - Starting BlueStacks Rise of Kingdoms Launcher
+2025-03-09 03:23:37,925 - INFO - Connecting to BlueStacks via ADB...
+2025-03-09 03:23:37,971 - INFO - Connecting to ADB on port 5555...
+2025-03-09 03:23:38,012 - INFO - ADB connect result: already connected to 127.0.0.1:5555
+2025-03-09 03:23:38,047 - INFO - Successfully connected to BlueStacks via ADB
+2025-03-09 03:23:38,047 - INFO - Scrolling down character list
+2025-03-09 03:23:38,048 - INFO - Swiping from (640, 600) to (640, 325)
+2025-03-09 03:24:07,365 - INFO - Starting BlueStacks Rise of Kingdoms Launcher
+2025-03-09 03:24:07,365 - INFO - Connecting to BlueStacks via ADB...
+2025-03-09 03:24:07,403 - INFO - Connecting to ADB on port 5555...
+2025-03-09 03:24:07,439 - INFO - ADB connect result: already connected to 127.0.0.1:5555
+2025-03-09 03:24:07,471 - INFO - Successfully connected to BlueStacks via ADB
+2025-03-09 03:24:07,471 - INFO - Scrolling down character list
+2025-03-09 03:24:07,472 - INFO - Swiping from (640, 600) to (640, 325)
+2025-03-09 03:24:28,734 - INFO - Starting BlueStacks Rise of Kingdoms Launcher
+2025-03-09 03:24:28,735 - INFO - Connecting to BlueStacks via ADB...
+2025-03-09 03:24:28,790 - INFO - Connecting to ADB on port 5555...
+2025-03-09 03:24:28,846 - INFO - ADB connect result: already connected to 127.0.0.1:5555
+2025-03-09 03:24:28,882 - INFO - Successfully connected to BlueStacks via ADB
+2025-03-09 03:24:28,882 - INFO - Scrolling down character list
+2025-03-09 03:24:28,882 - INFO - Swiping from (640, 600) to (640, 325)
+2025-03-09 03:35:18,472 - INFO - Starting BlueStacks Rise of Kingdoms Launcher
+2025-03-09 03:35:18,482 - INFO - Connecting to BlueStacks via ADB...
+2025-03-09 03:35:18,564 - INFO - Connecting to ADB on port 5555...
+2025-03-09 03:35:18,602 - INFO - ADB connect result: already connected to 127.0.0.1:5555
+2025-03-09 03:35:18,644 - INFO - Successfully connected to BlueStacks via ADB
+2025-03-09 03:35:18,644 - INFO - Scrolling down character list
+2025-03-09 03:35:18,644 - INFO - Swiping from (640, 600) to (640, 325)
+2025-03-09 03:36:15,045 - INFO - Starting BlueStacks Rise of Kingdoms Launcher
+2025-03-09 03:36:15,046 - INFO - Connecting to BlueStacks via ADB...
+2025-03-09 03:36:15,103 - INFO - Connecting to ADB on port 5555...
+2025-03-09 03:36:15,146 - INFO - ADB connect result: already connected to 127.0.0.1:5555
+2025-03-09 03:36:15,186 - INFO - Successfully connected to BlueStacks via ADB
+2025-03-09 03:36:15,186 - INFO - Scrolling down character list
+2025-03-09 03:36:15,186 - INFO - Swiping from (640, 600) to (640, 325)
+2025-03-09 03:36:25,970 - INFO - Starting BlueStacks Rise of Kingdoms Launcher
+2025-03-09 03:36:25,971 - INFO - Connecting to BlueStacks via ADB...
+2025-03-09 03:36:26,015 - INFO - Connecting to ADB on port 5555...
+2025-03-09 03:36:26,055 - INFO - ADB connect result: already connected to 127.0.0.1:5555
+2025-03-09 03:36:26,092 - INFO - Successfully connected to BlueStacks via ADB
+2025-03-09 03:36:26,092 - INFO - Scrolling down character list
+2025-03-09 03:36:26,092 - INFO - Swiping from (640, 600) to (640, 325)
+2025-03-09 03:36:56,884 - INFO - Starting BlueStacks Rise of Kingdoms Launcher
+2025-03-09 03:36:56,885 - INFO - Connecting to BlueStacks via ADB...
+2025-03-09 03:36:56,929 - INFO - Connecting to ADB on port 5555...
+2025-03-09 03:36:56,968 - INFO - ADB connect result: already connected to 127.0.0.1:5555
+2025-03-09 03:36:57,001 - INFO - Successfully connected to BlueStacks via ADB
+2025-03-09 03:36:57,001 - INFO - Scrolling down character list
+2025-03-09 03:36:57,001 - INFO - Swiping from (640, 600) to (640, 330)
+2025-03-09 03:37:16,940 - INFO - Starting BlueStacks Rise of Kingdoms Launcher
+2025-03-09 03:37:16,941 - INFO - Connecting to BlueStacks via ADB...
+2025-03-09 03:37:16,977 - INFO - Connecting to ADB on port 5555...
+2025-03-09 03:37:17,013 - INFO - ADB connect result: already connected to 127.0.0.1:5555
+2025-03-09 03:37:17,044 - INFO - Successfully connected to BlueStacks via ADB
+2025-03-09 03:37:17,044 - INFO - Scrolling down character list
+2025-03-09 03:37:17,044 - INFO - Swiping from (640, 600) to (640, 335)
+2025-03-09 03:37:34,930 - INFO - Starting BlueStacks Rise of Kingdoms Launcher
+2025-03-09 03:37:34,931 - INFO - Connecting to BlueStacks via ADB...
+2025-03-09 03:37:34,970 - INFO - Connecting to ADB on port 5555...
+2025-03-09 03:37:35,008 - INFO - ADB connect result: already connected to 127.0.0.1:5555
+2025-03-09 03:37:35,043 - INFO - Successfully connected to BlueStacks via ADB
+2025-03-09 03:37:35,043 - INFO - Scrolling down character list
+2025-03-09 03:37:35,043 - INFO - Swiping from (640, 600) to (640, 335)
+2025-03-09 03:37:53,999 - INFO - Starting BlueStacks Rise of Kingdoms Launcher
+2025-03-09 03:37:54,001 - INFO - Connecting to BlueStacks via ADB...
+2025-03-09 03:37:54,039 - INFO - Connecting to ADB on port 5555...
+2025-03-09 03:37:54,076 - INFO - ADB connect result: already connected to 127.0.0.1:5555
+2025-03-09 03:37:54,110 - INFO - Successfully connected to BlueStacks via ADB
+2025-03-09 03:37:54,110 - INFO - Scrolling down character list
+2025-03-09 03:37:54,110 - INFO - Swiping from (640, 600) to (640, 337)
+2025-03-09 03:38:22,732 - INFO - Starting BlueStacks Rise of Kingdoms Launcher
+2025-03-09 03:38:22,733 - INFO - Connecting to BlueStacks via ADB...
+2025-03-09 03:38:22,775 - INFO - Connecting to ADB on port 5555...
+2025-03-09 03:38:22,843 - INFO - ADB connect result: already connected to 127.0.0.1:5555
+2025-03-09 03:38:22,887 - INFO - Successfully connected to BlueStacks via ADB
+2025-03-09 03:38:22,887 - INFO - Scrolling down character list
+2025-03-09 03:38:22,887 - INFO - Swiping from (640, 600) to (640, 335)
+2025-03-09 03:48:19,133 - INFO - Starting BlueStacks Rise of Kingdoms Launcher
+2025-03-09 03:48:19,134 - INFO - Connecting to BlueStacks via ADB...
+2025-03-09 03:48:19,175 - INFO - Connecting to ADB on port 5555...
+2025-03-09 03:48:19,213 - INFO - ADB connect result: already connected to 127.0.0.1:5555
+2025-03-09 03:48:19,246 - INFO - Successfully connected to BlueStacks via ADB
+2025-03-09 03:48:19,246 - INFO - Opening character selection screen
+2025-03-09 03:48:19,246 - INFO - Clicking avatar icon
+2025-03-09 03:48:19,246 - INFO - Clicking at coordinates: (50, 50)
+2025-03-09 03:48:22,482 - INFO - Clicking settings icon
+2025-03-09 03:48:22,482 - INFO - Clicking at coordinates: (1109, 581)
+2025-03-09 03:48:25,734 - INFO - Clicking characters icon
+2025-03-09 03:48:25,734 - INFO - Clicking at coordinates: (350, 370)
+2025-03-09 03:48:28,961 - INFO - Character selection screen opened
+2025-03-09 04:35:01,315 - INFO - Starting BlueStacks Rise of Kingdoms Launcher
+2025-03-09 04:35:01,316 - INFO - Connecting to BlueStacks via ADB...
+2025-03-09 04:35:01,359 - INFO - Connecting to ADB on port 5555...
+2025-03-09 04:35:01,398 - INFO - ADB connect result: already connected to 127.0.0.1:5555
+2025-03-09 04:35:01,430 - INFO - Successfully connected to BlueStacks via ADB
+2025-03-09 04:35:01,430 - INFO - Starting character switching process
+2025-03-09 04:35:01,430 - INFO - Opening character selection screen
+2025-03-09 04:35:01,430 - INFO - Clicking avatar icon
+2025-03-09 04:35:01,430 - INFO - Clicking at coordinates: (50, 50)
+2025-03-09 04:35:04,668 - INFO - Clicking settings icon
+2025-03-09 04:35:04,668 - INFO - Clicking at coordinates: (1109, 581)
+2025-03-09 04:35:07,899 - INFO - Clicking characters icon
+2025-03-09 04:35:07,899 - INFO - Clicking at coordinates: (350, 370)
+2025-03-09 04:35:11,169 - INFO - Character selection screen opened
+2025-03-09 04:35:11,169 - INFO - Switch character at position {'x': 400, 'y': 220}
+2025-03-09 04:36:54,553 - INFO - Starting BlueStacks Rise of Kingdoms Launcher
+2025-03-09 04:36:54,554 - INFO - Connecting to BlueStacks via ADB...
+2025-03-09 04:36:54,602 - INFO - Connecting to ADB on port 5555...
+2025-03-09 04:36:54,652 - INFO - ADB connect result: already connected to 127.0.0.1:5555
+2025-03-09 04:36:54,697 - INFO - Successfully connected to BlueStacks via ADB
+2025-03-09 04:36:54,697 - INFO - Starting character switching process
+2025-03-09 04:36:54,697 - INFO - Switch character at position {'x': 400, 'y': 220}
+2025-03-09 04:37:16,747 - INFO - Starting BlueStacks Rise of Kingdoms Launcher
+2025-03-09 04:37:16,748 - INFO - Connecting to BlueStacks via ADB...
+2025-03-09 04:37:16,809 - INFO - Connecting to ADB on port 5555...
+2025-03-09 04:37:16,863 - INFO - ADB connect result: already connected to 127.0.0.1:5555
+2025-03-09 04:37:16,907 - INFO - Successfully connected to BlueStacks via ADB
+2025-03-09 04:37:16,907 - INFO - Starting character switching process
+2025-03-09 04:37:16,907 - INFO - Switch character at position {'x': 400, 'y': 220}
+2025-03-09 04:37:16,907 - INFO - Switch character at position {'x': 400, 'y': 380}
+2025-03-09 04:37:16,908 - INFO - Switch character at position {'x': 400, 'y': 520}
+2025-03-09 04:37:16,908 - INFO - Switch character at position {'x': 800, 'y': 240}
+2025-03-09 04:37:16,908 - INFO - Switch character at position {'x': 800, 'y': 380}
+2025-03-09 04:37:16,908 - INFO - Switch character at position {'x': 800, 'y': 520}
+2025-03-09 04:37:16,908 - INFO - Switch character at position {'x': 400, 'y': 240}
+2025-03-09 04:37:16,908 - INFO - Scrolling down character list
+2025-03-09 04:37:16,908 - INFO - Swiping from (640, 600) to (640, 325)
+2025-03-09 04:37:21,456 - INFO - Switch character at position {'x': 400, 'y': 360}
+2025-03-09 04:37:21,456 - INFO - Scrolling down character list
+2025-03-09 04:37:21,456 - INFO - Swiping from (640, 600) to (640, 325)
+2025-03-09 04:37:25,978 - INFO - Switch character at position {'x': 400, 'y': 520}
+2025-03-09 04:37:25,978 - INFO - Scrolling down character list
+2025-03-09 04:37:25,978 - INFO - Swiping from (640, 600) to (640, 325)
+2025-03-09 04:37:30,525 - INFO - Switch character at position {'x': 800, 'y': 220}
+2025-03-09 04:37:30,525 - INFO - Scrolling down character list
+2025-03-09 04:37:30,525 - INFO - Swiping from (640, 600) to (640, 325)
+2025-03-09 04:37:35,076 - INFO - Switch character at position {'x': 800, 'y': 360}
+2025-03-09 04:37:35,076 - INFO - Scrolling down character list
+2025-03-09 04:37:35,076 - INFO - Swiping from (640, 600) to (640, 325)
+2025-03-09 04:37:39,645 - INFO - Switch character at position {'x': 800, 'y': 520}
+2025-03-09 04:37:39,645 - INFO - Scrolling down character list
+2025-03-09 04:37:39,645 - INFO - Swiping from (640, 600) to (640, 325)
+2025-03-09 04:51:32,669 - INFO - Starting BlueStacks Rise of Kingdoms Launcher
+2025-03-09 04:51:32,670 - INFO - Connecting to BlueStacks via ADB...
+2025-03-09 04:51:32,706 - INFO - Connecting to ADB on port 5555...
+2025-03-09 04:51:32,743 - INFO - ADB connect result: already connected to 127.0.0.1:5555
+2025-03-09 04:51:32,776 - INFO - Successfully connected to BlueStacks via ADB
+2025-03-09 04:51:34,370 - INFO - OCR detected text (adaptive): =i _____ CHARACTERLOGIN etd
+® :
+' bs S
+;
+
+2025-03-09 04:51:34,541 - INFO - OCR detected text (otsu): Log in as this character?
+[174H]Katwood1
+
+2025-03-09 04:51:34,541 - INFO - Keyword 'Log in' detected with method otsu
+2025-03-09 04:51:34,542 - INFO - Currently in Character Login Screen
+2025-03-09 04:51:42,104 - INFO - Starting BlueStacks Rise of Kingdoms Launcher
+2025-03-09 04:51:42,105 - INFO - Connecting to BlueStacks via ADB...
+2025-03-09 04:51:42,147 - INFO - Connecting to ADB on port 5555...
+2025-03-09 04:51:42,187 - INFO - ADB connect result: already connected to 127.0.0.1:5555
+2025-03-09 04:51:42,223 - INFO - Successfully connected to BlueStacks via ADB
+2025-03-09 04:51:43,349 - INFO - OCR detected text (adaptive): CHARACTERS ; ;
+Wwe [1 74H]Katwood! (iN [174H]Katstone4.
+A (#3174 Kingdom of Lucilla) Ly W ee )) #3174 Kingdom of Lucilla
+wi Power: 8,442,323} A ie Power: 9,919,972)
+(GEESE
+> [174H]Katfoodl f; SN [174H]Katstonel!
+pA #3174 Kingdom.of Lucilla Va a y) #3174 Kingdom of Lucilla
+— Power:'11;303,975 Sy Power: 8,740,121}
+——— = —— OEE —
+= =
+a \WaLL/4H]Katgoldt! | (PNNEILi4HlKatfood2
+a #3174 Kingdom of Lucilla WW t ( fy ) #3174 Kingdom of Lucilla
+>) Power: 8,499,330, SS Bower: 8,768,042)
+. Al IS "
+
+2025-03-09 04:51:43,839 - INFO - OCR detected text (otsu): CHARACTERS
+-~ [174H]Katwood1 4 [174H]Katstone4
+rs | 43374 Kingdom of Lucilla * \ : A. } #3174 Kingdom of Lucilla
+“Power: 8,442,323 NY Power: 9,919,972
+> [174H]Katfood1 A \ [174H]Katstonel
+pA #3174 Kingdom of Lucilla * ¢ } #3174 Kingdom of Lucilla
+y Power: 11,303,975 : Power: 8,740,121
+ay [174H]Katgold1 A \, [174H]Katfood2
+| 93174 Kingdom of Lucilla * 4 i } #3174 Kingdom of Lucilla
+e Power: 8,499,330 ‘ Power: 8,768,042
+
+2025-03-09 04:51:44,182 - INFO - OCR detected text (inverted): CHARACTERS
+> [174H]Katwood1 4 [174H]Katstone4
+rs | 43374 Kingdom of Lucilla * \ : i. } #3174 Kingdom of Lucilla
+“Power: 8,442,323 NY Power: 9,919,972
+> [174H]Katfood1 i \ [174H]Katstonel
+aT #3174 Kingdom of Lucilla * ¢ } #3174 Kingdom of Lucilla
+y Power: 11,303,975 : Power: 8,740,121
+ay [174H]Katgold1 A \ [174H]Katfood2
+| 93174 Kingdom of Lucilla * 4 i } #3174 Kingdom of Lucilla
+e Power: 8,499,330 ‘ Power: 8,768,042
+
+2025-03-09 04:51:44,717 - INFO - OCR detected text (contrast): CHARACTERS
+ggg
+B\ [174H]Katwood1 | mm [174 ]Katstones
+p | #3a7aKi ingdom of Lucilla * 0. #3174 Kingdom of Lucilla
+Power: 8,442,323 Y Power: 9,919,972
+—
+S\ [174H]Katfood1 '" 7@. (174H]Katstone1
+p | #3174 Kingdom of Lucilla * iF } #3174 Kingdom of Lucilla
+Power: 11,303,975 Power: 8,740,121,
+a [174H]Katgold1 i [174H]Katfood2
+a #3174 Kingdom of Lucilla * #3174 Kingdom of Lucilla
+eo Power: 8,499,330 Power: 8,768,042
+
+2025-03-09 04:51:45,182 - INFO - OCR detected text (original): CHARACTERS
+> [174H]Katwood1 (=> [174H]Katstone4
+po | #3174 Kingdom of Lucilla * \ | ¥3 J #3174 Kingdom of Lucilla
+“Power: 8,442,323 \ TY Power: 9,919,972
+> [174H]Katfood1 V/ ‘. [174H]Katstone1
+eA | #3174 Kingdom of Lucilla * i | #3174 Kingdom of Lucilla
+/ Power: 11,303,975 \ Power: 8,740,121
+y [174H]Katgold1 V/ \\ [174H]Katfood2
+| 43174 Kingdom of Lucilla * \ 4 | #3174 Kingdom of Lucilla
+LY Power: 8,499,330 \ Power: 8,768,042
+
+2025-03-09 04:51:45,182 - INFO - No keywords detected in any preprocessing method
+2025-03-09 04:51:45,182 - INFO - Not in Character Login Screen
+2025-03-09 04:51:54,328 - INFO - Starting BlueStacks Rise of Kingdoms Launcher
+2025-03-09 04:51:54,329 - INFO - Connecting to BlueStacks via ADB...
+2025-03-09 04:51:54,385 - INFO - Connecting to ADB on port 5555...
+2025-03-09 04:51:54,425 - INFO - ADB connect result: already connected to 127.0.0.1:5555
+2025-03-09 04:51:54,462 - INFO - Successfully connected to BlueStacks via ADB
+2025-03-09 04:51:55,589 - INFO - OCR detected text (adaptive): 10 Preri] Kau oust 7 fs Chri] Kate otis)
+=») #3174 Kingdom of Lucilla vy (ie) #3174 Kingdom of Lucilla
+
+. : aN : :
+S |
+= Power:'10,122,464 ay Power:'11,975,913
+
+= —Z4n0——
+
+——= =
+a l cape L74H Katgolds'
+: ee
+Ng Powers 13,113,121) UNS EY Powers 13,865,656
+== = Se OB
+a wi] GY
+Seren Crs an Power 15 O76 86
+
+2025-03-09 04:51:56,137 - INFO - OCR detected text (otsu): Wy \ L[4/°enjnatwoous f. \ L2renjnatgows
+m* | 43174 Kingdom of Lucilla * » x } #3174 Kingdom of Lucilla
+2’ Power: 9,766,723 Va Power: 10,105,399
+Ry [174H]Katfood5S 7 ey [174H]Katwood5
+| #3174 Kingdom of Lucilla * ie \ } #3174 Kingdom of Lucilla
+_Y Power: 10,122,464 \e Power: 11,975,913
+x [174H]Katstone5 A fi % [174H]Katgold5
+| #3174 Kingdom of Lucilla * Ny | #3174 Kingdom of Lucilla
+yy Power: 13,113,121 4 Va Power: 13,865,656
+\, [174H]KatFood10 V4 5 [174H]KatFoods
+% | 3174 Kingdom of Lucilla * i'w ! #3174 Kingdom of Lucilla
+/ Dewar: 17.031.617 Ne e@ Power: 15.076.961
+
+2025-03-09 04:51:56,533 - INFO - OCR detected text (inverted): b \ L[4/°enjnatwouous f. \ L2renjnatgows
+m* | 43174 Kingdom of Lucilla * » x } #3174 Kingdom of Lucilla
+2’ Power: 9,766,723 Va Power: 10,105,399
+Ry [174H]Katfood5S 7 we [174H]Katwood5
+| #3174 Kingdom of Lucilla ¥* i os } #3174 Kingdom of Lucilla
+_Y Power: 10,122,464 \e Power: 11,975,913
+x [174H]Katstone5 A fi % [174H]Katgold5
+| #3174 Kingdom of Lucilla * Ny | #3174 Kingdom of Lucilla
+yy Power: 13,113,121 4 Va Power: 13,865,656
+\, [174H]KatFood10 V4 5 [174H]KatFoods
+% | 3174 Kingdom of Lucilla * i ! #3174 Kingdom of Lucilla
+/ Dewar: 17.031.617 Ne e@ Power: 15.076.961
+
+2025-03-09 04:51:57,148 - INFO - OCR detected text (contrast): [4:4n]nRatwoout a \ Lasanynatgos
+3) #3174 Kingdom of Lucilla * |< #3174 Kingdom of Lucilla
+WU Power: 9,766,723 Power: 10,105,399
+SEU
+= [174H]Katfoods tm [1TAH]Katwoods
+~ #3174 Kingdom of Lucilla * #3174 Kingdom of Lucilla
+Power: 10,122,464 Power: 11,975,913
+eT
+oy [174H]Katstones 4 t [174H]Katgolds
+as | #3174 Kingdom of Lucilla * { ‘ #3174 Kingdom of Lucilla
+a Power: 13,113,121 ‘ Power: 13,865,656
+a
+. [174H]KatFood10 “es [1T4H]KatFood8
+? #3174 Kingdom of Lucilla * y #3174 Kingdom of Lucilla
+Power: 17.031.617 Power: 15.076.861
+
+2025-03-09 04:51:57,679 - INFO - OCR detected text (original): b) Y [4/4njnatwooat y \ LLfenjnatgoust
+m |) 43174 Kingdom of Lucilla * i % | #3174 Kingdom of Lucilla
+©)’ Power: 9,766,723 Va Power: 10,105,399
+ry [174H]Katfood5 7 - [174H]Katwood5
+|) #3174 Kingdom of Lucilla * y e |) #3174 Kingdom of Lucilla
+LY Power: 10,122,464 ‘Power: 11,975,913
+a [174H]Katstone5 z q %) [174H]Katgold5
+| #3174 Kingdom of Lucilla * (QE) #3174 kingdom of Lucilla
+LY Power: 13,113,121 iv | Vw Power: 13,865,656
+ [174H]KatFood10 7 wv [174H]KatFoods
+24 | #3174 Kingdom of Lucilla * ( | #3174 Kingdom of Lucilla
+‘Dower: 17.031.617 Na a Power: 15.076.861
+
+2025-03-09 04:51:57,679 - INFO - No keywords detected in any preprocessing method
+2025-03-09 04:51:57,679 - INFO - Not in Character Login Screen
+2025-03-09 05:03:01,956 - INFO - Starting BlueStacks Rise of Kingdoms Launcher
+2025-03-09 05:03:01,959 - INFO - Connecting to BlueStacks via ADB...
+2025-03-09 05:03:02,010 - INFO - Connecting to ADB on port 5555...
+2025-03-09 05:03:02,047 - INFO - ADB connect result: already connected to 127.0.0.1:5555
+2025-03-09 05:03:02,080 - INFO - Successfully connected to BlueStacks via ADB
+2025-03-09 05:03:02,080 - INFO - Closing dialogs
+2025-03-09 05:03:02,080 - INFO - Sending ESCAPE key event
+2025-03-09 05:03:02,826 - INFO - Sent escape key to close dialog
+2025-03-09 05:03:11,525 - INFO - Starting BlueStacks Rise of Kingdoms Launcher
+2025-03-09 05:03:11,527 - INFO - Connecting to BlueStacks via ADB...
+2025-03-09 05:03:11,566 - INFO - Connecting to ADB on port 5555...
+2025-03-09 05:03:11,605 - INFO - ADB connect result: already connected to 127.0.0.1:5555
+2025-03-09 05:03:11,641 - INFO - Successfully connected to BlueStacks via ADB
+2025-03-09 05:03:11,641 - INFO - Closing dialogs
+2025-03-09 05:03:11,641 - INFO - Sending ESCAPE key event
+2025-03-09 05:03:12,364 - INFO - Sent escape key to close dialog
+2025-03-09 05:03:13,365 - INFO - Closing dialogs
+2025-03-09 05:03:13,365 - INFO - Sending ESCAPE key event
+2025-03-09 05:03:14,072 - INFO - Sent escape key to close dialog
+2025-03-09 05:03:15,073 - INFO - Closing dialogs
+2025-03-09 05:03:15,073 - INFO - Sending ESCAPE key event
+2025-03-09 05:03:15,809 - INFO - Sent escape key to close dialog
+2025-03-09 05:03:16,810 - INFO - Closing dialogs
+2025-03-09 05:03:16,810 - INFO - Sending ESCAPE key event
+2025-03-09 05:03:17,524 - INFO - Sent escape key to close dialog
+2025-03-09 05:07:05,340 - INFO - Starting BlueStacks Rise of Kingdoms Launcher
+2025-03-09 05:07:05,342 - INFO - Connecting to BlueStacks via ADB...
+2025-03-09 05:07:05,389 - INFO - Connecting to ADB on port 5555...
+2025-03-09 05:07:05,428 - INFO - ADB connect result: already connected to 127.0.0.1:5555
+2025-03-09 05:07:05,462 - INFO - Successfully connected to BlueStacks via ADB
+2025-03-09 05:07:05,462 - INFO - Scrolling down character list
+2025-03-09 05:07:05,462 - INFO - Swiping from (640, 600) to (640, 325)
+2025-03-09 05:07:08,058 - INFO - Scrolling down character list
+2025-03-09 05:07:08,058 - INFO - Swiping from (640, 600) to (640, 325)
+2025-03-09 05:07:44,827 - INFO - Starting BlueStacks Rise of Kingdoms Launcher
+2025-03-09 05:07:44,828 - INFO - Connecting to BlueStacks via ADB...
+2025-03-09 05:07:44,864 - INFO - Connecting to ADB on port 5555...
+2025-03-09 05:07:44,899 - INFO - ADB connect result: already connected to 127.0.0.1:5555
+2025-03-09 05:07:44,933 - INFO - Successfully connected to BlueStacks via ADB
+2025-03-09 05:07:44,933 - INFO - Closing dialogs
+2025-03-09 05:07:44,933 - INFO - Sending ESCAPE key event
+2025-03-09 05:07:45,718 - INFO - Sent escape key to close dialog
+2025-03-09 05:07:46,719 - INFO - Closing dialogs
+2025-03-09 05:07:46,719 - INFO - Sending ESCAPE key event
+2025-03-09 05:07:47,586 - INFO - Sent escape key to close dialog
+2025-03-09 05:07:48,588 - INFO - Closing dialogs
+2025-03-09 05:07:48,588 - INFO - Sending ESCAPE key event
+2025-03-09 05:07:49,314 - INFO - Sent escape key to close dialog
+2025-03-09 05:08:24,951 - INFO - Starting BlueStacks Rise of Kingdoms Launcher
+2025-03-09 05:08:24,952 - INFO - Connecting to BlueStacks via ADB...
+2025-03-09 05:08:24,997 - INFO - Connecting to ADB on port 5555...
+2025-03-09 05:08:25,039 - INFO - ADB connect result: already connected to 127.0.0.1:5555
+2025-03-09 05:08:25,073 - INFO - Successfully connected to BlueStacks via ADB
+2025-03-09 05:08:25,073 - INFO - Starting character switching process
+2025-03-09 05:08:25,073 - INFO - Clicking at coordinates: (400, 220)
+2025-03-09 05:08:30,993 - INFO - OCR detected text (adaptive): Ba. s aga meu Uat eng Sa ane (tN Bc) . BOA
+TL UWS ee ne aS Nets es a
+s i aS ee Nee ie)
+y ge eens en ee wad ae
+< Bue s Se FSG
+ee @ ne Gs SMa Op oe
+a <S, > * un a Ae i meseare nape So =) ‘ s
+ee Se ES Rory Hs Wwe eit
+Ce St <r ne were LF, a eS
+3; =e a Yas “4 EES si Biers eine 3s oS lies ANS
+a Ra ieee See iit RUE ap SAL aS
+
+2025-03-09 05:08:31,611 - INFO - OCR detected text (otsu): ‘Seg. ie
+{| oe "Sy if ‘one 7 . deg,
+OR, oe pet Sy
+re Mae
+Ve “i ana city a ar Ly Ph) See
+
+2025-03-09 05:08:32,019 - INFO - OCR detected text (inverted): ‘Seg. ie
+{| = "Sy if iy 7 . deg,
+ES 3 oe pe tc oy
+ec Mae
+Ve “i ana cms a a Ly i). See
+
+2025-03-09 05:08:32,235 - INFO - OCR detected text (contrast): x iv Ow ae
+SS fan Behe
+
+2025-03-09 05:08:32,542 - INFO - OCR detected text (original): “Sieg aie
+| al. By t eR. Re : ease
+SS 2 a © pe bic Ss
+ce MISS
+kn "i a re ——_— Lo i) \ ee
+
+2025-03-09 05:08:32,543 - INFO - No keywords detected in any preprocessing method
+2025-03-09 05:08:32,543 - INFO - Not in Character Login Screen
+2025-03-09 05:08:32,543 - INFO - Closing dialogs
+2025-03-09 05:08:32,543 - INFO - Sending ESCAPE key event
+2025-03-09 05:08:33,322 - INFO - Sent escape key to close dialog
+2025-03-09 05:08:34,322 - INFO - Closing dialogs
+2025-03-09 05:08:34,322 - INFO - Sending ESCAPE key event
+2025-03-09 05:09:41,897 - INFO - Starting BlueStacks Rise of Kingdoms Launcher
+2025-03-09 05:09:41,898 - INFO - Connecting to BlueStacks via ADB...
+2025-03-09 05:09:41,934 - INFO - Connecting to ADB on port 5555...
+2025-03-09 05:09:41,971 - INFO - ADB connect result: already connected to 127.0.0.1:5555
+2025-03-09 05:09:42,004 - INFO - Successfully connected to BlueStacks via ADB
+2025-03-09 05:09:42,004 - INFO - Starting character switching process
+2025-03-09 05:09:42,004 - INFO - Opening character selection screen
+2025-03-09 05:09:42,004 - INFO - Clicking avatar icon
+2025-03-09 05:09:42,004 - INFO - Clicking at coordinates: (50, 50)
+2025-03-09 05:09:45,313 - INFO - Clicking settings icon
+2025-03-09 05:09:45,313 - INFO - Clicking at coordinates: (1109, 581)
+2025-03-09 05:09:48,538 - INFO - Clicking characters icon
+2025-03-09 05:09:48,538 - INFO - Clicking at coordinates: (350, 370)
+2025-03-09 05:09:51,824 - INFO - Character selection screen opened
+2025-03-09 05:09:51,824 - INFO - current rotation: 0
+2025-03-09 05:09:51,824 - INFO - Clicking at coordinates: (400, 220)
+2025-03-09 05:09:57,279 - INFO - OCR detected text (adaptive): CHARACTERS ; ;
+Wwe [1 74H]Katwood! (iN [174H]Katstone4.
+A (#3174 Kingdom of Lucilla) Ly W ee )) #3174 Kingdom of Lucilla
+wi Power: 8,442,323} A ie Power: 9,919,972)
+(GEESE
+> [174H]Katfoodl f; SN [174H]Katstonel!
+pA #3174 Kingdom.of Lucilla Va a y) #3174 Kingdom of Lucilla
+— Power:'11;303,975 Sy Power: 8,740,121}
+——— = —— OEE —
+= =
+a \WaLL/4H]Katgoldt! | (PNNEILi4HlKatfood2
+a #3174 Kingdom of Lucilla WW t ( fy ) #3174 Kingdom of Lucilla
+>) Power: 8,499,330, SS Bower: 8,768,042)
+. Al IS "
+
+2025-03-09 05:09:57,742 - INFO - OCR detected text (otsu): CHARACTERS
+-~ [174H]Katwood1 4 [174H]Katstone4
+rs | 43374 Kingdom of Lucilla * \ : A. } #3174 Kingdom of Lucilla
+“Power: 8,442,323 NY Power: 9,919,972
+> [174H]Katfood1 A \ [174H]Katstonel
+pA #3174 Kingdom of Lucilla * ¢ } #3174 Kingdom of Lucilla
+y Power: 11,303,975 : Power: 8,740,121
+ay [174H]Katgold1 A \, [174H]Katfood2
+| 93174 Kingdom of Lucilla * 4 i } #3174 Kingdom of Lucilla
+e Power: 8,499,330 ‘ Power: 8,768,042
+
+2025-03-09 05:09:58,100 - INFO - OCR detected text (inverted): CHARACTERS
+> [174H]Katwood1 4 [174H]Katstone4
+rs | 43374 Kingdom of Lucilla * \ : i. } #3174 Kingdom of Lucilla
+“Power: 8,442,323 NY Power: 9,919,972
+> [174H]Katfood1 i \ [174H]Katstonel
+aT #3174 Kingdom of Lucilla * ¢ } #3174 Kingdom of Lucilla
+y Power: 11,303,975 : Power: 8,740,121
+ay [174H]Katgold1 A \ [174H]Katfood2
+| 93174 Kingdom of Lucilla * 4 i } #3174 Kingdom of Lucilla
+e Power: 8,499,330 ‘ Power: 8,768,042
+
+2025-03-09 05:09:58,633 - INFO - OCR detected text (contrast): CHARACTERS
+ggg
+B\ [174H]Katwood1 | mm [174 ]Katstones
+p | #3a7aKi ingdom of Lucilla * 0. #3174 Kingdom of Lucilla
+Power: 8,442,323 Y Power: 9,919,972
+—
+S\ [174H]Katfood1 '" 7@. (174H]Katstone1
+p | #3174 Kingdom of Lucilla * iF } #3174 Kingdom of Lucilla
+Power: 11,303,975 Power: 8,740,121,
+a [174H]Katgold1 i [174H]Katfood2
+a #3174 Kingdom of Lucilla * #3174 Kingdom of Lucilla
+eo Power: 8,499,330 Power: 8,768,042
+
+2025-03-09 05:09:59,120 - INFO - OCR detected text (original): CHARACTERS
+> [174H]Katwood1 (=> [174H]Katstone4
+po | #3174 Kingdom of Lucilla * \ | ¥3 J #3174 Kingdom of Lucilla
+“Power: 8,442,323 \ TY Power: 9,919,972
+> [174H]Katfood1 V/ ‘. [174H]Katstone1
+eA | #3174 Kingdom of Lucilla * i | #3174 Kingdom of Lucilla
+/ Power: 11,303,975 \ Power: 8,740,121
+y [174H]Katgold1 V/ \\ [174H]Katfood2
+| 43174 Kingdom of Lucilla * \ 4 | #3174 Kingdom of Lucilla
+LY Power: 8,499,330 \ Power: 8,768,042
+
+2025-03-09 05:09:59,120 - INFO - No keywords detected in any preprocessing method
+2025-03-09 05:09:59,121 - INFO - Not in Character Login Screen
+2025-03-09 05:09:59,121 - INFO - Closing dialogs
+2025-03-09 05:09:59,121 - INFO - Sending ESCAPE key event
+2025-03-09 05:09:59,883 - INFO - Sent escape key to close dialog
+2025-03-09 05:10:00,884 - INFO - Closing dialogs
+2025-03-09 05:10:00,884 - INFO - Sending ESCAPE key event
+2025-03-09 05:10:01,637 - INFO - Sent escape key to close dialog
+2025-03-09 05:10:02,638 - INFO - Closing dialogs
+2025-03-09 05:10:02,638 - INFO - Sending ESCAPE key event
+2025-03-09 05:10:03,386 - INFO - Sent escape key to close dialog
+2025-03-09 05:10:04,386 - INFO - Switch character at position {'x': 400, 'y': 220}
+2025-03-09 05:10:04,386 - INFO - current rotation: 1
+2025-03-09 05:10:04,386 - INFO - Clicking at coordinates: (400, 380)
+2025-03-09 05:10:09,986 - INFO - OCR detected text (adaptive): ELAN Say Ge ccs eee oS 8 Cold ONE
+See Ry ite)
+oe es
+oe Seer ul aii a as Peak UU ESS A sy eas
+BOT ae AR
+aS ean cate SSE (nese = TRE
+RChe Wen: eat a Bh Ses TEL Eee. Pee
+LIN A RES nh Tre EA sN ZA HON .
+
+2025-03-09 05:10:10,231 - INFO - OCR detected text (otsu): Trading Post an ba Z 3 rs re
+wy at gil x. H Wee a
+— "ST ee ae *< hen 7
+
+2025-03-09 05:10:10,495 - INFO - OCR detected text (inverted): Trading Post an ba Z 3 oat i a
+wy ait gil x. H Wo
+—"S a ae *< hen 7
+
+2025-03-09 05:10:10,831 - INFO - OCR detected text (contrast): coe, SE “ka,
+Leval24 “@,. ee Ag gM vate ese
+
+?S ks RR ae | Sei:
+ial gd Researchip & SON bea
+
+Sg et Piet
+
+ae oe a SR
+
+2025-03-09 05:10:11,102 - INFO - OCR detected text (original): Trading Post py be 4 3 Frit i>
+“< otal eae. / Wes en Shoal
+~ <war~ Oe ems Re ess iN
+
+2025-03-09 05:10:11,102 - INFO - No keywords detected in any preprocessing method
+2025-03-09 05:10:11,102 - INFO - Not in Character Login Screen
+2025-03-09 05:10:11,103 - INFO - Closing dialogs
+2025-03-09 05:10:11,103 - INFO - Sending ESCAPE key event
+2025-03-09 05:10:11,872 - INFO - Sent escape key to close dialog
+2025-03-09 05:14:17,517 - INFO - Starting BlueStacks Rise of Kingdoms Launcher
+2025-03-09 05:14:17,521 - INFO - Connecting to BlueStacks via ADB...
+2025-03-09 05:14:17,595 - INFO - Connecting to ADB on port 5555...
+2025-03-09 05:14:17,640 - INFO - ADB connect result: already connected to 127.0.0.1:5555
+2025-03-09 05:14:17,676 - INFO - Successfully connected to BlueStacks via ADB
+2025-03-09 05:14:17,677 - INFO - Starting character switching process
+2025-03-09 05:14:17,677 - INFO - Opening character selection screen
+2025-03-09 05:14:17,677 - INFO - Clicking avatar icon
+2025-03-09 05:14:17,677 - INFO - Clicking at coordinates: (50, 50)
+2025-03-09 05:14:20,946 - INFO - Clicking settings icon
+2025-03-09 05:14:20,946 - INFO - Clicking at coordinates: (1109, 581)
+2025-03-09 05:14:24,200 - INFO - Clicking characters icon
+2025-03-09 05:14:24,200 - INFO - Clicking at coordinates: (350, 370)
+2025-03-09 05:14:27,420 - INFO - Character selection screen opened
+2025-03-09 05:14:27,420 - INFO - current rotation: 0
+2025-03-09 05:14:27,420 - INFO - Clicking at coordinates: (400, 220)
+2025-03-09 05:14:32,931 - INFO - OCR detected text (adaptive): CHARACTERS ; ;
+Wwe [1 74H]Katwood! (iN [174H]Katstone4.
+A (#3174 Kingdom of Lucilla) Ly W ee )) #3174 Kingdom of Lucilla
+wi Power: 8,442,323} A ie Power: 9,919,972)
+(GEESE
+> [174H]Katfoodl f; SN [174H]Katstonel!
+pA #3174 Kingdom.of Lucilla Va a y) #3174 Kingdom of Lucilla
+— Power:'11;303,975 Sy Power: 8,740,121}
+——— = —— OEE —
+= =
+a \WaLL/4H]Katgoldt! | (PNNEILi4HlKatfood2
+a #3174 Kingdom of Lucilla WW t ( fy ) #3174 Kingdom of Lucilla
+>) Power: 8,499,330, SS Bower: 8,768,042)
+. Al IS "
+
+2025-03-09 05:14:33,382 - INFO - OCR detected text (otsu): CHARACTERS
+-~ [174H]Katwood1 4 [174H]Katstone4
+rs | 43374 Kingdom of Lucilla * \ : A. } #3174 Kingdom of Lucilla
+“Power: 8,442,323 NY Power: 9,919,972
+> [174H]Katfood1 A \ [174H]Katstonel
+pA #3174 Kingdom of Lucilla * ¢ } #3174 Kingdom of Lucilla
+y Power: 11,303,975 : Power: 8,740,121
+ay [174H]Katgold1 A \, [174H]Katfood2
+| 93174 Kingdom of Lucilla * 4 i } #3174 Kingdom of Lucilla
+e Power: 8,499,330 ‘ Power: 8,768,042
+
+2025-03-09 05:14:33,722 - INFO - OCR detected text (inverted): CHARACTERS
+> [174H]Katwood1 4 [174H]Katstone4
+rs | 43374 Kingdom of Lucilla * \ : i. } #3174 Kingdom of Lucilla
+“Power: 8,442,323 NY Power: 9,919,972
+> [174H]Katfood1 i \ [174H]Katstonel
+aT #3174 Kingdom of Lucilla * ¢ } #3174 Kingdom of Lucilla
+y Power: 11,303,975 : Power: 8,740,121
+ay [174H]Katgold1 A \ [174H]Katfood2
+| 93174 Kingdom of Lucilla * 4 i } #3174 Kingdom of Lucilla
+e Power: 8,499,330 ‘ Power: 8,768,042
+
+2025-03-09 05:14:34,252 - INFO - OCR detected text (contrast): CHARACTERS
+ggg
+B\ [174H]Katwood1 | mm [174 ]Katstones
+p | #3a7aKi ingdom of Lucilla * 0. #3174 Kingdom of Lucilla
+Power: 8,442,323 Y Power: 9,919,972
+—
+S\ [174H]Katfood1 '" 7@. (174H]Katstone1
+p | #3174 Kingdom of Lucilla * iF } #3174 Kingdom of Lucilla
+Power: 11,303,975 Power: 8,740,121,
+a [174H]Katgold1 i [174H]Katfood2
+a #3174 Kingdom of Lucilla * #3174 Kingdom of Lucilla
+eo Power: 8,499,330 Power: 8,768,042
+
+2025-03-09 05:15:00,027 - INFO - Starting BlueStacks Rise of Kingdoms Launcher
+2025-03-09 05:15:00,028 - INFO - Connecting to BlueStacks via ADB...
+2025-03-09 05:15:00,082 - INFO - Connecting to ADB on port 5555...
+2025-03-09 05:15:00,135 - INFO - ADB connect result: already connected to 127.0.0.1:5555
+2025-03-09 05:15:00,182 - INFO - Successfully connected to BlueStacks via ADB
+2025-03-09 05:15:00,182 - INFO - Starting character switching process
+2025-03-09 05:15:00,183 - INFO - Opening character selection screen
+2025-03-09 05:15:00,183 - INFO - Clicking avatar icon
+2025-03-09 05:15:00,183 - INFO - Clicking at coordinates: (50, 50)
+2025-03-09 05:15:03,507 - INFO - Clicking settings icon
+2025-03-09 05:15:03,507 - INFO - Clicking at coordinates: (1109, 581)
+2025-03-09 05:15:06,746 - INFO - Clicking characters icon
+2025-03-09 05:15:06,746 - INFO - Clicking at coordinates: (350, 370)
+2025-03-09 05:15:09,951 - INFO - Character selection screen opened
+2025-03-09 05:15:09,951 - INFO - current rotation: 0
+2025-03-09 05:15:09,951 - INFO - Clicking at coordinates: (400, 220)
+2025-03-09 05:15:17,332 - INFO - OCR detected text (adaptive): CHARACTERS ; ;
+Wwe [1 74H]Katwood! (iN [174H]Katstone4.
+A (#3174 Kingdom of Lucilla) Ly W ee )) #3174 Kingdom of Lucilla
+wi Power: 8,442,323} A ie Power: 9,919,972)
+(GEESE
+> [174H]Katfoodl f; SN [174H]Katstonel!
+pA #3174 Kingdom.of Lucilla Va a y) #3174 Kingdom of Lucilla
+— Power:'11;303,975 Sy Power: 8,740,121}
+——— = —— OEE —
+= =
+a \WaLL/4H]Katgoldt! | (PNNEILi4HlKatfood2
+a #3174 Kingdom of Lucilla WW t ( fy ) #3174 Kingdom of Lucilla
+>) Power: 8,499,330, SS Bower: 8,768,042)
+. Al IS "
+
+2025-03-09 05:15:17,816 - INFO - OCR detected text (otsu): CHARACTERS
+-~ [174H]Katwood1 4 [174H]Katstone4
+rs | 43374 Kingdom of Lucilla * \ : A. } #3174 Kingdom of Lucilla
+“Power: 8,442,323 NY Power: 9,919,972
+> [174H]Katfood1 A \ [174H]Katstonel
+pA #3174 Kingdom of Lucilla * ¢ } #3174 Kingdom of Lucilla
+y Power: 11,303,975 : Power: 8,740,121
+ay [174H]Katgold1 A \, [174H]Katfood2
+| 93174 Kingdom of Lucilla * 4 i } #3174 Kingdom of Lucilla
+e Power: 8,499,330 ‘ Power: 8,768,042
+
+2025-03-09 05:15:18,152 - INFO - OCR detected text (inverted): CHARACTERS
+> [174H]Katwood1 4 [174H]Katstone4
+rs | 43374 Kingdom of Lucilla * \ : i. } #3174 Kingdom of Lucilla
+“Power: 8,442,323 NY Power: 9,919,972
+> [174H]Katfood1 i \ [174H]Katstonel
+aT #3174 Kingdom of Lucilla * ¢ } #3174 Kingdom of Lucilla
+y Power: 11,303,975 : Power: 8,740,121
+ay [174H]Katgold1 A \ [174H]Katfood2
+| 93174 Kingdom of Lucilla * 4 i } #3174 Kingdom of Lucilla
+e Power: 8,499,330 ‘ Power: 8,768,042
+
+2025-03-09 05:15:18,677 - INFO - OCR detected text (contrast): CHARACTERS
+ggg
+B\ [174H]Katwood1 | mm [174 ]Katstones
+p | #3a7aKi ingdom of Lucilla * 0. #3174 Kingdom of Lucilla
+Power: 8,442,323 Y Power: 9,919,972
+—
+S\ [174H]Katfood1 '" 7@. (174H]Katstone1
+p | #3174 Kingdom of Lucilla * iF } #3174 Kingdom of Lucilla
+Power: 11,303,975 Power: 8,740,121,
+a [174H]Katgold1 i [174H]Katfood2
+a #3174 Kingdom of Lucilla * #3174 Kingdom of Lucilla
+eo Power: 8,499,330 Power: 8,768,042
+
+2025-03-09 05:15:19,142 - INFO - OCR detected text (original): CHARACTERS
+> [174H]Katwood1 (=> [174H]Katstone4
+po | #3174 Kingdom of Lucilla * \ | ¥3 J #3174 Kingdom of Lucilla
+“Power: 8,442,323 \ TY Power: 9,919,972
+> [174H]Katfood1 V/ ‘. [174H]Katstone1
+eA | #3174 Kingdom of Lucilla * i | #3174 Kingdom of Lucilla
+/ Power: 11,303,975 \ Power: 8,740,121
+y [174H]Katgold1 V/ \\ [174H]Katfood2
+| 43174 Kingdom of Lucilla * \ 4 | #3174 Kingdom of Lucilla
+LY Power: 8,499,330 \ Power: 8,768,042
+
+2025-03-09 05:15:19,142 - INFO - No keywords detected in any preprocessing method
+2025-03-09 05:15:19,143 - INFO - Not in Character Login Screen
+2025-03-09 05:15:19,143 - INFO - Closing dialogs
+2025-03-09 05:15:19,143 - INFO - Sending ESCAPE key event
+2025-03-09 05:15:19,856 - INFO - Sent escape key to close dialog
+2025-03-09 05:15:20,857 - INFO - Closing dialogs
+2025-03-09 05:15:20,857 - INFO - Sending ESCAPE key event
+2025-03-09 05:15:21,580 - INFO - Sent escape key to close dialog
+2025-03-09 05:15:22,580 - INFO - Closing dialogs
+2025-03-09 05:15:22,580 - INFO - Sending ESCAPE key event
+2025-03-09 05:15:23,311 - INFO - Sent escape key to close dialog
+2025-03-09 05:15:24,311 - INFO - Switch character at position {'x': 400, 'y': 220}
+2025-03-09 05:15:24,311 - INFO - current rotation: 1
+2025-03-09 05:15:24,311 - INFO - Clicking at coordinates: (400, 380)
+2025-03-09 05:15:31,464 - INFO - OCR detected text (adaptive): s Sy Oe NS Rai ae
+: +. = JO)  Greccupied
+& a Pde |).
+5 Teleport March
+3
+y
+_— AGNI MONOQaQoOOoOO
+
+2025-03-09 05:16:13,293 - INFO - Starting BlueStacks Rise of Kingdoms Launcher
+2025-03-09 05:16:13,294 - INFO - Connecting to BlueStacks via ADB...
+2025-03-09 05:16:13,347 - INFO - Connecting to ADB on port 5555...
+2025-03-09 05:16:13,392 - INFO - ADB connect result: already connected to 127.0.0.1:5555
+2025-03-09 05:16:13,436 - INFO - Successfully connected to BlueStacks via ADB
+2025-03-09 05:16:13,436 - INFO - Starting character switching process
+2025-03-09 05:16:13,436 - INFO - Opening character selection screen
+2025-03-09 05:16:13,436 - INFO - Clicking avatar icon
+2025-03-09 05:16:13,436 - INFO - Clicking at coordinates: (50, 50)
+2025-03-09 05:16:16,719 - INFO - Clicking settings icon
+2025-03-09 05:16:16,719 - INFO - Clicking at coordinates: (1109, 581)
+2025-03-09 05:16:19,979 - INFO - Clicking characters icon
+2025-03-09 05:16:19,979 - INFO - Clicking at coordinates: (350, 370)
+2025-03-09 05:16:23,226 - INFO - Character selection screen opened
+2025-03-09 05:16:23,226 - INFO - current rotation: 0
+2025-03-09 05:16:23,226 - INFO - Clicking at coordinates: (400, 220)
+2025-03-09 05:16:30,708 - INFO - OCR detected text (adaptive): CHARACTERS ; ;
+Wwe [1 74H]Katwood! (iN [174H]Katstone4.
+A (#3174 Kingdom of Lucilla) Ly W ee )) #3174 Kingdom of Lucilla
+wi Power: 8,442,323} A ie Power: 9,919,972)
+(GEESE
+> [174H]Katfoodl f; SN [174H]Katstonel!
+pA #3174 Kingdom.of Lucilla Va a y) #3174 Kingdom of Lucilla
+— Power:'11;303,975 Sy Power: 8,740,121}
+——— = —— OEE —
+= =
+a \WaLL/4H]Katgoldt! | (PNNEILi4HlKatfood2
+a #3174 Kingdom of Lucilla WW t ( fy ) #3174 Kingdom of Lucilla
+>) Power: 8,499,330, SS Bower: 8,768,042)
+. Al IS "
+
+2025-03-09 05:16:31,165 - INFO - OCR detected text (otsu): CHARACTERS
+-~ [174H]Katwood1 4 [174H]Katstone4
+rs | 43374 Kingdom of Lucilla * \ : A. } #3174 Kingdom of Lucilla
+“Power: 8,442,323 NY Power: 9,919,972
+> [174H]Katfood1 A \ [174H]Katstonel
+pA #3174 Kingdom of Lucilla * ¢ } #3174 Kingdom of Lucilla
+y Power: 11,303,975 : Power: 8,740,121
+ay [174H]Katgold1 A \, [174H]Katfood2
+| 93174 Kingdom of Lucilla * 4 i } #3174 Kingdom of Lucilla
+e Power: 8,499,330 ‘ Power: 8,768,042
+
+2025-03-09 05:16:31,511 - INFO - OCR detected text (inverted): CHARACTERS
+> [174H]Katwood1 4 [174H]Katstone4
+rs | 43374 Kingdom of Lucilla * \ : i. } #3174 Kingdom of Lucilla
+“Power: 8,442,323 NY Power: 9,919,972
+> [174H]Katfood1 i \ [174H]Katstonel
+aT #3174 Kingdom of Lucilla * ¢ } #3174 Kingdom of Lucilla
+y Power: 11,303,975 : Power: 8,740,121
+ay [174H]Katgold1 A \ [174H]Katfood2
+| 93174 Kingdom of Lucilla * 4 i } #3174 Kingdom of Lucilla
+e Power: 8,499,330 ‘ Power: 8,768,042
+
+2025-03-09 05:16:32,018 - INFO - OCR detected text (contrast): CHARACTERS
+ggg
+B\ [174H]Katwood1 | mm [174 ]Katstones
+p | #3a7aKi ingdom of Lucilla * 0. #3174 Kingdom of Lucilla
+Power: 8,442,323 Y Power: 9,919,972
+—
+S\ [174H]Katfood1 '" 7@. (174H]Katstone1
+p | #3174 Kingdom of Lucilla * iF } #3174 Kingdom of Lucilla
+Power: 11,303,975 Power: 8,740,121,
+a [174H]Katgold1 i [174H]Katfood2
+a #3174 Kingdom of Lucilla * #3174 Kingdom of Lucilla
+eo Power: 8,499,330 Power: 8,768,042
+
+2025-03-09 05:16:32,473 - INFO - OCR detected text (original): CHARACTERS
+> [174H]Katwood1 (=> [174H]Katstone4
+po | #3174 Kingdom of Lucilla * \ | ¥3 J #3174 Kingdom of Lucilla
+“Power: 8,442,323 \ TY Power: 9,919,972
+> [174H]Katfood1 V/ ‘. [174H]Katstone1
+eA | #3174 Kingdom of Lucilla * i | #3174 Kingdom of Lucilla
+/ Power: 11,303,975 \ Power: 8,740,121
+y [174H]Katgold1 V/ \\ [174H]Katfood2
+| 43174 Kingdom of Lucilla * \ 4 | #3174 Kingdom of Lucilla
+LY Power: 8,499,330 \ Power: 8,768,042
+
+2025-03-09 05:16:32,473 - INFO - No keywords detected in any preprocessing method
+2025-03-09 05:16:32,474 - INFO - Not in Character Login Screen
+2025-03-09 05:16:32,474 - INFO - Closing dialogs
+2025-03-09 05:16:32,474 - INFO - Sending ESCAPE key event
+2025-03-09 05:16:33,210 - INFO - Sent escape key to close dialog
+2025-03-09 05:16:34,211 - INFO - Closing dialogs
+2025-03-09 05:16:34,211 - INFO - Sending ESCAPE key event
+2025-03-09 05:16:35,059 - INFO - Sent escape key to close dialog
+2025-03-09 05:16:36,059 - INFO - Closing dialogs
+2025-03-09 05:16:36,059 - INFO - Sending ESCAPE key event
+2025-03-09 05:16:36,849 - INFO - Sent escape key to close dialog
+2025-03-09 05:16:37,850 - INFO - Switch character at position {'x': 400, 'y': 220}
+2025-03-09 05:16:37,850 - INFO - Opening character selection screen
+2025-03-09 05:16:37,850 - INFO - Clicking avatar icon
+2025-03-09 05:16:37,850 - INFO - Clicking at coordinates: (50, 50)
+2025-03-09 05:16:41,135 - INFO - Clicking settings icon
+2025-03-09 05:16:41,135 - INFO - Clicking at coordinates: (1109, 581)
+2025-03-09 05:16:44,390 - INFO - Clicking characters icon
+2025-03-09 05:16:44,390 - INFO - Clicking at coordinates: (350, 370)
+2025-03-09 05:16:47,625 - INFO - Character selection screen opened
+2025-03-09 05:16:47,631 - INFO - current rotation: 1
+2025-03-09 05:16:47,631 - INFO - Clicking at coordinates: (400, 380)
+2025-03-09 05:16:55,374 - INFO - OCR detected text (adaptive): =i _____ CHARACTERLOGIN etd
+©) :
+' bs S
+;
+-
+
+2025-03-09 05:16:55,562 - INFO - OCR detected text (otsu): Log in as this character?
+es
+YS
+[174H]Katfood1
+
+2025-03-09 05:16:55,562 - INFO - Keyword 'Log in' detected with method otsu
+2025-03-09 05:16:55,563 - INFO - Currently in Character Login Screen
+2025-03-09 05:16:55,563 - INFO - Clicking at coordinates: (815, 515)
+2025-03-09 05:16:56,842 - INFO - Waiting 30 seconds for game to load...
+2025-03-09 05:17:26,842 - INFO - Clicking at middle of game screen to dismiss loading screen
+2025-03-09 05:17:26,842 - INFO - Clicking at coordinates: (640, 320)
+2025-03-09 05:17:28,130 - INFO - Waiting 30 seconds for game to load...
+2025-03-09 05:17:58,131 - INFO - Switch character at position {'x': 400, 'y': 380}
+2025-03-09 05:17:58,131 - INFO - Opening character selection screen
+2025-03-09 05:17:58,131 - INFO - Clicking avatar icon
+2025-03-09 05:17:58,131 - INFO - Clicking at coordinates: (50, 50)
+2025-03-09 05:18:01,398 - INFO - Clicking settings icon
+2025-03-09 05:18:01,398 - INFO - Clicking at coordinates: (1109, 581)
+2025-03-09 05:18:04,667 - INFO - Clicking characters icon
+2025-03-09 05:18:04,667 - INFO - Clicking at coordinates: (350, 370)
+2025-03-09 05:18:07,938 - INFO - Character selection screen opened
+2025-03-09 05:18:07,938 - INFO - current rotation: 1
+2025-03-09 05:18:07,938 - INFO - Clicking at coordinates: (400, 520)
+2025-03-09 05:18:15,074 - INFO - OCR detected text (adaptive): it] ______ CHARACTERLOGIN led
+, NE
+;
+-
+
+2025-03-09 05:18:15,250 - INFO - OCR detected text (otsu): Log in as this character?
+‘F
+[L74H]Katgold1.
+
+2025-03-09 05:18:15,250 - INFO - Keyword 'Log in' detected with method otsu
+2025-03-09 05:18:15,250 - INFO - Currently in Character Login Screen
+2025-03-09 05:18:15,250 - INFO - Clicking at coordinates: (815, 515)
+2025-03-09 05:18:16,501 - INFO - Waiting 30 seconds for game to load...
+2025-03-09 05:18:46,502 - INFO - Clicking at middle of game screen to dismiss loading screen
+2025-03-09 05:18:46,502 - INFO - Clicking at coordinates: (640, 320)
+2025-03-09 05:18:47,789 - INFO - Waiting 30 seconds for game to load...
+2025-03-09 05:19:16,832 - INFO - Starting BlueStacks Rise of Kingdoms Launcher
+2025-03-09 05:19:16,833 - INFO - Connecting to BlueStacks via ADB...
+2025-03-09 05:19:16,912 - INFO - Connecting to ADB on port 5555...
+2025-03-09 05:19:16,958 - INFO - ADB connect result: already connected to 127.0.0.1:5555
+2025-03-09 05:19:16,999 - INFO - Successfully connected to BlueStacks via ADB
+2025-03-09 05:19:16,999 - INFO - Starting character switching process
+2025-03-09 05:19:16,999 - INFO - Opening character selection screen
+2025-03-09 05:19:16,999 - INFO - Clicking avatar icon
+2025-03-09 05:19:16,999 - INFO - Clicking at coordinates: (50, 50)
+2025-03-09 05:19:20,322 - INFO - Clicking settings icon
+2025-03-09 05:19:20,322 - INFO - Clicking at coordinates: (1109, 581)
+2025-03-09 05:19:23,575 - INFO - Clicking characters icon
+2025-03-09 05:19:23,575 - INFO - Clicking at coordinates: (350, 370)
+2025-03-09 05:19:29,824 - INFO - Character selection screen opened
+2025-03-09 05:19:29,824 - INFO - current rotation: 1
+2025-03-09 05:19:29,824 - INFO - Clicking at coordinates: (800, 380)
+2025-03-09 05:19:34,956 - INFO - OCR detected text (adaptive): =i _____ CHARACTERLOGIN etd
+® :
+' bs S
+;
+-
+
+2025-03-09 05:19:35,131 - INFO - OCR detected text (otsu): Log in as this character?
+YS
+[174H]Katstonel
+
+2025-03-09 05:19:35,131 - INFO - Keyword 'Log in' detected with method otsu
+2025-03-09 05:19:35,132 - INFO - Currently in Character Login Screen
+2025-03-09 05:19:35,132 - INFO - Clicking at coordinates: (815, 515)
+2025-03-09 05:19:36,386 - INFO - Waiting 10 seconds for game to load...
+2025-03-09 05:19:46,387 - INFO - Clicking at middle of game screen to dismiss loading screen
+2025-03-09 05:19:46,387 - INFO - Clicking at coordinates: (640, 320)
+2025-03-09 05:19:47,767 - INFO - Waiting 10 seconds for game to load...
+2025-03-09 05:19:57,768 - INFO - Switch character at position {'x': 800, 'y': 380}
+2025-03-09 05:19:57,768 - INFO - Opening character selection screen
+2025-03-09 05:19:57,768 - INFO - Clicking avatar icon
+2025-03-09 05:19:57,768 - INFO - Clicking at coordinates: (50, 50)
+2025-03-09 05:20:01,060 - INFO - Clicking settings icon
+2025-03-09 05:20:01,060 - INFO - Clicking at coordinates: (1109, 581)
+2025-03-09 05:20:04,316 - INFO - Clicking characters icon
+2025-03-09 05:20:04,316 - INFO - Clicking at coordinates: (350, 370)
+2025-03-09 05:20:10,602 - INFO - Character selection screen opened
+2025-03-09 05:20:10,602 - INFO - current rotation: 1
+2025-03-09 05:20:10,602 - INFO - Clicking at coordinates: (800, 520)
+2025-03-09 05:20:15,629 - INFO - OCR detected text (adaptive): =i _____ CHARACTERLOGIN etd
+©) :
+' bs S
+;
+-
+
+2025-03-09 05:20:15,817 - INFO - OCR detected text (otsu): Log in as this character?
+es
+YS
+[174H]Katfood2
+
+2025-03-09 05:20:15,817 - INFO - Keyword 'Log in' detected with method otsu
+2025-03-09 05:20:15,818 - INFO - Currently in Character Login Screen
+2025-03-09 05:20:15,818 - INFO - Clicking at coordinates: (815, 515)
+2025-03-09 05:20:17,079 - INFO - Waiting 10 seconds for game to load...
+2025-03-09 05:20:27,080 - INFO - Clicking at middle of game screen to dismiss loading screen
+2025-03-09 05:20:27,080 - INFO - Clicking at coordinates: (640, 320)
+2025-03-09 05:20:28,391 - INFO - Waiting 10 seconds for game to load...
+2025-03-09 05:20:38,392 - INFO - Switch character at position {'x': 800, 'y': 520}
+2025-03-09 05:20:38,392 - INFO - Opening character selection screen
+2025-03-09 05:20:38,392 - INFO - Clicking avatar icon
+2025-03-09 05:20:38,392 - INFO - Clicking at coordinates: (50, 50)
+2025-03-09 05:20:41,621 - INFO - Clicking settings icon
+2025-03-09 05:20:41,621 - INFO - Clicking at coordinates: (1109, 581)
+2025-03-09 05:20:44,859 - INFO - Clicking characters icon
+2025-03-09 05:20:44,859 - INFO - Clicking at coordinates: (350, 370)
+2025-03-09 05:20:51,121 - INFO - Character selection screen opened
+2025-03-09 05:20:51,121 - INFO - current rotation: 1
+2025-03-09 05:20:51,121 - INFO - Clicking at coordinates: (400, 240)
+2025-03-09 05:20:56,318 - INFO - OCR detected text (adaptive): =i _____ CHARACTERLOGIN etd
+.
+® :
+' bs S
+;
+-
+
+2025-03-09 05:20:56,523 - INFO - OCR detected text (otsu): Log in as this character?
+YS
+[174H]Katwood1
+
+2025-03-09 05:20:56,523 - INFO - Keyword 'Log in' detected with method otsu
+2025-03-09 05:20:56,524 - INFO - Currently in Character Login Screen
+2025-03-09 05:20:56,524 - INFO - Clicking at coordinates: (815, 515)
+2025-03-09 05:20:57,810 - INFO - Waiting 10 seconds for game to load...
+2025-03-09 05:21:07,810 - INFO - Clicking at middle of game screen to dismiss loading screen
+2025-03-09 05:21:07,810 - INFO - Clicking at coordinates: (640, 320)
+2025-03-09 05:21:09,125 - INFO - Waiting 10 seconds for game to load...
+2025-03-09 05:21:53,668 - INFO - Starting BlueStacks Rise of Kingdoms Launcher
+2025-03-09 05:21:53,670 - INFO - Connecting to BlueStacks via ADB...
+2025-03-09 05:21:53,742 - INFO - Connecting to ADB on port 5555...
+2025-03-09 05:21:53,788 - INFO - ADB connect result: already connected to 127.0.0.1:5555
+2025-03-09 05:21:53,825 - INFO - Successfully connected to BlueStacks via ADB
+2025-03-09 05:21:53,825 - INFO - Starting character switching process
+2025-03-09 05:21:53,826 - INFO - Opening character selection screen
+2025-03-09 05:21:53,826 - INFO - Clicking avatar icon
+2025-03-09 05:21:53,826 - INFO - Clicking at coordinates: (50, 50)
+2025-03-09 05:21:57,128 - INFO - Clicking settings icon
+2025-03-09 05:21:57,128 - INFO - Clicking at coordinates: (1109, 581)
+2025-03-09 05:22:00,372 - INFO - Clicking characters icon
+2025-03-09 05:22:00,372 - INFO - Clicking at coordinates: (350, 370)
+2025-03-09 05:22:06,677 - INFO - Character selection screen opened
+2025-03-09 05:22:06,677 - INFO - current i: 5
+2025-03-09 05:22:06,677 - INFO - current rotation: 1
+2025-03-09 05:22:06,677 - INFO - Clicking at coordinates: (800, 520)
+2025-03-09 05:22:11,752 - INFO - OCR detected text (adaptive): =i _____ CHARACTERLOGIN etd
+©) :
+' bs S
+;
+-
+
+2025-03-09 05:22:11,924 - INFO - OCR detected text (otsu): Log in as this character?
+es
+YS
+[174H]Katfood2
+
+2025-03-09 05:22:11,924 - INFO - Keyword 'Log in' detected with method otsu
+2025-03-09 05:22:11,924 - INFO - Currently in Character Login Screen
+2025-03-09 05:22:11,924 - INFO - Clicking at coordinates: (815, 515)
+2025-03-09 05:22:13,198 - INFO - Waiting 12 seconds for game to load...
+2025-03-09 05:22:25,199 - INFO - Clicking at middle of game screen to dismiss loading screen
+2025-03-09 05:22:25,199 - INFO - Clicking at coordinates: (640, 320)
+2025-03-09 05:22:26,576 - INFO - Waiting 12 seconds for game to load...
+2025-03-09 05:22:38,577 - INFO - Switch character at position {'x': 800, 'y': 520}
+2025-03-09 05:22:38,577 - INFO - Opening character selection screen
+2025-03-09 05:22:38,577 - INFO - Clicking avatar icon
+2025-03-09 05:22:38,577 - INFO - Clicking at coordinates: (50, 50)
+2025-03-09 05:22:41,855 - INFO - Clicking settings icon
+2025-03-09 05:22:41,855 - INFO - Clicking at coordinates: (1109, 581)
+2025-03-09 05:22:45,108 - INFO - Clicking characters icon
+2025-03-09 05:22:45,108 - INFO - Clicking at coordinates: (350, 370)
+2025-03-09 05:22:51,351 - INFO - Character selection screen opened
+2025-03-09 05:22:51,351 - INFO - current i: 6
+2025-03-09 05:22:51,351 - INFO - current rotation: 1
+2025-03-09 05:22:51,351 - INFO - Clicking at coordinates: (400, 240)
+2025-03-09 05:22:56,406 - INFO - OCR detected text (adaptive): =i _____ CHARACTERLOGIN etd
+.
+® :
+' bs S
+;
+-
+
+2025-03-09 05:22:56,635 - INFO - OCR detected text (otsu): Log in as this character?
+YS
+[174H]Katwood1
+
+2025-03-09 05:22:56,636 - INFO - Keyword 'Log in' detected with method otsu
+2025-03-09 05:22:56,636 - INFO - Currently in Character Login Screen
+2025-03-09 05:22:56,636 - INFO - Clicking at coordinates: (815, 515)
+2025-03-09 05:22:57,921 - INFO - Waiting 12 seconds for game to load...
+2025-03-09 05:23:49,257 - INFO - Starting BlueStacks Rise of Kingdoms Launcher
+2025-03-09 05:23:49,259 - INFO - Connecting to BlueStacks via ADB...
+2025-03-09 05:23:49,295 - INFO - Connecting to ADB on port 5555...
+2025-03-09 05:23:49,331 - INFO - ADB connect result: already connected to 127.0.0.1:5555
+2025-03-09 05:23:49,363 - INFO - Successfully connected to BlueStacks via ADB
+2025-03-09 05:23:49,363 - INFO - Starting character switching process
+2025-03-09 05:23:49,363 - INFO - Opening character selection screen
+2025-03-09 05:23:49,363 - INFO - Clicking avatar icon
+2025-03-09 05:23:49,363 - INFO - Clicking at coordinates: (50, 50)
+2025-03-09 05:23:52,657 - INFO - Clicking settings icon
+2025-03-09 05:23:52,657 - INFO - Clicking at coordinates: (1109, 581)
+2025-03-09 05:23:56,048 - INFO - Clicking characters icon
+2025-03-09 05:23:56,048 - INFO - Clicking at coordinates: (350, 370)
+2025-03-09 05:24:02,355 - INFO - Character selection screen opened
+2025-03-09 05:24:02,355 - INFO - current i: 5
+2025-03-09 05:24:02,355 - INFO - current rotation: 1
+2025-03-09 05:24:02,355 - INFO - Clicking at coordinates: (800, 520)
+2025-03-09 05:24:07,589 - INFO - OCR detected text (adaptive): =i _____ CHARACTERLOGIN etd
+©) :
+' bs S
+;
+-
+
+2025-03-09 05:24:07,769 - INFO - OCR detected text (otsu): Log in as this character?
+es
+YS
+[174H]Katfood2
+
+2025-03-09 05:24:07,769 - INFO - Keyword 'Log in' detected with method otsu
+2025-03-09 05:24:07,770 - INFO - Currently in Character Login Screen
+2025-03-09 05:24:07,770 - INFO - Clicking at coordinates: (815, 515)
+2025-03-09 05:24:09,063 - INFO - Waiting 12 seconds for game to load...
+2025-03-09 05:24:21,064 - INFO - Clicking at middle of game screen to dismiss loading screen
+2025-03-09 05:24:21,064 - INFO - Clicking at coordinates: (640, 320)
+2025-03-09 05:24:22,393 - INFO - Waiting 12 seconds for game to load...
+2025-03-09 05:24:34,394 - INFO - Switch character at position {'x': 800, 'y': 520}
+2025-03-09 05:24:34,394 - INFO - Opening character selection screen
+2025-03-09 05:24:34,394 - INFO - Clicking avatar icon
+2025-03-09 05:24:34,394 - INFO - Clicking at coordinates: (50, 50)
+2025-03-09 05:24:37,663 - INFO - Clicking settings icon
+2025-03-09 05:24:37,663 - INFO - Clicking at coordinates: (1109, 581)
+2025-03-09 05:24:40,917 - INFO - Clicking characters icon
+2025-03-09 05:24:40,917 - INFO - Clicking at coordinates: (350, 370)
+2025-03-09 05:24:47,220 - INFO - Character selection screen opened
+2025-03-09 05:24:47,220 - INFO - current i: 6
+2025-03-09 05:24:47,220 - INFO - current rotation: 2
+2025-03-09 05:24:47,220 - INFO - Scrolling down character list
+2025-03-09 05:24:47,220 - INFO - Swiping from (640, 600) to (640, 325)
+2025-03-09 05:24:51,801 - INFO - Clicking at coordinates: (400, 220)
+2025-03-09 05:24:56,919 - INFO - OCR detected text (adaptive): it] ______ CHARACTERLOGIN led
+, NE
+;
+-
+
+2025-03-09 05:24:57,097 - INFO - OCR detected text (otsu): Log in as this character?
+‘F
+[174H]Katwood2
+
+2025-03-09 05:24:57,097 - INFO - Keyword 'Log in' detected with method otsu
+2025-03-09 05:24:57,097 - INFO - Currently in Character Login Screen
+2025-03-09 05:24:57,098 - INFO - Clicking at coordinates: (815, 515)
+2025-03-09 05:24:58,367 - INFO - Waiting 12 seconds for game to load...
+2025-03-09 05:25:10,368 - INFO - Clicking at middle of game screen to dismiss loading screen
+2025-03-09 05:25:10,368 - INFO - Clicking at coordinates: (640, 320)
+2025-03-09 05:25:11,711 - INFO - Waiting 12 seconds for game to load...
+2025-03-09 05:25:23,712 - INFO - Switch character at position {'x': 400, 'y': 220}
+2025-03-09 05:25:23,712 - INFO - Opening character selection screen
+2025-03-09 05:25:23,712 - INFO - Clicking avatar icon
+2025-03-09 05:25:23,712 - INFO - Clicking at coordinates: (50, 50)
+2025-03-09 05:25:26,956 - INFO - Clicking settings icon
+2025-03-09 05:25:26,956 - INFO - Clicking at coordinates: (1109, 581)
+2025-03-09 05:25:30,213 - INFO - Clicking characters icon
+2025-03-09 05:25:30,213 - INFO - Clicking at coordinates: (350, 370)
+2025-03-09 05:25:36,430 - INFO - Character selection screen opened
+2025-03-09 05:25:36,430 - INFO - current i: 7
+2025-03-09 05:25:36,430 - INFO - current rotation: 2
+2025-03-09 05:25:36,430 - INFO - Scrolling down character list
+2025-03-09 05:25:36,430 - INFO - Swiping from (640, 600) to (640, 325)
+2025-03-09 05:25:41,046 - INFO - Clicking at coordinates: (400, 360)
+2025-03-09 05:25:46,152 - INFO - OCR detected text (adaptive): =i _____ CHARACTERLOGIN etd
+|
+-
+
+2025-03-09 05:25:46,323 - INFO - OCR detected text (otsu): Log in as this character?
+[L74H]Katgold2
+
+2025-03-09 05:25:46,324 - INFO - Keyword 'Log in' detected with method otsu
+2025-03-09 05:25:46,324 - INFO - Currently in Character Login Screen
+2025-03-09 05:25:46,324 - INFO - Clicking at coordinates: (815, 515)
+2025-03-09 05:25:47,569 - INFO - Waiting 12 seconds for game to load...
+2025-03-09 05:25:59,569 - INFO - Clicking at middle of game screen to dismiss loading screen
+2025-03-09 05:25:59,569 - INFO - Clicking at coordinates: (640, 320)
+2025-03-09 05:26:00,892 - INFO - Waiting 12 seconds for game to load...
+2025-03-09 05:26:12,893 - INFO - Switch character at position {'x': 400, 'y': 360}
+2025-03-09 05:26:12,893 - INFO - Opening character selection screen
+2025-03-09 05:26:12,893 - INFO - Clicking avatar icon
+2025-03-09 05:26:12,893 - INFO - Clicking at coordinates: (50, 50)
+2025-03-09 05:26:16,119 - INFO - Clicking settings icon
+2025-03-09 05:26:16,119 - INFO - Clicking at coordinates: (1109, 581)
+2025-03-09 05:26:19,387 - INFO - Clicking characters icon
+2025-03-09 05:26:19,387 - INFO - Clicking at coordinates: (350, 370)
+2025-03-09 05:26:25,669 - INFO - Character selection screen opened
+2025-03-09 05:26:25,669 - INFO - current i: 8
+2025-03-09 05:26:25,669 - INFO - current rotation: 2
+2025-03-09 05:26:25,669 - INFO - Scrolling down character list
+2025-03-09 05:26:25,669 - INFO - Swiping from (640, 600) to (640, 325)
+2025-03-09 05:26:30,209 - INFO - Clicking at coordinates: (400, 520)
+2025-03-09 05:26:35,339 - INFO - OCR detected text (adaptive): =i _____ CHARACTERLOGIN etd
+|
+;
+-
+
+2025-03-09 05:26:35,539 - INFO - OCR detected text (otsu): Log in as this character?
+[174H]Katwood3
+
+2025-03-09 05:26:35,539 - INFO - Keyword 'Log in' detected with method otsu
+2025-03-09 05:26:35,539 - INFO - Currently in Character Login Screen
+2025-03-09 05:26:35,539 - INFO - Clicking at coordinates: (815, 515)
+2025-03-09 05:26:36,818 - INFO - Waiting 12 seconds for game to load...
+2025-03-09 05:26:48,819 - INFO - Clicking at middle of game screen to dismiss loading screen
+2025-03-09 05:26:48,819 - INFO - Clicking at coordinates: (640, 320)
+2025-03-09 05:26:50,086 - INFO - Waiting 12 seconds for game to load...
+2025-03-09 05:27:02,087 - INFO - Switch character at position {'x': 400, 'y': 520}
+2025-03-09 05:27:02,087 - INFO - Opening character selection screen
+2025-03-09 05:27:02,087 - INFO - Clicking avatar icon
+2025-03-09 05:27:02,087 - INFO - Clicking at coordinates: (50, 50)
+2025-03-09 05:27:05,369 - INFO - Clicking settings icon
+2025-03-09 05:27:05,369 - INFO - Clicking at coordinates: (1109, 581)
+2025-03-09 05:27:08,619 - INFO - Clicking characters icon
+2025-03-09 05:27:08,619 - INFO - Clicking at coordinates: (350, 370)
+2025-03-09 05:27:14,928 - INFO - Character selection screen opened
+2025-03-09 05:27:14,928 - INFO - current i: 9
+2025-03-09 05:27:14,928 - INFO - current rotation: 2
+2025-03-09 05:27:14,928 - INFO - Scrolling down character list
+2025-03-09 05:27:14,928 - INFO - Swiping from (640, 600) to (640, 325)
+2025-03-09 05:27:19,456 - INFO - Clicking at coordinates: (800, 220)
+2025-03-09 05:27:24,504 - INFO - OCR detected text (adaptive): =i _____ CHARACTERLOGIN etd
+|
+;
+-
+
+2025-03-09 05:27:24,676 - INFO - OCR detected text (otsu): Log in as this character?
+[174H]Katstone2
+
+2025-03-09 05:27:24,676 - INFO - Keyword 'Log in' detected with method otsu
+2025-03-09 05:27:24,677 - INFO - Currently in Character Login Screen
+2025-03-09 05:27:24,677 - INFO - Clicking at coordinates: (815, 515)
+2025-03-09 05:27:25,940 - INFO - Waiting 12 seconds for game to load...
+2025-03-09 05:27:37,941 - INFO - Clicking at middle of game screen to dismiss loading screen
+2025-03-09 05:27:37,941 - INFO - Clicking at coordinates: (640, 320)
+2025-03-09 05:27:39,334 - INFO - Waiting 12 seconds for game to load...
+2025-03-09 05:27:51,336 - INFO - Switch character at position {'x': 800, 'y': 220}
+2025-03-09 05:27:51,336 - INFO - Opening character selection screen
+2025-03-09 05:27:51,336 - INFO - Clicking avatar icon
+2025-03-09 05:27:51,336 - INFO - Clicking at coordinates: (50, 50)
+2025-03-09 05:27:54,588 - INFO - Clicking settings icon
+2025-03-09 05:27:54,588 - INFO - Clicking at coordinates: (1109, 581)
+2025-03-09 05:27:57,837 - INFO - Clicking characters icon
+2025-03-09 05:27:57,837 - INFO - Clicking at coordinates: (350, 370)
+2025-03-09 05:28:04,083 - INFO - Character selection screen opened
+2025-03-09 05:28:04,083 - INFO - current i: 10
+2025-03-09 05:28:04,083 - INFO - current rotation: 2
+2025-03-09 05:28:04,083 - INFO - Scrolling down character list
+2025-03-09 05:28:04,083 - INFO - Swiping from (640, 600) to (640, 325)
+2025-03-09 05:28:08,657 - INFO - Clicking at coordinates: (800, 360)
+2025-03-09 05:28:13,779 - INFO - OCR detected text (adaptive): it] ______ CHARACTERLOGIN led
+, NE
+;
+-
+
+2025-03-09 05:28:13,966 - INFO - OCR detected text (otsu): Log in as this character?
+ee
+‘F
+[174H]Katfood3
+
+2025-03-09 05:28:13,966 - INFO - Keyword 'Log in' detected with method otsu
+2025-03-09 05:28:13,967 - INFO - Currently in Character Login Screen
+2025-03-09 05:28:13,967 - INFO - Clicking at coordinates: (815, 515)
+2025-03-09 05:28:15,297 - INFO - Waiting 12 seconds for game to load...
+2025-03-09 05:28:27,297 - INFO - Clicking at middle of game screen to dismiss loading screen
+2025-03-09 05:28:27,297 - INFO - Clicking at coordinates: (640, 320)
+2025-03-09 05:28:28,588 - INFO - Waiting 12 seconds for game to load...
+2025-03-09 05:28:40,589 - INFO - Switch character at position {'x': 800, 'y': 360}
+2025-03-09 05:28:40,589 - INFO - Opening character selection screen
+2025-03-09 05:28:40,589 - INFO - Clicking avatar icon
+2025-03-09 05:28:40,589 - INFO - Clicking at coordinates: (50, 50)
+2025-03-09 05:28:43,847 - INFO - Clicking settings icon
+2025-03-09 05:28:43,847 - INFO - Clicking at coordinates: (1109, 581)
+2025-03-09 05:28:47,073 - INFO - Clicking characters icon
+2025-03-09 05:28:47,073 - INFO - Clicking at coordinates: (350, 370)
+2025-03-09 05:28:53,338 - INFO - Character selection screen opened
+2025-03-09 05:28:53,338 - INFO - current i: 11
+2025-03-09 05:28:53,338 - INFO - current rotation: 2
+2025-03-09 05:28:53,338 - INFO - Scrolling down character list
+2025-03-09 05:28:53,338 - INFO - Swiping from (640, 600) to (640, 325)
+2025-03-09 05:28:57,889 - INFO - Clicking at coordinates: (800, 520)
+2025-03-09 05:29:02,940 - INFO - OCR detected text (adaptive): Sle _._ CHARACTERLOGIN els]
+| NE
+;
+-
+
+2025-03-09 05:29:03,114 - INFO - OCR detected text (otsu): Log in as this character?
+‘F
+[174H]Katstone3
+
+2025-03-09 05:29:03,114 - INFO - Keyword 'Log in' detected with method otsu
+2025-03-09 05:29:03,114 - INFO - Currently in Character Login Screen
+2025-03-09 05:29:03,114 - INFO - Clicking at coordinates: (815, 515)
+2025-03-09 05:29:04,356 - INFO - Waiting 12 seconds for game to load...
+2025-03-09 05:29:16,356 - INFO - Clicking at middle of game screen to dismiss loading screen
+2025-03-09 05:29:16,356 - INFO - Clicking at coordinates: (640, 320)
+2025-03-09 05:29:17,743 - INFO - Waiting 12 seconds for game to load...
+2025-03-09 05:29:29,744 - INFO - Switch character at position {'x': 800, 'y': 520}
+2025-03-09 05:29:29,744 - INFO - Opening character selection screen
+2025-03-09 05:29:29,744 - INFO - Clicking avatar icon
+2025-03-09 05:29:29,744 - INFO - Clicking at coordinates: (50, 50)
+2025-03-09 05:29:33,028 - INFO - Clicking settings icon
+2025-03-09 05:29:33,028 - INFO - Clicking at coordinates: (1109, 581)
+2025-03-09 05:29:36,269 - INFO - Clicking characters icon
+2025-03-09 05:29:36,269 - INFO - Clicking at coordinates: (350, 370)
+2025-03-09 05:29:42,526 - INFO - Character selection screen opened
+2025-03-09 05:29:42,526 - INFO - current i: 12
+2025-03-09 05:29:42,526 - INFO - current rotation: 3
+2025-03-09 05:29:42,526 - INFO - Scrolling down character list
+2025-03-09 05:29:42,526 - INFO - Swiping from (640, 600) to (640, 325)
+2025-03-09 05:29:47,140 - INFO - Scrolling down character list
+2025-03-09 05:29:47,140 - INFO - Swiping from (640, 600) to (640, 325)
+2025-03-09 05:29:51,696 - INFO - Clicking at coordinates: (400, 220)
+2025-03-09 05:29:56,784 - INFO - OCR detected text (adaptive): =i _____ CHARACTERLOGIN etd
+@) :
+' bs S
+;
+-
+
+2025-03-09 05:29:56,963 - INFO - OCR detected text (otsu): Log in as this character?
+es
+YS
+[L74H]Katgold3
+
+2025-03-09 05:29:56,964 - INFO - Keyword 'Log in' detected with method otsu
+2025-03-09 05:29:56,964 - INFO - Currently in Character Login Screen
+2025-03-09 05:29:56,964 - INFO - Clicking at coordinates: (815, 515)
+2025-03-09 05:29:58,236 - INFO - Waiting 12 seconds for game to load...
+2025-03-09 05:30:10,236 - INFO - Clicking at middle of game screen to dismiss loading screen
+2025-03-09 05:30:10,236 - INFO - Clicking at coordinates: (640, 320)
+2025-03-09 05:30:11,530 - INFO - Waiting 12 seconds for game to load...
+2025-03-09 05:30:23,531 - INFO - Switch character at position {'x': 400, 'y': 220}
+2025-03-09 05:30:23,531 - INFO - Opening character selection screen
+2025-03-09 05:30:23,531 - INFO - Clicking avatar icon
+2025-03-09 05:30:23,531 - INFO - Clicking at coordinates: (50, 50)
+2025-03-09 05:30:26,776 - INFO - Clicking settings icon
+2025-03-09 05:30:26,776 - INFO - Clicking at coordinates: (1109, 581)
+2025-03-09 05:30:30,021 - INFO - Clicking characters icon
+2025-03-09 05:30:30,021 - INFO - Clicking at coordinates: (350, 370)
+2025-03-09 05:30:36,254 - INFO - Character selection screen opened
+2025-03-09 05:30:36,254 - INFO - current i: 13
+2025-03-09 05:30:36,254 - INFO - current rotation: 3
+2025-03-09 05:30:36,254 - INFO - Scrolling down character list
+2025-03-09 05:30:36,254 - INFO - Swiping from (640, 600) to (640, 325)
+2025-03-09 05:30:40,821 - INFO - Scrolling down character list
+2025-03-09 05:30:40,821 - INFO - Swiping from (640, 600) to (640, 325)
+2025-03-09 05:30:45,389 - INFO - Clicking at coordinates: (400, 360)
+2025-03-09 05:30:50,497 - INFO - OCR detected text (adaptive): it] ______ CHARACTERLOGIN led
+, NE
+;
+-
+
+2025-03-09 05:30:50,674 - INFO - OCR detected text (otsu): Log in as this character?
+ee
+‘F
+[174H]Katfood5
+
+2025-03-09 05:30:50,674 - INFO - Keyword 'Log in' detected with method otsu
+2025-03-09 05:30:50,674 - INFO - Currently in Character Login Screen
+2025-03-09 05:30:50,674 - INFO - Clicking at coordinates: (815, 515)
+2025-03-09 05:30:51,912 - INFO - Waiting 12 seconds for game to load...
+2025-03-09 05:31:03,913 - INFO - Clicking at middle of game screen to dismiss loading screen
+2025-03-09 05:31:03,913 - INFO - Clicking at coordinates: (640, 320)
+2025-03-09 05:31:05,221 - INFO - Waiting 12 seconds for game to load...
+2025-03-09 05:31:17,223 - INFO - Switch character at position {'x': 400, 'y': 360}
+2025-03-09 05:31:17,223 - INFO - Opening character selection screen
+2025-03-09 05:31:17,223 - INFO - Clicking avatar icon
+2025-03-09 05:31:17,223 - INFO - Clicking at coordinates: (50, 50)
+2025-03-09 05:31:20,459 - INFO - Clicking settings icon
+2025-03-09 05:31:20,459 - INFO - Clicking at coordinates: (1109, 581)
+2025-03-09 05:31:23,710 - INFO - Clicking characters icon
+2025-03-09 05:31:23,710 - INFO - Clicking at coordinates: (350, 370)
+2025-03-09 05:31:30,014 - INFO - Character selection screen opened
+2025-03-09 05:31:30,014 - INFO - current i: 14
+2025-03-09 05:31:30,014 - INFO - current rotation: 3
+2025-03-09 05:31:30,014 - INFO - Scrolling down character list
+2025-03-09 05:31:30,014 - INFO - Swiping from (640, 600) to (640, 325)
+2025-03-09 05:31:34,584 - INFO - Scrolling down character list
+2025-03-09 05:31:34,584 - INFO - Swiping from (640, 600) to (640, 325)
+2025-03-09 05:31:39,090 - INFO - Clicking at coordinates: (400, 520)
+2025-03-09 05:31:44,571 - INFO - OCR detected text (adaptive): DF CAGED ___J Ww =a
+Gm
+——
+=) [L74H]Katgold3 } (fe) [L74H]Katfood4
+BAM #3174 Kingdomvof Lucilla : (Oca ME #3174 Kingdom of Lucilla
+Power 9,332,708 | | Gy Power:-9,806,228)
+= = ——— =
+=) G=
+:) [L74H]Katwood4 Aes [174H]Katgold4}
+mt #3174 Kingdom of Lucilla vy 4 =a y #3174 Kingdom of Lucilla
+Power: 9,766,723) NSB - : Power: '10,105,399.
+‘r} |
+Se) GS
+g [L74H]KatfoodS' (fo) [L74H]Katwood5
+a #3174 Kingdom of Lucilla U hfe #3174 Kingdom of Lucilla
+eA
+= Power:'10,122,464 i ANS Power:'11,975,913
+Tr}
+pa
+
+2025-03-09 05:31:45,040 - INFO - OCR detected text (otsu): XPower: 8,744,448 ‘a Power: 8,963,822
+\ [174H]Katgold3 a! [174H]Katfood4
+rs | #3174 Kingdom of Lucilla * n i v3 } #3174 Kingdom of Lucilla
+Power: 9,332,708 NY Power: 9,806,228
+» \ [174H]Katwood4 4h ’, [174H]Katgold4
+| 43174 Kingdom of Lucilla * * % } #3174 Kingdom of Lucilla
+Wp” Power: 9,766,723 Va Power: 10,105,399
+ry [174H]Katfood5 7 ey [174H]Katwood5
+| 3174 Kingdom of Lucilla * n . 6 ! #3174 Kingdom of Lucilla
+eo Power: 10,122,464 \e 5D Power: 11,975,913
+
+2025-03-09 05:31:45,395 - INFO - OCR detected text (inverted): SY’ Power: 8,744,448 ‘a Power: 8,963,822
+\ [174H]Katgold3 a! [174H]Katfood4
+rs | #3174 Kingdom of Lucilla * n i v3 } #3174 Kingdom of Lucilla
+Power: 9,332,708 NY Power: 9,806,228
+» \, [174H]Katwood4 4b ’, [174H]Katgold4
+| 43174 Kingdom of Lucilla * * % } #3174 Kingdom of Lucilla
+Wp” Power: 9,766,723 Va Power: 10,105,399
+ry [174H]Katfood5 7 ey [174H]Katwood5
+| 93174 Kingdom of Lucilla * \ . 6 ! #3174 Kingdom of Lucilla
+eo Power: 10,122,464 \e 5D’ Power: 11,975,913
+
+2025-03-09 05:31:45,841 - INFO - OCR detected text (contrast): P= Power: 8,744,448 ‘ey Power: 8,963,822
+
+>) [174H]Katgold3 A, [1T4H]Katfood4
+
+aN | = #3174 Kingdom of Lucilla * 4 ] #3174 Kingdom of Lucilla
+Power: 9,332,708 y Power: 9,806,228
+
+1 \ ([174H]Katwood4 [174H]Katgold4
+
+2 #3174 Kingdom of Lucilla * #3174 Kingdom of Lucilla
+
+oy Power: 9,766,723 Power: 10,105,399
+
+y [174H]KatfoodS (Fas [1TAH]Katwoods
+
+@ #3174 Kingdom of Lucilla *® 4 #3174 Kingdom of Lucilla
+Power: 10,122,464 Power: 11,975,913
+
+2025-03-09 05:31:46,322 - INFO - OCR detected text (original): TY Power: 8,744,448 \t_@® Power: 8,963,822
+ [174H]Katgold3 Y [174H]Katfood4
+PS ) #3174 Kingdom of Lucilla * \ } le | 493174 Kingdom of Lucilla
+’ Power: 9,332,708 \ TY Power: 9,806,228
+» \ [174H]Katwood4 1% \ [174H]Katgold4
+m | 43174 Kingdom of Lucilla * « % | #3174 Kingdom of Lucilla
+©)’ Power: 9,766,723 Va Power: 10,105,399
+ry [174H]Katfood5 V4 -» [174H]Katwood5
+| 43174 Kingdom of Lucilla * \ r N | #3174 Kingdom of Lucilla
+LY Power: 10,122,464 ‘WD Power: 11,975,913
+
+2025-03-09 05:31:46,322 - INFO - No keywords detected in any preprocessing method
+2025-03-09 05:31:46,322 - INFO - Not in Character Login Screen
+2025-03-09 05:31:46,323 - INFO - Closing dialogs
+2025-03-09 05:31:46,323 - INFO - Sending ESCAPE key event
+2025-03-09 05:31:47,075 - INFO - Sent escape key to close dialog
+2025-03-09 05:31:48,076 - INFO - Closing dialogs
+2025-03-09 05:31:48,076 - INFO - Sending ESCAPE key event
+2025-03-09 05:31:48,801 - INFO - Sent escape key to close dialog
+2025-03-09 05:31:49,802 - INFO - Closing dialogs
+2025-03-09 05:31:49,802 - INFO - Sending ESCAPE key event
+2025-03-09 05:31:50,560 - INFO - Sent escape key to close dialog
+2025-03-09 05:31:51,561 - INFO - Switch character at position {'x': 400, 'y': 520}
+2025-03-09 05:31:51,561 - INFO - Opening character selection screen
+2025-03-09 05:31:51,561 - INFO - Clicking avatar icon
+2025-03-09 05:31:51,561 - INFO - Clicking at coordinates: (50, 50)
+2025-03-09 05:31:54,880 - INFO - Clicking settings icon
+2025-03-09 05:31:54,880 - INFO - Clicking at coordinates: (1109, 581)
+2025-03-09 05:31:58,124 - INFO - Clicking characters icon
+2025-03-09 05:31:58,124 - INFO - Clicking at coordinates: (350, 370)
+2025-03-09 05:32:04,367 - INFO - Character selection screen opened
+2025-03-09 05:32:04,367 - INFO - current i: 15
+2025-03-09 05:32:04,367 - INFO - current rotation: 3
+2025-03-09 05:32:04,367 - INFO - Scrolling down character list
+2025-03-09 05:32:04,367 - INFO - Swiping from (640, 600) to (640, 325)
+2025-03-09 05:32:08,923 - INFO - Scrolling down character list
+2025-03-09 05:32:08,923 - INFO - Swiping from (640, 600) to (640, 325)
+2025-03-09 05:32:13,458 - INFO - Clicking at coordinates: (800, 220)
+2025-03-09 05:32:18,706 - INFO - OCR detected text (adaptive): | __.___—S CHARACTERLOGIN lis]
+.
+. WAS
+;
+se) Cs
+
+2025-03-09 05:32:18,900 - INFO - OCR detected text (otsu): Log in as this character?
+y
+[174H]Katfood4
+
+2025-03-09 05:32:18,901 - INFO - Keyword 'Log in' detected with method otsu
+2025-03-09 05:32:18,901 - INFO - Currently in Character Login Screen
+2025-03-09 05:32:18,901 - INFO - Clicking at coordinates: (815, 515)
+2025-03-09 05:32:20,151 - INFO - Waiting 12 seconds for game to load...
+2025-03-09 05:32:32,151 - INFO - Clicking at middle of game screen to dismiss loading screen
+2025-03-09 05:32:32,151 - INFO - Clicking at coordinates: (640, 320)
+2025-03-09 05:32:33,462 - INFO - Waiting 12 seconds for game to load...
+2025-03-09 05:32:45,463 - INFO - Switch character at position {'x': 800, 'y': 220}
+2025-03-09 05:32:45,463 - INFO - Opening character selection screen
+2025-03-09 05:32:45,463 - INFO - Clicking avatar icon
+2025-03-09 05:32:45,463 - INFO - Clicking at coordinates: (50, 50)
+2025-03-09 05:32:48,735 - INFO - Clicking settings icon
+2025-03-09 05:32:48,735 - INFO - Clicking at coordinates: (1109, 581)
+2025-03-09 05:32:51,992 - INFO - Clicking characters icon
+2025-03-09 05:32:51,992 - INFO - Clicking at coordinates: (350, 370)
+2025-03-09 05:32:58,235 - INFO - Character selection screen opened
+2025-03-09 05:32:58,235 - INFO - current i: 16
+2025-03-09 05:32:58,235 - INFO - current rotation: 3
+2025-03-09 05:32:58,235 - INFO - Scrolling down character list
+2025-03-09 05:32:58,235 - INFO - Swiping from (640, 600) to (640, 325)
+2025-03-09 05:33:02,807 - INFO - Scrolling down character list
+2025-03-09 05:33:02,807 - INFO - Swiping from (640, 600) to (640, 325)
+2025-03-09 05:33:07,339 - INFO - Clicking at coordinates: (800, 360)
+2025-03-09 05:33:12,411 - INFO - OCR detected text (adaptive): =i _____ CHARACTERLOGIN etd
+|
+-
+
+2025-03-09 05:33:12,581 - INFO - OCR detected text (otsu): Log in as this character?
+[L74H]Katgold4
+
+2025-03-09 05:33:12,581 - INFO - Keyword 'Log in' detected with method otsu
+2025-03-09 05:33:12,581 - INFO - Currently in Character Login Screen
+2025-03-09 05:33:12,581 - INFO - Clicking at coordinates: (815, 515)
+2025-03-09 05:33:13,834 - INFO - Waiting 12 seconds for game to load...
+2025-03-09 05:33:25,835 - INFO - Clicking at middle of game screen to dismiss loading screen
+2025-03-09 05:33:25,835 - INFO - Clicking at coordinates: (640, 320)
+2025-03-09 05:33:27,193 - INFO - Waiting 12 seconds for game to load...
+2025-03-09 05:33:39,194 - INFO - Switch character at position {'x': 800, 'y': 360}
+2025-03-09 05:33:39,194 - INFO - Opening character selection screen
+2025-03-09 05:33:39,194 - INFO - Clicking avatar icon
+2025-03-09 05:33:39,194 - INFO - Clicking at coordinates: (50, 50)
+2025-03-09 05:33:42,434 - INFO - Clicking settings icon
+2025-03-09 05:33:42,434 - INFO - Clicking at coordinates: (1109, 581)
+2025-03-09 05:33:45,753 - INFO - Clicking characters icon
+2025-03-09 05:33:45,753 - INFO - Clicking at coordinates: (350, 370)
+2025-03-09 05:33:51,990 - INFO - Character selection screen opened
+2025-03-09 05:33:51,990 - INFO - current i: 17
+2025-03-09 05:33:51,990 - INFO - current rotation: 3
+2025-03-09 05:33:51,990 - INFO - Scrolling down character list
+2025-03-09 05:33:51,990 - INFO - Swiping from (640, 600) to (640, 325)
+2025-03-09 05:33:56,546 - INFO - Scrolling down character list
+2025-03-09 05:33:56,546 - INFO - Swiping from (640, 600) to (640, 325)
+2025-03-09 05:34:01,108 - INFO - Clicking at coordinates: (800, 520)
+2025-03-09 05:34:06,137 - INFO - OCR detected text (adaptive): it] ______ CHARACTERLOGIN led
+, NE
+;
+-
+
+2025-03-09 05:34:06,314 - INFO - OCR detected text (otsu): Log in as this character?
+‘F
+[174H]Katwood5
+
+2025-03-09 05:34:06,315 - INFO - Keyword 'Log in' detected with method otsu
+2025-03-09 05:34:06,315 - INFO - Currently in Character Login Screen
+2025-03-09 05:34:06,315 - INFO - Clicking at coordinates: (815, 515)
+2025-03-09 05:34:07,565 - INFO - Waiting 12 seconds for game to load...
+2025-03-09 05:34:19,565 - INFO - Clicking at middle of game screen to dismiss loading screen
+2025-03-09 05:34:19,565 - INFO - Clicking at coordinates: (640, 320)
+2025-03-09 05:34:20,918 - INFO - Waiting 12 seconds for game to load...
+2025-03-09 05:34:32,919 - INFO - Switch character at position {'x': 800, 'y': 520}
+2025-03-09 05:34:32,919 - INFO - Opening character selection screen
+2025-03-09 05:34:32,919 - INFO - Clicking avatar icon
+2025-03-09 05:34:32,919 - INFO - Clicking at coordinates: (50, 50)
+2025-03-09 05:34:36,177 - INFO - Clicking settings icon
+2025-03-09 05:34:36,177 - INFO - Clicking at coordinates: (1109, 581)
+2025-03-09 05:34:39,418 - INFO - Clicking characters icon
+2025-03-09 05:34:39,418 - INFO - Clicking at coordinates: (350, 370)
+2025-03-09 05:34:45,705 - INFO - Character selection screen opened
+2025-03-09 05:34:45,705 - INFO - current i: 18
+2025-03-09 05:34:45,705 - INFO - current rotation: 4
+2025-03-09 05:34:45,705 - INFO - Scrolling down character list
+2025-03-09 05:34:45,705 - INFO - Swiping from (640, 600) to (640, 325)
+2025-03-09 05:34:50,293 - INFO - Scrolling down character list
+2025-03-09 05:34:50,293 - INFO - Swiping from (640, 600) to (640, 325)
+2025-03-09 05:34:54,826 - INFO - Scrolling down character list
+2025-03-09 05:34:54,826 - INFO - Swiping from (640, 600) to (640, 325)
+2025-03-09 05:34:59,391 - INFO - Clicking at coordinates: (400, 220)
+2025-03-09 05:35:04,432 - INFO - OCR detected text (adaptive): Sle _._ CHARACTERLOGIN els]
+| NE
+;
+-
+
+2025-03-09 05:35:04,604 - INFO - OCR detected text (otsu): Log in as this character?
+‘F
+[174H]Katstone5
+
+2025-03-09 05:35:04,604 - INFO - Keyword 'Log in' detected with method otsu
+2025-03-09 05:35:04,604 - INFO - Currently in Character Login Screen
+2025-03-09 05:35:04,604 - INFO - Clicking at coordinates: (815, 515)
+2025-03-09 05:35:05,866 - INFO - Waiting 12 seconds for game to load...
+2025-03-09 05:35:17,867 - INFO - Clicking at middle of game screen to dismiss loading screen
+2025-03-09 05:35:17,867 - INFO - Clicking at coordinates: (640, 320)
+2025-03-09 05:35:19,176 - INFO - Waiting 12 seconds for game to load...
+2025-03-09 05:35:31,176 - INFO - Switch character at position {'x': 400, 'y': 220}
+2025-03-09 05:35:31,176 - INFO - Opening character selection screen
+2025-03-09 05:35:31,176 - INFO - Clicking avatar icon
+2025-03-09 05:35:31,176 - INFO - Clicking at coordinates: (50, 50)
+2025-03-09 05:35:34,467 - INFO - Clicking settings icon
+2025-03-09 05:35:34,467 - INFO - Clicking at coordinates: (1109, 581)
+2025-03-09 05:35:37,743 - INFO - Clicking characters icon
+2025-03-09 05:35:37,743 - INFO - Clicking at coordinates: (350, 370)
+2025-03-09 05:35:43,995 - INFO - Character selection screen opened
+2025-03-09 05:35:43,995 - INFO - current i: 19
+2025-03-09 05:35:43,995 - INFO - current rotation: 4
+2025-03-09 05:35:43,995 - INFO - Scrolling down character list
+2025-03-09 05:35:43,995 - INFO - Swiping from (640, 600) to (640, 325)
+2025-03-09 05:35:48,565 - INFO - Scrolling down character list
+2025-03-09 05:35:48,565 - INFO - Swiping from (640, 600) to (640, 325)
+2025-03-09 05:35:53,090 - INFO - Scrolling down character list
+2025-03-09 05:35:53,090 - INFO - Swiping from (640, 600) to (640, 325)
+2025-03-09 05:35:57,621 - INFO - Clicking at coordinates: (400, 360)
+2025-03-09 05:36:02,686 - INFO - OCR detected text (adaptive): itt... CHARACTERLOGIN etd
+|
+;
+-
+
+2025-03-09 05:36:02,864 - INFO - OCR detected text (otsu): Log in as this character?
+[174H]KatFood10
+
+2025-03-09 05:36:02,864 - INFO - Keyword 'Log in' detected with method otsu
+2025-03-09 05:36:02,864 - INFO - Currently in Character Login Screen
+2025-03-09 05:36:02,865 - INFO - Clicking at coordinates: (815, 515)
+2025-03-09 05:36:04,135 - INFO - Waiting 12 seconds for game to load...
+2025-03-09 05:36:16,135 - INFO - Clicking at middle of game screen to dismiss loading screen
+2025-03-09 05:36:16,135 - INFO - Clicking at coordinates: (640, 320)
+2025-03-09 05:36:17,457 - INFO - Waiting 12 seconds for game to load...
+2025-03-09 05:36:29,457 - INFO - Switch character at position {'x': 400, 'y': 360}
+2025-03-09 05:36:29,457 - INFO - Opening character selection screen
+2025-03-09 05:36:29,457 - INFO - Clicking avatar icon
+2025-03-09 05:36:29,457 - INFO - Clicking at coordinates: (50, 50)
+2025-03-09 05:36:32,803 - INFO - Clicking settings icon
+2025-03-09 05:36:32,803 - INFO - Clicking at coordinates: (1109, 581)
+2025-03-09 05:36:36,106 - INFO - Clicking characters icon
+2025-03-09 05:36:36,106 - INFO - Clicking at coordinates: (350, 370)
+2025-03-09 05:36:42,338 - INFO - Character selection screen opened
+2025-03-09 05:36:42,338 - INFO - current i: 20
+2025-03-09 05:36:42,338 - INFO - current rotation: 4
+2025-03-09 05:36:42,338 - INFO - Scrolling down character list
+2025-03-09 05:36:42,338 - INFO - Swiping from (640, 600) to (640, 325)
+2025-03-09 05:36:46,890 - INFO - Scrolling down character list
+2025-03-09 05:36:46,890 - INFO - Swiping from (640, 600) to (640, 325)
+2025-03-09 05:36:51,472 - INFO - Scrolling down character list
+2025-03-09 05:36:51,472 - INFO - Swiping from (640, 600) to (640, 325)
+2025-03-09 05:36:55,993 - INFO - Clicking at coordinates: (400, 520)
+2025-03-09 05:39:19,253 - INFO - Starting BlueStacks Rise of Kingdoms Launcher
+2025-03-09 05:39:19,255 - INFO - Connecting to BlueStacks via ADB...
+2025-03-09 05:39:19,294 - INFO - Connecting to ADB on port 5555...
+2025-03-09 05:39:19,332 - INFO - ADB connect result: already connected to 127.0.0.1:5555
+2025-03-09 05:39:19,364 - INFO - Successfully connected to BlueStacks via ADB
+2025-03-09 05:39:19,364 - INFO - Starting character switching process
+2025-03-09 05:39:19,364 - INFO - Opening character selection screen
+2025-03-09 05:39:19,364 - INFO - Clicking avatar icon
+2025-03-09 05:39:19,364 - INFO - Clicking at coordinates: (50, 50)
+2025-03-09 05:39:22,606 - INFO - Clicking settings icon
+2025-03-09 05:39:22,606 - INFO - Clicking at coordinates: (1109, 581)
+2025-03-09 05:39:25,875 - INFO - Clicking characters icon
+2025-03-09 05:39:25,875 - INFO - Clicking at coordinates: (350, 370)
+2025-03-09 05:39:33,097 - INFO - Character selection screen opened
+2025-03-09 05:39:33,097 - INFO - current i: 13
+2025-03-09 05:39:33,097 - INFO - current rotation: 3
+2025-03-09 05:39:33,097 - INFO - Scrolling down character list
+2025-03-09 05:39:33,097 - INFO - Swiping from (640, 600) to (640, 325)
+2025-03-09 05:39:37,656 - INFO - Scrolling down character list
+2025-03-09 05:39:37,656 - INFO - Swiping from (640, 600) to (640, 325)
+2025-03-09 05:39:42,228 - INFO - Clicking at coordinates: (800, 220)
+2025-03-09 05:39:47,402 - INFO - OCR detected text (adaptive): | __.___—S CHARACTERLOGIN lis]
+.
+. WAS
+;
+se) Cs
+
+2025-03-09 05:39:47,584 - INFO - OCR detected text (otsu): Log in as this character?
+y
+[174H]Katfood4
+
+2025-03-09 05:39:47,584 - INFO - Keyword 'Log in' detected with method otsu
+2025-03-09 05:39:47,584 - INFO - Currently in Character Login Screen
+2025-03-09 05:39:47,584 - INFO - Clicking at coordinates: (815, 515)
+2025-03-09 05:39:48,876 - INFO - Waiting 12 seconds for game to load...
+2025-03-09 05:40:00,876 - INFO - Clicking at middle of game screen to dismiss loading screen
+2025-03-09 05:40:00,876 - INFO - Clicking at coordinates: (640, 320)
+2025-03-09 05:40:02,241 - INFO - Waiting 12 seconds for game to load...
+2025-03-09 05:40:14,242 - INFO - Switch character at position {'x': 800, 'y': 220}
+2025-03-09 05:40:14,242 - INFO - Opening character selection screen
+2025-03-09 05:40:14,242 - INFO - Clicking avatar icon
+2025-03-09 05:40:14,242 - INFO - Clicking at coordinates: (50, 50)
+2025-03-09 05:40:17,523 - INFO - Clicking settings icon
+2025-03-09 05:40:17,523 - INFO - Clicking at coordinates: (1109, 581)
+2025-03-09 05:40:20,795 - INFO - Clicking characters icon
+2025-03-09 05:40:20,795 - INFO - Clicking at coordinates: (350, 370)
+2025-03-09 05:40:28,081 - INFO - Character selection screen opened
+2025-03-09 05:40:28,081 - INFO - current i: 14
+2025-03-09 05:40:28,081 - INFO - current rotation: 3
+2025-03-09 05:40:28,081 - INFO - Scrolling down character list
+2025-03-09 05:40:28,081 - INFO - Swiping from (640, 600) to (640, 325)
+2025-03-09 05:40:32,642 - INFO - Scrolling down character list
+2025-03-09 05:40:32,642 - INFO - Swiping from (640, 600) to (640, 325)
+2025-03-09 05:40:37,208 - INFO - Clicking at coordinates: (400, 360)
+2025-03-09 05:40:42,251 - INFO - OCR detected text (adaptive): Sle _._ CHARACTERLOGIN els]
+CRS
+.
+| oy
+;
+-
+
+2025-03-09 05:40:42,439 - INFO - OCR detected text (otsu): Log in as this character?
+e
+pean
+[174H]Katwood4
+
+2025-03-09 05:40:42,439 - INFO - Keyword 'Log in' detected with method otsu
+2025-03-09 05:40:42,440 - INFO - Currently in Character Login Screen
+2025-03-09 05:40:42,440 - INFO - Clicking at coordinates: (815, 515)
+2025-03-09 05:40:43,738 - INFO - Waiting 12 seconds for game to load...
+2025-03-09 05:40:55,739 - INFO - Clicking at middle of game screen to dismiss loading screen
+2025-03-09 05:40:55,739 - INFO - Clicking at coordinates: (640, 320)
+2025-03-09 05:40:57,081 - INFO - Waiting 12 seconds for game to load...
+2025-03-09 05:41:09,082 - INFO - Switch character at position {'x': 400, 'y': 360}
+2025-03-09 05:41:09,082 - INFO - Opening character selection screen
+2025-03-09 05:41:09,082 - INFO - Clicking avatar icon
+2025-03-09 05:41:09,082 - INFO - Clicking at coordinates: (50, 50)
+2025-03-09 05:41:12,334 - INFO - Clicking settings icon
+2025-03-09 05:41:12,334 - INFO - Clicking at coordinates: (1109, 581)
+2025-03-09 05:41:15,585 - INFO - Clicking characters icon
+2025-03-09 05:41:15,585 - INFO - Clicking at coordinates: (350, 370)
+2025-03-09 05:41:22,880 - INFO - Character selection screen opened
+2025-03-09 05:41:22,880 - INFO - current i: 15
+2025-03-09 05:41:22,880 - INFO - current rotation: 3
+2025-03-09 05:41:22,880 - INFO - Scrolling down character list
+2025-03-09 05:41:22,880 - INFO - Swiping from (640, 600) to (640, 325)
+2025-03-09 05:41:27,457 - INFO - Scrolling down character list
+2025-03-09 05:41:27,457 - INFO - Swiping from (640, 600) to (640, 325)
+2025-03-09 05:41:32,013 - INFO - Clicking at coordinates: (800, 360)
+2025-03-09 05:41:37,323 - INFO - OCR detected text (adaptive): =i _____ CHARACTERLOGIN etd
+|
+-
+
+2025-03-09 05:41:37,522 - INFO - OCR detected text (otsu): Log in as this character?
+[L74H]Katgold4
+
+2025-03-09 05:41:37,522 - INFO - Keyword 'Log in' detected with method otsu
+2025-03-09 05:41:37,523 - INFO - Currently in Character Login Screen
+2025-03-09 05:41:37,523 - INFO - Clicking at coordinates: (815, 515)
+2025-03-09 05:41:38,838 - INFO - Waiting 12 seconds for game to load...
+2025-03-09 05:41:50,839 - INFO - Clicking at middle of game screen to dismiss loading screen
+2025-03-09 05:41:50,839 - INFO - Clicking at coordinates: (640, 320)
+2025-03-09 05:41:52,114 - INFO - Waiting 12 seconds for game to load...
+2025-03-09 05:42:04,115 - INFO - Switch character at position {'x': 800, 'y': 360}
+2025-03-09 05:42:04,115 - INFO - Opening character selection screen
+2025-03-09 05:42:04,115 - INFO - Clicking avatar icon
+2025-03-09 05:42:04,115 - INFO - Clicking at coordinates: (50, 50)
+2025-03-09 05:42:07,339 - INFO - Clicking settings icon
+2025-03-09 05:42:07,339 - INFO - Clicking at coordinates: (1109, 581)
+2025-03-09 05:42:10,592 - INFO - Clicking characters icon
+2025-03-09 05:42:10,592 - INFO - Clicking at coordinates: (350, 370)
+2025-03-09 05:42:17,839 - INFO - Character selection screen opened
+2025-03-09 05:42:17,839 - INFO - current i: 16
+2025-03-09 05:42:17,839 - INFO - current rotation: 3
+2025-03-09 05:42:17,839 - INFO - Scrolling down character list
+2025-03-09 05:42:17,839 - INFO - Swiping from (640, 600) to (640, 325)
+2025-03-09 05:42:22,395 - INFO - Scrolling down character list
+2025-03-09 05:42:22,395 - INFO - Swiping from (640, 600) to (640, 325)
+2025-03-09 05:42:26,946 - INFO - Clicking at coordinates: (400, 520)
+2025-03-09 05:42:32,053 - INFO - OCR detected text (adaptive): it] ______ CHARACTERLOGIN led
+, NE
+;
+-
+
+2025-03-09 05:42:32,218 - INFO - OCR detected text (otsu): Log in as this character?
+ee
+‘F
+[174H]Katfood5
+
+2025-03-09 05:42:32,219 - INFO - Keyword 'Log in' detected with method otsu
+2025-03-09 05:42:32,219 - INFO - Currently in Character Login Screen
+2025-03-09 05:42:32,219 - INFO - Clicking at coordinates: (815, 515)
+2025-03-09 05:42:33,489 - INFO - Waiting 12 seconds for game to load...
+2025-03-09 05:42:45,490 - INFO - Clicking at middle of game screen to dismiss loading screen
+2025-03-09 05:42:45,490 - INFO - Clicking at coordinates: (640, 320)
+2025-03-09 05:42:46,799 - INFO - Waiting 12 seconds for game to load...
+2025-03-09 05:42:58,799 - INFO - Switch character at position {'x': 400, 'y': 520}
+2025-03-09 05:42:58,799 - INFO - Opening character selection screen
+2025-03-09 05:42:58,799 - INFO - Clicking avatar icon
+2025-03-09 05:42:58,799 - INFO - Clicking at coordinates: (50, 50)
+2025-03-09 05:43:02,047 - INFO - Clicking settings icon
+2025-03-09 05:43:02,047 - INFO - Clicking at coordinates: (1109, 581)
+2025-03-09 05:43:05,294 - INFO - Clicking characters icon
+2025-03-09 05:43:05,294 - INFO - Clicking at coordinates: (350, 370)
+2025-03-09 05:43:12,550 - INFO - Character selection screen opened
+2025-03-09 05:43:12,550 - INFO - current i: 17
+2025-03-09 05:43:12,550 - INFO - current rotation: 3
+2025-03-09 05:43:12,550 - INFO - Scrolling down character list
+2025-03-09 05:43:12,550 - INFO - Swiping from (640, 600) to (640, 325)
+2025-03-09 05:43:17,107 - INFO - Scrolling down character list
+2025-03-09 05:43:17,107 - INFO - Swiping from (640, 600) to (640, 325)
+2025-03-09 05:43:21,660 - INFO - Clicking at coordinates: (800, 520)
+2025-03-09 05:43:26,700 - INFO - OCR detected text (adaptive): it] ______ CHARACTERLOGIN led
+, NE
+;
+-
+
+2025-03-09 05:43:26,882 - INFO - OCR detected text (otsu): Log in as this character?
+‘F
+[174H]Katwood5
+
+2025-03-09 05:43:26,882 - INFO - Keyword 'Log in' detected with method otsu
+2025-03-09 05:43:26,883 - INFO - Currently in Character Login Screen
+2025-03-09 05:43:26,883 - INFO - Clicking at coordinates: (815, 515)
+2025-03-09 05:43:28,146 - INFO - Waiting 12 seconds for game to load...
+2025-03-09 05:43:40,146 - INFO - Clicking at middle of game screen to dismiss loading screen
+2025-03-09 05:43:40,146 - INFO - Clicking at coordinates: (640, 320)
+2025-03-09 05:43:41,466 - INFO - Waiting 12 seconds for game to load...
+2025-03-09 05:43:53,467 - INFO - Switch character at position {'x': 800, 'y': 520}
+2025-03-09 05:43:53,467 - INFO - Opening character selection screen
+2025-03-09 05:43:53,467 - INFO - Clicking avatar icon
+2025-03-09 05:43:53,467 - INFO - Clicking at coordinates: (50, 50)
+2025-03-09 05:43:56,713 - INFO - Clicking settings icon
+2025-03-09 05:43:56,713 - INFO - Clicking at coordinates: (1109, 581)
+2025-03-09 05:43:59,985 - INFO - Clicking characters icon
+2025-03-09 05:43:59,985 - INFO - Clicking at coordinates: (350, 370)
+2025-03-09 05:44:07,238 - INFO - Character selection screen opened
+2025-03-09 05:44:07,238 - INFO - current i: 18
+2025-03-09 05:44:07,238 - INFO - current rotation: 4
+2025-03-09 05:44:07,238 - INFO - Scrolling down character list
+2025-03-09 05:44:07,238 - INFO - Swiping from (640, 600) to (640, 325)
+2025-03-09 05:44:11,806 - INFO - Scrolling down character list
+2025-03-09 05:44:11,806 - INFO - Swiping from (640, 600) to (640, 325)
+2025-03-09 05:44:16,359 - INFO - Scrolling down character list
+2025-03-09 05:44:16,359 - INFO - Swiping from (640, 600) to (640, 325)
+2025-03-09 05:44:20,909 - INFO - Clicking at coordinates: (400, 220)
+2025-03-09 05:44:25,902 - INFO - OCR detected text (adaptive): Sle _._ CHARACTERLOGIN els]
+| NE
+;
+-
+
+2025-03-09 05:44:26,072 - INFO - OCR detected text (otsu): Log in as this character?
+‘F
+[174H]Katstone5
+
+2025-03-09 05:44:26,072 - INFO - Keyword 'Log in' detected with method otsu
+2025-03-09 05:44:26,073 - INFO - Currently in Character Login Screen
+2025-03-09 05:44:26,073 - INFO - Clicking at coordinates: (815, 515)
+2025-03-09 05:44:27,332 - INFO - Waiting 12 seconds for game to load...
+2025-03-09 05:44:39,333 - INFO - Clicking at middle of game screen to dismiss loading screen
+2025-03-09 05:44:39,333 - INFO - Clicking at coordinates: (640, 320)
+2025-03-09 05:44:40,594 - INFO - Waiting 12 seconds for game to load...
+2025-03-09 05:44:52,595 - INFO - Switch character at position {'x': 400, 'y': 220}
+2025-03-09 05:44:52,595 - INFO - Opening character selection screen
+2025-03-09 05:44:52,595 - INFO - Clicking avatar icon
+2025-03-09 05:44:52,595 - INFO - Clicking at coordinates: (50, 50)
+2025-03-09 05:44:55,867 - INFO - Clicking settings icon
+2025-03-09 05:44:55,867 - INFO - Clicking at coordinates: (1109, 581)
+2025-03-09 05:44:59,108 - INFO - Clicking characters icon
+2025-03-09 05:44:59,108 - INFO - Clicking at coordinates: (350, 370)
+2025-03-09 05:45:06,354 - INFO - Character selection screen opened
+2025-03-09 05:45:06,354 - INFO - current i: 19
+2025-03-09 05:45:06,354 - INFO - current rotation: 4
+2025-03-09 05:45:06,354 - INFO - Scrolling down character list
+2025-03-09 05:45:06,354 - INFO - Swiping from (640, 600) to (640, 325)
+2025-03-09 05:45:11,009 - INFO - Scrolling down character list
+2025-03-09 05:45:11,009 - INFO - Swiping from (640, 600) to (640, 325)
+2025-03-09 05:45:15,582 - INFO - Scrolling down character list
+2025-03-09 05:45:15,582 - INFO - Swiping from (640, 600) to (640, 325)
+2025-03-09 05:45:20,183 - INFO - Clicking at coordinates: (800, 220)
+2025-03-09 05:45:25,443 - INFO - OCR detected text (adaptive): =i _____ CHARACTERLOGIN etd
+|
+-
+
+2025-03-09 05:45:25,645 - INFO - OCR detected text (otsu): Log in as this character?
+[L74H]Katgold5
+
+2025-03-09 05:45:25,646 - INFO - Keyword 'Log in' detected with method otsu
+2025-03-09 05:45:25,646 - INFO - Currently in Character Login Screen
+2025-03-09 05:45:25,646 - INFO - Clicking at coordinates: (815, 515)
+2025-03-09 05:45:26,963 - INFO - Waiting 12 seconds for game to load...
+2025-03-09 05:45:38,964 - INFO - Clicking at middle of game screen to dismiss loading screen
+2025-03-09 05:45:38,964 - INFO - Clicking at coordinates: (640, 320)
+2025-03-09 05:45:40,292 - INFO - Waiting 12 seconds for game to load...
+2025-03-09 05:45:52,293 - INFO - Switch character at position {'x': 800, 'y': 220}
+2025-03-09 05:45:52,293 - INFO - Opening character selection screen
+2025-03-09 05:45:52,293 - INFO - Clicking avatar icon
+2025-03-09 05:45:52,293 - INFO - Clicking at coordinates: (50, 50)
+2025-03-09 05:45:55,702 - INFO - Clicking settings icon
+2025-03-09 05:45:55,702 - INFO - Clicking at coordinates: (1109, 581)
+2025-03-09 05:45:58,942 - INFO - Clicking characters icon
+2025-03-09 05:45:58,942 - INFO - Clicking at coordinates: (350, 370)
+2025-03-09 05:46:06,303 - INFO - Character selection screen opened
+2025-03-09 05:46:06,303 - INFO - current i: 20
+2025-03-09 05:46:06,303 - INFO - current rotation: 4
+2025-03-09 05:46:06,303 - INFO - Scrolling down character list
+2025-03-09 05:46:06,303 - INFO - Swiping from (640, 600) to (640, 325)
+2025-03-09 05:46:10,902 - INFO - Scrolling down character list
+2025-03-09 05:46:10,902 - INFO - Swiping from (640, 600) to (640, 325)
+2025-03-09 05:46:15,480 - INFO - Scrolling down character list
+2025-03-09 05:46:15,480 - INFO - Swiping from (640, 600) to (640, 325)
+2025-03-09 05:46:20,040 - INFO - Clicking at coordinates: (400, 360)
+2025-03-09 05:46:25,097 - INFO - OCR detected text (adaptive): itt... CHARACTERLOGIN etd
+|
+;
+-
+
+2025-03-09 05:46:25,270 - INFO - OCR detected text (otsu): Log in as this character?
+[174H]KatFood10
+
+2025-03-09 05:46:25,270 - INFO - Keyword 'Log in' detected with method otsu
+2025-03-09 05:46:25,271 - INFO - Currently in Character Login Screen
+2025-03-09 05:46:25,271 - INFO - Clicking at coordinates: (815, 515)
+2025-03-09 05:46:26,506 - INFO - Waiting 12 seconds for game to load...
+2025-03-09 05:46:38,507 - INFO - Clicking at middle of game screen to dismiss loading screen
+2025-03-09 05:46:38,507 - INFO - Clicking at coordinates: (640, 320)
+2025-03-09 05:46:39,904 - INFO - Waiting 12 seconds for game to load...
+2025-03-09 05:46:51,905 - INFO - Switch character at position {'x': 400, 'y': 360}
+2025-03-09 05:46:51,905 - INFO - Opening character selection screen
+2025-03-09 05:46:51,905 - INFO - Clicking avatar icon
+2025-03-09 05:46:51,905 - INFO - Clicking at coordinates: (50, 50)
+2025-03-09 05:46:55,166 - INFO - Clicking settings icon
+2025-03-09 05:46:55,166 - INFO - Clicking at coordinates: (1109, 581)
+2025-03-09 05:46:58,411 - INFO - Clicking characters icon
+2025-03-09 05:46:58,411 - INFO - Clicking at coordinates: (350, 370)
+2025-03-09 05:47:05,653 - INFO - Character selection screen opened
+2025-03-09 05:47:05,653 - INFO - current i: 21
+2025-03-09 05:47:05,653 - INFO - current rotation: 4
+2025-03-09 05:47:05,653 - INFO - Scrolling down character list
+2025-03-09 05:47:05,653 - INFO - Swiping from (640, 600) to (640, 325)
+2025-03-09 05:47:10,199 - INFO - Scrolling down character list
+2025-03-09 05:47:10,199 - INFO - Swiping from (640, 600) to (640, 325)
+2025-03-09 05:47:14,739 - INFO - Scrolling down character list
+2025-03-09 05:47:14,739 - INFO - Swiping from (640, 600) to (640, 325)
+2025-03-09 05:47:19,296 - INFO - Clicking at coordinates: (800, 360)
+2025-03-09 05:47:24,315 - INFO - OCR detected text (adaptive): it] ______ CHARACTERLOGIN led
+, NE
+;
+-
+
+2025-03-09 05:47:24,496 - INFO - OCR detected text (otsu): Log in as this character?
+‘F
+[174H]KatFoods
+
+2025-03-09 05:47:24,496 - INFO - Keyword 'Log in' detected with method otsu
+2025-03-09 05:47:24,496 - INFO - Currently in Character Login Screen
+2025-03-09 05:47:24,497 - INFO - Clicking at coordinates: (815, 515)
+2025-03-09 05:47:25,767 - INFO - Waiting 12 seconds for game to load...
+2025-03-09 05:47:37,767 - INFO - Clicking at middle of game screen to dismiss loading screen
+2025-03-09 05:47:37,767 - INFO - Clicking at coordinates: (640, 320)
+2025-03-09 05:47:39,101 - INFO - Waiting 12 seconds for game to load...
+2025-03-09 05:47:51,102 - INFO - Switch character at position {'x': 800, 'y': 360}
+2025-03-09 23:50:18,311 - INFO - Starting BlueStacks Rise of Kingdoms Launcher
+2025-03-09 23:50:18,320 - INFO - Connecting to BlueStacks via ADB...
+2025-03-09 23:50:18,409 - INFO - Connecting to ADB on port 5555...
+2025-03-09 23:50:18,440 - INFO - ADB connect result: already connected to 127.0.0.1:5555
+2025-03-09 23:50:18,468 - INFO - Successfully connected to BlueStacks via ADB
+2025-03-09 23:50:18,468 - INFO - Navigating to bookmark screen
+2025-03-09 23:50:18,468 - ERROR - Error in main process: 'RoKGameController' object has no attribute 'click_delay'
+2025-03-09 23:50:18,468 - ERROR - Stack trace:
+Traceback (most recent call last):
+  File "C:\Users\binlo\PycharmProjects\ROK\rok-auto-alliance-bot\src\main.py", line 67, in main
+    rok_game.navigate_to_bookmark_and_find_troop()
+  File "C:\Users\binlo\PycharmProjects\ROK\rok-auto-alliance-bot\src\rok_game_controller.py", line 434, in navigate_to_bookmark_and_find_troop
+    if not self.bluestacks.click(bookmark_button['x'], bookmark_button['y'], self.click_delay):
+                                                                             ^^^^^^^^^^^^^^^^
+AttributeError: 'RoKGameController' object has no attribute 'click_delay'. Did you mean: 'click_delay_ms'?
+2025-03-09 23:50:49,397 - INFO - Starting BlueStacks Rise of Kingdoms Launcher
+2025-03-09 23:50:49,398 - INFO - Connecting to BlueStacks via ADB...
+2025-03-09 23:50:49,448 - INFO - Connecting to ADB on port 5555...
+2025-03-09 23:50:49,484 - INFO - ADB connect result: already connected to 127.0.0.1:5555
+2025-03-09 23:50:49,512 - INFO - Successfully connected to BlueStacks via ADB
+2025-03-09 23:50:49,512 - INFO - Navigating to bookmark screen
+2025-03-09 23:50:49,512 - INFO - Clicking at coordinates: (477, 20)
+2025-03-09 23:50:54,037 - INFO - OCR detected text in region 0 (adaptive): Het
+
+2025-03-09 23:50:54,195 - INFO - OCR detected text in region 0 (otsu): @au We Special & Friend MeEnemy
+ee < ]
+aYa
+Ag fy i. -
+
+2025-03-09 23:50:54,360 - INFO - OCR detected text in region 0 (inverted): @au We Special & Friend MeEnemy
+ee Cor
+aa
+Ag fy i. -
+
+2025-03-09 23:50:54,606 - INFO - OCR detected text in region 0 (contrast): Ce
+BSB Sa We Special & Friend Menemy
++t. renee arnt
+ca :
+K:3174 X:839 Y:743 | 1
+
+2025-03-09 23:50:54,773 - INFO - OCR detected text in region 0 (original): @au W Special & Friend Enemy
+iC} <i
+nya
+er. + 4
+
+2025-03-09 23:50:55,005 - INFO - OCR detected text in region 1 (adaptive): Rey a
+TOF pmenae —————— = = - ———————
+4/4 © Katgolds:1' 24
+adam 3174 x:757,77733) 7 7 <1
+
+4
+® Oi[174H]Katrood8) <j
+K:3174 X:777,¥:658 .
+
+2025-03-09 23:50:55,142 - INFO - OCR detected text in region 1 (otsu): vow a
+a
+%: a
+
+2025-03-09 23:50:55,284 - INFO - OCR detected text in region 1 (inverted): vow a
+—
+%: =
+
+2025-03-09 23:50:55,432 - INFO - OCR detected text in region 1 (contrast): 03174 Yeh - ~ L
+Onptitr: an
+
+2025-03-09 23:50:55,580 - INFO - OCR detected text in region 1 (original): @ «: mi! |
+—
+“z a
+
+2025-03-09 23:50:55,785 - INFO - OCR detected text in region 2 (adaptive): 4
+
+(@) Ti 74n]Katroods, < |
+153174 X:886,Y:475. aa
+
+SE ——————— —
+
+—
+
+(DN (@.1nG741KatFood2 Ee
+
+2025-03-09 23:50:55,914 - INFO - OCR detected text in region 2 (otsu): 
+2025-03-09 23:50:56,037 - INFO - OCR detected text in region 2 (inverted): 
+2025-03-09 23:50:56,186 - INFO - OCR detected text in region 2 (contrast): 9.174 X-886 V:475 <
+Ine Alia
+
+2025-03-09 23:50:56,326 - INFO - OCR detected text in region 2 (original): 
+2025-03-09 23:50:56,326 - INFO - OCR couldn't find '1 troop', trying alternative methods
+2025-03-09 23:50:56,352 - WARNING - Could not find '1 troop' text on bookmark screen
+2025-03-09 23:52:09,206 - INFO - Starting BlueStacks Rise of Kingdoms Launcher
+2025-03-09 23:52:09,208 - INFO - Connecting to BlueStacks via ADB...
+2025-03-09 23:52:09,246 - INFO - Connecting to ADB on port 5555...
+2025-03-09 23:52:09,278 - INFO - ADB connect result: already connected to 127.0.0.1:5555
+2025-03-09 23:52:09,305 - INFO - Successfully connected to BlueStacks via ADB
+2025-03-09 23:52:09,305 - INFO - Navigating to bookmark screen
+2025-03-09 23:52:09,305 - ERROR - Error in main process: 'RoKGameController' object has no attribute 'click_delay'
+2025-03-09 23:52:09,305 - ERROR - Stack trace:
+Traceback (most recent call last):
+  File "C:\Users\binlo\PycharmProjects\ROK\rok-auto-alliance-bot\src\main.py", line 67, in main
+    rok_game.navigate_to_bookmark_and_find_troop()
+  File "C:\Users\binlo\PycharmProjects\ROK\rok-auto-alliance-bot\src\rok_game_controller.py", line 341, in navigate_to_bookmark_and_find_troop
+    if not self.bluestacks.click(bookmark_button['x'], bookmark_button['y'], self.click_delay):
+                                                                             ^^^^^^^^^^^^^^^^
+AttributeError: 'RoKGameController' object has no attribute 'click_delay'. Did you mean: 'click_delay_ms'?
+2025-03-09 23:52:17,110 - INFO - Starting BlueStacks Rise of Kingdoms Launcher
+2025-03-09 23:52:17,110 - INFO - Connecting to BlueStacks via ADB...
+2025-03-09 23:52:17,142 - INFO - Connecting to ADB on port 5555...
+2025-03-09 23:52:17,174 - INFO - ADB connect result: already connected to 127.0.0.1:5555
+2025-03-09 23:52:17,203 - INFO - Successfully connected to BlueStacks via ADB
+2025-03-09 23:52:17,203 - INFO - Navigating to bookmark screen
+2025-03-09 23:52:17,203 - INFO - Clicking at coordinates: (477, 20)
+2025-03-09 23:52:21,352 - INFO - OCR detected texts (adaptive): ['', '', '', '', '7', '', 'ikatgolds:1', 'troop,', '', 's', 'k:3174', 'x:839,.¥:743', '.', '-', '', '4', '~,', '', '0.8', 'oikim:smalle13:gg', '', 'cry', 'calm', '', 'a', '—', ':', ':', '', 'yz', 'oterxiian', '', 'adam', '3174', 'x:757,77733)', '7', '7', '', '4', '', 'i174h]katroods,', '', 'k', '317a', 'citt', 'y', '658"', '', '4', '', 'eiiiranikstroods,', '', '3174x886', 'vats', '', 'se', '———————', '—', '', '——', '', '(dn', '(@.1ng741katfood2']
+2025-03-09 23:52:21,352 - ERROR - Error detecting text position: 
+2025-03-09 23:52:21,352 - ERROR - Stack trace:
+Traceback (most recent call last):
+  File "C:\Users\binlo\PycharmProjects\ROK\rok-auto-alliance-bot\src\rok_game_controller.py", line 311, in detect_text_position
+    next(word for word in detected_texts if word and word in target_text_lower))
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+StopIteration
+2025-03-09 23:56:19,887 - INFO - Starting BlueStacks Rise of Kingdoms Launcher
+2025-03-09 23:56:19,888 - INFO - Connecting to BlueStacks via ADB...
+2025-03-09 23:56:19,937 - INFO - Connecting to ADB on port 5555...
+2025-03-09 23:56:19,998 - INFO - ADB connect result: already connected to 127.0.0.1:5555
+2025-03-09 23:56:20,033 - INFO - Successfully connected to BlueStacks via ADB
+2025-03-09 23:56:20,034 - INFO - Navigating to bookmark screen
+2025-03-09 23:56:20,034 - INFO - Clicking at coordinates: (477, 20)
+2025-03-09 23:56:24,177 - INFO - OCR detected texts (adaptive): ['7', 'ikatgolds:1', 'troop,', 's', 'k:3174', 'x:839,.¥:743', '.', '-', '4', '~,', '0.8', 'oikim:smalle13:gg', 'cry', 'calm', 'a', '—', ':', ':', 'yz', 'oterxiian', 'adam', '3174', 'x:757,77733)', '7', '7', '4', 'i174h]katroods,', 'k', '317a', 'citt', 'y', '658"', '4', 'eiiiranikstroods,', '3174x886', 'vats', 'se', '———————', '—', '——', '(dn', '(@.1ng741katfood2']
+2025-03-09 23:56:24,178 - INFO - Found word '1' from target text '1 troop' at position: (320, 208)
+2025-03-09 23:57:19,594 - INFO - Starting BlueStacks Rise of Kingdoms Launcher
+2025-03-09 23:57:19,596 - INFO - Connecting to BlueStacks via ADB...
+2025-03-09 23:57:19,652 - INFO - Connecting to ADB on port 5555...
+2025-03-09 23:57:19,696 - INFO - ADB connect result: already connected to 127.0.0.1:5555
+2025-03-09 23:57:19,735 - INFO - Successfully connected to BlueStacks via ADB
+2025-03-09 23:57:19,735 - INFO - Navigating to bookmark screen
+2025-03-09 23:57:19,735 - INFO - Clicking at coordinates: (477, 20)
+2025-03-09 23:57:23,778 - INFO - OCR detected texts (adaptive): ['7', 'ikatgolds:1', 'troop,', 's', 'k:3174', 'x:839,.¥:743', '.', '-', '4', '~,', '0.8', 'oikim:smalle13:gg', 'cry', 'calm', 'a', '—', ':', ':', 'yz', 'oterxiian', 'adam', '3174', 'x:757,77733)', '7', '7', '4', 'i174h]katroods,', 'k', '317a', 'citt', 'y', '658"', '4', 'eiiiranikstroods,', '3174x886', 'vats', 'se', '———————', '—', '——', '(dn', '(@.1ng741katfood2']
+2025-03-09 23:57:23,778 - INFO - Found word '1' from target text '1 troop' at position: (320, 208)
+2025-03-10 00:00:44,590 - INFO - Starting BlueStacks Rise of Kingdoms Launcher
+2025-03-10 00:00:44,591 - INFO - Connecting to BlueStacks via ADB...
+2025-03-10 00:00:44,631 - INFO - Connecting to ADB on port 5555...
+2025-03-10 00:00:44,664 - INFO - ADB connect result: already connected to 127.0.0.1:5555
+2025-03-10 00:00:44,692 - INFO - Successfully connected to BlueStacks via ADB
+2025-03-10 00:00:44,692 - INFO - Navigating to bookmark screen
+2025-03-10 00:00:44,692 - INFO - Clicking at coordinates: (477, 20)
+2025-03-10 00:00:48,804 - INFO - OCR detected texts (adaptive): ['7', 'ikatgolds:1', 'troop,', 's', 'k:3174', 'x:839,.¥:743', '.', '-', '4', '~,', '0.8', 'oikim:smalle13:gg', 'cry', 'calm', 'a', '—', ':', ':', 'yz', 'oterxiian', 'adam', '3174', 'x:757,77733)', '7', '7', '4', 'i174h]katroods,', 'k', '317a', 'citt', 'y', '658"', '4', 'eiiiranikstroods,', '3174x886', 'vats', 'se', '———————', '—', '——', '(dn', '(@.1ng741katfood2']
+2025-03-10 00:00:48,804 - INFO - Found word '1' from target text '1 troop' at position: (320, 208)
+2025-03-10 00:00:48,804 - INFO - Clicking at coordinates: (1020, 208)
+2025-03-10 00:03:52,464 - INFO - Starting BlueStacks Rise of Kingdoms Launcher
+2025-03-10 00:03:52,465 - INFO - Connecting to BlueStacks via ADB...
+2025-03-10 00:03:52,496 - INFO - Connecting to ADB on port 5555...
+2025-03-10 00:03:52,527 - INFO - ADB connect result: already connected to 127.0.0.1:5555
+2025-03-10 00:03:52,555 - INFO - Successfully connected to BlueStacks via ADB
+2025-03-10 00:03:52,555 - INFO - Navigating to bookmark screen
+2025-03-10 00:03:52,555 - INFO - Clicking at coordinates: (477, 20)
+2025-03-10 00:03:56,490 - INFO - OCR detected texts (adaptive): ['7', '£6', 'katgold5:1', 'troop,', 's', 'k:3174', 'x:837¥;75', '1)', '.', '_', '4', '~,', '0.8', 'oikim:smalle13:gg', 'cry', 'calm', '_——', '—', '—', '—_——————', '—', '—', '—=', 'a', "'", '1', 'on)', ':', ':']
+2025-03-10 00:03:56,490 - INFO - Found partial match for '1 troop' at position: (308, 415)
+2025-03-10 00:03:56,491 - INFO - Clicking at coordinates: (1008, 415)
+2025-03-10 00:04:00,696 - INFO - Clicking at middle of game screen to dismiss loading screen
+2025-03-10 00:04:00,696 - INFO - Clicking at coordinates: (640, 320)
+2025-03-10 00:06:38,606 - INFO - Starting BlueStacks Rise of Kingdoms Launcher
+2025-03-10 00:06:38,607 - INFO - Connecting to BlueStacks via ADB...
+2025-03-10 00:06:38,648 - INFO - Connecting to ADB on port 5555...
+2025-03-10 00:06:38,706 - INFO - ADB connect result: already connected to 127.0.0.1:5555
+2025-03-10 00:06:38,743 - INFO - Successfully connected to BlueStacks via ADB
+2025-03-10 00:06:41,492 - INFO - OCR detected texts (adaptive): ['7', '£6', 'katgold5:1', 'troop,', 's', 'k:3174', 'x:837¥;75', '1)', '.', '_', '4', '~,', '0.8', 'oikim:smalle13:gg', 'cry', 'calm', '_——', '—', '—', '—_——————', '—', '—', '—=', 'a', "'", '1', 'on)', ':', ':']
+2025-03-10 00:06:41,492 - INFO - Found partial match for '1 troop' at position: (308, 415)
+2025-03-10 00:06:41,493 - INFO - Clicking at coordinates: (1008, 415)
+2025-03-10 00:06:45,676 - INFO - Clicking at middle of game screen to dismiss loading screen
+2025-03-10 00:06:45,676 - INFO - Clicking at coordinates: (640, 320)
+2025-03-10 00:07:47,034 - INFO - Starting BlueStacks Rise of Kingdoms Launcher
+2025-03-10 00:07:47,035 - INFO - Connecting to BlueStacks via ADB...
+2025-03-10 00:07:47,066 - INFO - Connecting to ADB on port 5555...
+2025-03-10 00:07:47,115 - INFO - ADB connect result: already connected to 127.0.0.1:5555
+2025-03-10 00:07:47,160 - INFO - Successfully connected to BlueStacks via ADB
+2025-03-10 00:07:49,942 - INFO - OCR detected texts (adaptive): ['7', '£6', 'katgold5:1', 'troop,', 's', 'k:3174', 'x:837¥;75', '1)', '.', '_', '4', '~,', '0.8', 'oikim:smalle13:gg', 'cry', 'calm', '_——', '—', '—', '—_——————', '—', '—', '—=', 'a', "'", '1', 'on)', ':', ':']
+2025-03-10 00:07:49,942 - INFO - Found partial match for '1 troop' at position: (308, 415)
+2025-03-10 00:07:49,943 - INFO - Clicking at coordinates: (1008, 415)
+2025-03-10 00:07:54,142 - INFO - Clicking at middle of game screen to dismiss loading screen
+2025-03-10 00:07:54,142 - INFO - Clicking at coordinates: (640, 320)
+2025-03-10 00:09:31,694 - INFO - Starting BlueStacks Rise of Kingdoms Launcher
+2025-03-10 00:09:31,695 - INFO - Connecting to BlueStacks via ADB...
+2025-03-10 00:09:31,742 - INFO - Connecting to ADB on port 5555...
+2025-03-10 00:09:31,795 - INFO - ADB connect result: already connected to 127.0.0.1:5555
+2025-03-10 00:09:31,844 - INFO - Successfully connected to BlueStacks via ADB
+2025-03-10 00:09:34,725 - INFO - OCR detected texts (adaptive): ['7', 'oikatgolds:1', 'troop', 'k', '(3174', 'x:837,v;751', '.', '.', '(ad', '#2', 'fo.', 'kim', 'smallf13:gg', 'cry', 'calm', 'ee', ':', ':', 'oi174h]katroods,', 'is', 'c3174', '788,', 'vi687]', ';', ';', '4', 'i174h]katroods,', 'k', '317a', 'citt', 'y', '658"', '4', 'eiiiranikstroods,', '3174x886', 'vats', 'se', '———————', '—', '——', '(dn', '(@.1ng741katfood2']
+2025-03-10 00:09:34,725 - INFO - Found partial match for '1 troop' at position: (419, 213)
+2025-03-10 00:09:34,725 - INFO - Clicking at coordinates: (1119, 213)
+2025-03-10 00:09:38,922 - INFO - Clicking at middle of game screen to dismiss loading screen
+2025-03-10 00:09:38,922 - INFO - Clicking at coordinates: (640, 320)
+2025-03-10 00:10:10,859 - INFO - Starting BlueStacks Rise of Kingdoms Launcher
+2025-03-10 00:10:10,860 - INFO - Connecting to BlueStacks via ADB...
+2025-03-10 00:10:10,893 - INFO - Connecting to ADB on port 5555...
+2025-03-10 00:10:10,926 - INFO - ADB connect result: already connected to 127.0.0.1:5555
+2025-03-10 00:10:10,955 - INFO - Successfully connected to BlueStacks via ADB
+2025-03-10 00:10:13,697 - INFO - OCR detected texts (adaptive): ['7', 'oikatgolds:1', 'troop', 'a', 'k3174', 'x:837,¥,7511', '.', '.', '(kd', '©', 'bid', 'kim', 'smallf13:gg', '[(®', '_——', '—', '—', '—_——————', '—', '—', '—=', '——', "'", '1', 'on)', ':', ':']
+2025-03-10 00:10:13,697 - INFO - Found partial match for '1 troop' at position: (419, 213)
+2025-03-10 00:10:13,697 - INFO - Clicking at coordinates: (1119, 213)
+2025-03-10 00:10:17,891 - INFO - Clicking at middle of game screen to dismiss loading screen
+2025-03-10 00:10:17,891 - INFO - Clicking at coordinates: (640, 320)
+2025-03-10 00:10:58,171 - INFO - Starting BlueStacks Rise of Kingdoms Launcher
+2025-03-10 00:10:58,172 - INFO - Connecting to BlueStacks via ADB...
+2025-03-10 00:10:58,225 - INFO - Connecting to ADB on port 5555...
+2025-03-10 00:10:58,268 - INFO - ADB connect result: already connected to 127.0.0.1:5555
+2025-03-10 00:10:58,299 - INFO - Successfully connected to BlueStacks via ADB
+2025-03-10 00:11:01,047 - INFO - OCR detected texts (adaptive): ['7', '£6', 'katgold5:1', 'troop,', 's', 'k:3174', 'x:837¥;75', '1)', '.', '_', '4', '~,', '0.8', 'oikim:smalle13:gg', 'cry', 'calm', '_——', '—', '—', '—_——————', '—', '—', '—=', 'a', "'", '1', 'on)', ':', ':']
+2025-03-10 00:11:01,047 - INFO - Found partial match for '1 troop' at position: (308, 415)
+2025-03-10 00:11:01,048 - INFO - Clicking at coordinates: (1008, 415)
+2025-03-10 00:11:05,242 - INFO - Clicking at middle of game screen to dismiss loading screen
+2025-03-10 00:11:05,242 - INFO - Clicking at coordinates: (640, 320)
+2025-03-10 00:12:57,895 - INFO - Starting BlueStacks Rise of Kingdoms Launcher
+2025-03-10 00:12:57,896 - INFO - Connecting to BlueStacks via ADB...
+2025-03-10 00:12:57,943 - INFO - Connecting to ADB on port 5555...
+2025-03-10 00:12:57,986 - INFO - ADB connect result: already connected to 127.0.0.1:5555
+2025-03-10 00:12:58,022 - INFO - Successfully connected to BlueStacks via ADB
+2025-03-10 00:13:00,776 - INFO - OCR detected texts (adaptive): ['7', '£6', 'katgold5:1', 'troop,', 's', 'k:3174', 'x:837¥;75', '1)', '.', '_', '4', '~,', '0.8', 'oikim:smalle13:gg', 'cry', 'calm', '_——', '—', '—', '—_——————', '—', '—', '—=', 'a', "'", '1', 'on)', ':', ':']
+2025-03-10 00:13:00,776 - INFO - Found partial match for '1 troop' at position: (308, 415)
+2025-03-10 00:13:00,776 - INFO - Clicking at coordinates: (1008, 415)
+2025-03-10 00:13:04,974 - INFO - Clicking at middle of game screen to dismiss loading screen
+2025-03-10 00:13:04,974 - INFO - Clicking at coordinates: (640, 320)
+2025-03-10 00:13:15,006 - INFO - Starting BlueStacks Rise of Kingdoms Launcher
+2025-03-10 00:13:15,007 - INFO - Connecting to BlueStacks via ADB...
+2025-03-10 00:13:15,080 - INFO - Connecting to ADB on port 5555...
+2025-03-10 00:13:15,127 - INFO - ADB connect result: already connected to 127.0.0.1:5555
+2025-03-10 00:13:15,167 - INFO - Successfully connected to BlueStacks via ADB
+2025-03-10 00:13:17,900 - INFO - OCR detected texts (adaptive): ['7', '£6', 'katgold5:1', 'troop,', 's', 'k:3174', 'x:837¥;75', '1)', '.', '_', '4', '~,', '0.8', 'oikim:smalle13:gg', 'cry', 'calm', '.', '_——', '—', '—', '—_——————', '—', '—', '—=', 'a', "'", '1', 'on)', ':', ':']
+2025-03-10 00:13:17,900 - INFO - Found text 'troop' at position: (417, 212)
+2025-03-10 00:13:17,901 - INFO - Clicking at coordinates: (1117, 212)
+2025-03-10 00:13:22,108 - INFO - Clicking at middle of game screen to dismiss loading screen
+2025-03-10 00:13:22,108 - INFO - Clicking at coordinates: (640, 320)
+2025-03-10 00:15:58,726 - INFO - Starting BlueStacks Rise of Kingdoms Launcher
+2025-03-10 00:15:58,728 - INFO - Connecting to BlueStacks via ADB...
+2025-03-10 00:15:58,790 - INFO - Connecting to ADB on port 5555...
+2025-03-10 00:15:58,832 - INFO - ADB connect result: already connected to 127.0.0.1:5555
+2025-03-10 00:15:58,871 - INFO - Successfully connected to BlueStacks via ADB
+2025-03-10 00:16:01,608 - INFO - OCR detected texts (adaptive): ['7', '£6', 'katgold5:1', 'troop,', 's', 'k:3174', 'x:837¥;75', '1)', '.', '_', '4', '~,', '0.8', 'oikim:smalle13:gg', 'cry', 'calm', '_——', '—', '—', '—_——————', '—', '—', '—=', 'a', "'", '1', 'on)', ':', ':']
+2025-03-10 00:16:01,608 - INFO - Found word '1' from '1 troop' at position: (372, 213)
+2025-03-10 00:16:01,632 - INFO - Clicking at coordinates: (1072, 213)
+2025-03-10 00:16:05,843 - INFO - Clicking at middle of game screen to dismiss loading screen
+2025-03-10 00:16:05,843 - INFO - Clicking at coordinates: (640, 320)
+2025-03-10 00:16:43,376 - INFO - Starting BlueStacks Rise of Kingdoms Launcher
+2025-03-10 00:16:43,377 - INFO - Connecting to BlueStacks via ADB...
+2025-03-10 00:16:43,426 - INFO - Connecting to ADB on port 5555...
+2025-03-10 00:16:43,463 - INFO - ADB connect result: already connected to 127.0.0.1:5555
+2025-03-10 00:16:43,496 - INFO - Successfully connected to BlueStacks via ADB
+2025-03-10 00:16:46,255 - INFO - OCR detected texts (adaptive): ['7', 'ge', 'oikatgolds:1', 'troop.', 'we', 'k:3174', 'x;840,¥:750)', '.', '.', 'aie', '‘a', 'oi', 'katgold5:1', 'troop', 'ki3174', 'x:837,¥-7511', 'vit).', 'orenaaine', '”', '~', '8', 'oi', 'kim', 'smallf13:gg', 'i', 'vay', 'cata', '7', '7', 'on)', ':', ':', '=']
+2025-03-10 00:16:46,255 - INFO - Found word '1' from '1 troop' at position: (372, 208)
+2025-03-10 00:16:46,277 - INFO - Clicking at coordinates: (1072, 208)
+2025-03-10 00:16:50,477 - INFO - Clicking at middle of game screen to dismiss loading screen
+2025-03-10 00:16:50,477 - INFO - Clicking at coordinates: (640, 320)
+2025-03-10 00:28:01,674 - INFO - Starting BlueStacks Rise of Kingdoms Launcher
+2025-03-10 00:28:01,675 - INFO - Connecting to BlueStacks via ADB...
+2025-03-10 00:28:01,722 - INFO - Connecting to ADB on port 5555...
+2025-03-10 00:28:01,776 - INFO - ADB connect result: already connected to 127.0.0.1:5555
+2025-03-10 00:28:01,810 - INFO - Successfully connected to BlueStacks via ADB
+2025-03-10 00:28:02,802 - INFO - OCR detected texts (adaptive): ['hold,', 'ps', 'easy', 'vr', 'im', 'i', 'ee', '\\\\', ',', '“alliance', 'flag', 'a', '4', 'va', 'i', 'aa', ';', 'aes', 'building', 'progress', '14', 'j', 'xs', '26%', '<a)', '2', 'terdh', 'time', 'remaining', ':', 'sf', 'sorsoar', 'ee', 'q', '7', 'a', 'aih', 'owner', '{plaraenorhurts,.', '2', '|', 'boe', 'ab', 'as', 'se', 'se', 'f', 'sy', 'ma', 'build', 'ee', 'i', 'im', 'garrison', 'building', 'afteritis', 'built', '<', '=']
+2025-03-10 00:28:02,802 - INFO - Found text 'BUILD' at position: (271, 296)
+2025-03-10 00:28:02,802 - INFO - Clicking at coordinates: (271, 296)
+2025-03-10 00:30:12,108 - INFO - Starting BlueStacks Rise of Kingdoms Launcher
+2025-03-10 00:30:12,109 - INFO - Connecting to BlueStacks via ADB...
+2025-03-10 00:30:12,151 - INFO - Connecting to ADB on port 5555...
+2025-03-10 00:30:12,198 - INFO - ADB connect result: already connected to 127.0.0.1:5555
+2025-03-10 00:30:12,249 - INFO - Successfully connected to BlueStacks via ADB
+2025-03-10 00:30:13,130 - INFO - OCR detected texts (adaptive): ['di', 'alliance', 'flag', '.', 'poe', 'an', '2', 'en', 'building', 'progress', '26%', 'pean', 'ss,', 'j', 'yay', 'time', 'remaining', '07:47:17', 'a', 'q', 'ole', 'ent”', 'owner', '—raranwerthumbe...', '[2s]', '|', 'peer', 'et!', ',', 'ee', '.', 'ng', '/', '“e,', 'f', 'build', 'xe,', 'fi', '‘', ':', 'ne', 'im', 'garrison', 'building', 'after', 'itis', 'built.', '~~~', '=']
+2025-03-10 00:30:13,131 - INFO - Found word 'building' from 'building progress' at position: (263, 296)
+2025-03-10 00:30:13,157 - INFO - Clicking at coordinates: (263, 296)
+2025-03-10 00:31:02,479 - INFO - Starting BlueStacks Rise of Kingdoms Launcher
+2025-03-10 00:31:02,479 - INFO - Connecting to BlueStacks via ADB...
+2025-03-10 00:31:02,510 - INFO - Connecting to ADB on port 5555...
+2025-03-10 00:31:02,542 - INFO - ADB connect result: already connected to 127.0.0.1:5555
+2025-03-10 00:31:02,570 - INFO - Successfully connected to BlueStacks via ADB
+2025-03-10 00:31:03,444 - INFO - OCR detected texts (adaptive): ['nahn', '5', 'ee', 'ae', 'ees', 'ae', 'hold,', 're', 'yaay', 'vey', '|', 'e,', 'seer', '\\\\', '“alliance', 'flag', '0', 'a', 'e', 'ae', 'i', 'nn', 'aes,', '*', 'building', 'progress', '26%', 'ad', '5,', 'r', 'terdh', 'time', 'remaining', '07:46:26', 'ae', 'a', 'nz', 'owner', '[274t]northumbr...', '[233]', 'bee', 'gel', 'build', '——', 'im', 'garrison', 'building', 'after', 'itis', 'built,»', 'o']
+2025-03-10 00:31:03,444 - INFO - Found word 'building' from 'building progress' at position: (263, 296)
+2025-03-10 00:31:03,471 - INFO - Clicking at coordinates: (263, 441)
+2025-03-10 00:32:44,186 - INFO - Starting BlueStacks Rise of Kingdoms Launcher
+2025-03-10 00:32:44,187 - INFO - Connecting to BlueStacks via ADB...
+2025-03-10 00:32:44,219 - INFO - Connecting to ADB on port 5555...
+2025-03-10 00:32:44,250 - INFO - ADB connect result: already connected to 127.0.0.1:5555
+2025-03-10 00:32:44,279 - INFO - Successfully connected to BlueStacks via ADB
+2025-03-10 00:32:45,095 - INFO - OCR detected texts (adaptive): ['gio', 'oxbst', 'ysis', 'lsfisj', '|;', 'ese', '.', 'me', 'fen', 'eed', 's', '=', 'ie', 'se', 'é', 'di', 'alliance', 'flag', 'q|', '=', 'en', 'building', 'progress', '27%', '|', 're', 'wy', 'i', '—n', 'el', 'spa', 'time', 'remaining', '07:44:44', 'pele', '\\', ':', 'ne', '“owner', '[274h]northumbr...', '233]', '&:', 'nl', 'pal', ':', 'build', '7', 'im', 'garrison', 'building', 'after', 'itis', 'built...']
+2025-03-10 00:32:45,095 - INFO - Found word 'building' from 'building progress' at position: (263, 296)
+2025-03-10 00:32:45,119 - INFO - Clicking at coordinates: (263, 441)
+2025-03-10 00:39:44,413 - INFO - Starting BlueStacks Rise of Kingdoms Launcher
+2025-03-10 00:39:44,413 - INFO - Connecting to BlueStacks via ADB...
+2025-03-10 00:39:44,448 - INFO - Connecting to ADB on port 5555...
+2025-03-10 00:39:44,480 - INFO - ADB connect result: already connected to 127.0.0.1:5555
+2025-03-10 00:39:44,509 - INFO - Successfully connected to BlueStacks via ADB
+2025-03-10 00:39:45,825 - INFO - OCR detected texts (adaptive): ['7', ':', 'is', 'a', 'o', 'a', ';', '(z)', 'rap', 'to.soin', 'r®', 'rating']
+2025-03-10 00:39:45,825 - INFO - Found word 'to' from 'tap to join' at position: (307, 448)
+2025-03-10 00:39:45,856 - INFO - Clicking at coordinates: (307, 593)
+2025-03-10 00:40:20,503 - INFO - Starting BlueStacks Rise of Kingdoms Launcher
+2025-03-10 00:40:20,504 - INFO - Connecting to BlueStacks via ADB...
+2025-03-10 00:40:20,549 - INFO - Connecting to ADB on port 5555...
+2025-03-10 00:40:20,588 - INFO - ADB connect result: already connected to 127.0.0.1:5555
+2025-03-10 00:40:20,619 - INFO - Successfully connected to BlueStacks via ADB
+2025-03-10 00:40:21,379 - INFO - OCR detected texts (adaptive): ['hy', 'ri', 'ee', 'oa', '@o', '=', '_', ':', '(z)', 'rap', 'to.soin', '!', 'r®', 'katnip24)']
+2025-03-10 00:40:21,379 - INFO - Found word 'to' from 'tap to join' at position: (307, 448)
+2025-03-10 00:40:21,402 - INFO - Clicking at coordinates: (307, 448)
+2025-03-10 00:49:33,331 - INFO - Starting BlueStacks Rise of Kingdoms Launcher
+2025-03-10 00:49:33,332 - INFO - Connecting to BlueStacks via ADB...
+2025-03-10 00:49:33,379 - INFO - Connecting to ADB on port 5555...
+2025-03-10 00:49:33,420 - INFO - ADB connect result: already connected to 127.0.0.1:5555
+2025-03-10 00:49:33,458 - INFO - Successfully connected to BlueStacks via ADB
+2025-03-10 00:49:34,277 - INFO - OCR detected texts (adaptive): [':f', 'digjpatchanew', 'trdop', 'from', 'your', 'city', 'new', 'troop', '|']
+2025-03-10 00:49:34,416 - INFO - OCR detected texts (otsu): ['digpatch', 'a', 'new', 'i', 'from', 'your', 'city']
+2025-03-10 00:49:34,565 - INFO - OCR detected texts (inverted): ['digpatch', 'a', 'new', 'i', 'from', 'your', 'city']
+2025-03-10 00:49:34,715 - INFO - OCR detected texts (contrast): ['dispatch', 'a', 'new', 'i', 'from', 'your', 'city']
+2025-03-10 00:49:34,715 - INFO - Found text 'Dispatch' at position: (945, 63)
+2025-03-10 00:49:34,715 - INFO - Clicking at coordinates: (945, 153)
+2025-03-10 00:49:58,263 - INFO - Starting BlueStacks Rise of Kingdoms Launcher
+2025-03-10 00:49:58,264 - INFO - Connecting to BlueStacks via ADB...
+2025-03-10 00:49:58,314 - INFO - Connecting to ADB on port 5555...
+2025-03-10 00:49:58,380 - INFO - ADB connect result: already connected to 127.0.0.1:5555
+2025-03-10 00:49:58,432 - INFO - Successfully connected to BlueStacks via ADB
+2025-03-10 00:49:59,209 - INFO - OCR detected texts (adaptive): ['11,499,957', '©', 'f', 'a...']
+2025-03-10 00:49:59,350 - INFO - OCR detected texts (otsu): ['units', '11,499,957', 'f', 'kl']
+2025-03-10 00:49:59,504 - INFO - OCR detected texts (inverted): ['units', '11,499,957', 'f', '1...']
+2025-03-10 00:49:59,645 - INFO - OCR detected texts (contrast): ['units', '1/1,499,957', '7,']
+2025-03-10 00:49:59,796 - INFO - OCR detected texts (original): ['units', '1/1,499,957', 'f', '...._']
+2025-03-10 00:49:59,797 - INFO - Text 'Dispatch' not found in region
+2025-03-10 00:49:59,797 - ERROR - Tap to join button not found
+2025-03-10 00:59:02,358 - INFO - Starting BlueStacks Rise of Kingdoms Launcher
+2025-03-10 00:59:02,359 - INFO - Connecting to BlueStacks via ADB...
+2025-03-10 00:59:02,405 - INFO - Connecting to ADB on port 5555...
+2025-03-10 00:59:02,443 - INFO - ADB connect result: already connected to 127.0.0.1:5555
+2025-03-10 00:59:02,473 - INFO - Successfully connected to BlueStacks via ADB
+2025-03-10 00:59:02,473 - INFO - Dispatching troops
+2025-03-10 00:59:02,473 - INFO - Clicking at coordinates: (990, 232)
+2025-03-10 00:59:05,706 - INFO - Clicking at coordinates: (814, 640)
+2025-03-10 00:59:33,432 - INFO - Starting BlueStacks Rise of Kingdoms Launcher
+2025-03-10 00:59:33,434 - INFO - Connecting to BlueStacks via ADB...
+2025-03-10 00:59:33,485 - INFO - Connecting to ADB on port 5555...
+2025-03-10 00:59:33,530 - INFO - ADB connect result: already connected to 127.0.0.1:5555
+2025-03-10 00:59:33,564 - INFO - Successfully connected to BlueStacks via ADB
+2025-03-10 00:59:33,565 - INFO - Dispatching troops
+2025-03-10 00:59:33,565 - INFO - Clicking at coordinates: (990, 232)
+2025-03-10 00:59:36,810 - INFO - Clicking at coordinates: (814, 640)
+2025-03-10 01:00:03,835 - INFO - Starting BlueStacks Rise of Kingdoms Launcher
+2025-03-10 01:00:03,836 - INFO - Connecting to BlueStacks via ADB...
+2025-03-10 01:00:03,877 - INFO - Connecting to ADB on port 5555...
+2025-03-10 01:00:03,932 - INFO - ADB connect result: already connected to 127.0.0.1:5555
+2025-03-10 01:00:03,967 - INFO - Successfully connected to BlueStacks via ADB
+2025-03-10 01:00:03,968 - INFO - Dispatching troops
+2025-03-10 01:00:03,968 - INFO - Clicking at coordinates: (1108, 232)
+2025-03-10 01:00:07,246 - INFO - Clicking at coordinates: (814, 640)
+2025-03-10 01:22:06,047 - INFO - Starting BlueStacks Rise of Kingdoms Launcher
+2025-03-10 01:22:06,047 - INFO - Connecting to BlueStacks via ADB...
+2025-03-10 01:22:06,079 - INFO - Connecting to ADB on port 5555...
+2025-03-10 01:22:06,111 - INFO - ADB connect result: already connected to 127.0.0.1:5555
+2025-03-10 01:22:06,139 - INFO - Successfully connected to BlueStacks via ADB
+2025-03-10 01:22:06,139 - INFO - Navigating to bookmark screen
+2025-03-10 01:22:06,139 - INFO - Clicking at coordinates: (477, 20)
+2025-03-10 01:22:10,325 - INFO - OCR detected texts (adaptive): ['7', 'oikatgolds:1', 'troop', 'k', '(3174', 'x:837,v;751', '.', '.', '(ad', '#2', 'fo.', 'kim', 'smallf13:gg', 'cry', 'calm', 'ee', ':', ':', 'oi174h]katroods,', 'is', 'c3174', '788,', 'vi687]', ';', ';', '4', 'i174h]katroods,', 'k', '317a', 'citt', 'y', '658"', '4', 'eiiiranikstroods,', '3174x886', 'vats', 'se', '———————', '—', '——', '(dn', '(@.1ng741katfood2']
+2025-03-10 01:22:10,326 - INFO - Found word '1' from '1 troop' at position: (375, 208)
+2025-03-10 01:22:10,346 - INFO - Clicking at coordinates: (1075, 208)
+2025-03-10 01:22:14,565 - INFO - Clicking at middle of game screen to dismiss loading screen
+2025-03-10 01:22:14,565 - INFO - Clicking at coordinates: (640, 320)
+2025-03-10 01:22:17,645 - INFO - OCR detected texts (adaptive): ['=', 'cic', '|', 'ee', 'in', ':', 'ea', 'lss', '1s', 'eb', 'g', 'recs', '<', '\\', '‘|', 'alliance', 'flag', 'www', '=', 'en', 'building', 'progress', '34%', 'ayn', 'fa', 'el', 'oy)', 'time', 'remaining', '06:55:12', 'bees', ':', 'ad', 'owner', '[274h]northumbr...', '233]', 'batons', 'is', 'se', '_', 'as', 'e.', '=', ':', 'build', 'sy', ';', 'im', 'garrison', 'building', 'after', 'itis', 'built', '———']
+2025-03-10 01:22:17,646 - INFO - Found word 'building' from 'building progress' at position: (263, 296)
+2025-03-10 01:22:17,671 - INFO - Clicking at coordinates: (263, 441)
+2025-03-10 01:23:48,876 - INFO - Starting BlueStacks Rise of Kingdoms Launcher
+2025-03-10 01:23:48,877 - INFO - Connecting to BlueStacks via ADB...
+2025-03-10 01:23:48,934 - INFO - Connecting to ADB on port 5555...
+2025-03-10 01:23:49,003 - INFO - ADB connect result: already connected to 127.0.0.1:5555
+2025-03-10 01:23:49,054 - INFO - Successfully connected to BlueStacks via ADB
+2025-03-10 01:23:49,054 - INFO - Navigating to bookmark screen
+2025-03-10 01:23:49,054 - INFO - Clicking at coordinates: (477, 20)
+2025-03-10 01:23:53,166 - INFO - OCR detected texts (adaptive): ['7', 'oikatgolds:1', 'troop', 'k', '(3174', 'x:837,v;751', '.', '.', '(ad', '#2', 'fo.', 'kim', 'smallf13:gg', 'cry', 'calm', 'ee', ':', ':', 'oi174h]katroods,', 'is', 'c3174', '788,', 'vi687]', ';', ';', '4', 'i174h]katroods,', 'k', '317a', 'citt', 'y', '658"', '4', 'eiiiranikstroods,', '3174x886', 'vats', 'se', '———————', '—', '——', '(dn', '(@.1ng741katfood2']
+2025-03-10 01:23:53,166 - INFO - Found word '1' from '1 troop' at position: (375, 208)
+2025-03-10 01:23:53,187 - INFO - Clicking at coordinates: (1075, 208)
+2025-03-10 01:23:57,392 - INFO - Clicking at middle of game screen to dismiss loading screen
+2025-03-10 01:23:57,392 - INFO - Clicking at coordinates: (640, 320)
+2025-03-10 01:24:00,448 - INFO - OCR detected texts (adaptive): ['ghoid', '25', 'r37', 'vbl', '[shis!', '}', 'boh', 'a', 'aa', 'se', '1g', 'ind', 'di', 'alliance', 'flag', ',', '=', 'en', 'building', 'progress', '35%', 'pa', 'i', 'g', 'n', 'el', 'oy)', 'time', 'remaining', '06:53:29', 'hees', '\\', ':', 'iy', 'owner', '—_a7annorthumbr..', 'fi}', '|', '|', 'peach)', 'gk', 'build', '%', '(', 'im', 'garrison', 'building', 'after', 'itis', 'built', '—']
+2025-03-10 01:24:00,448 - INFO - Found word 'building' from 'building progress' at position: (263, 296)
+2025-03-10 01:24:00,473 - INFO - Clicking at coordinates: (263, 441)
+2025-03-10 01:24:35,543 - INFO - Starting BlueStacks Rise of Kingdoms Launcher
+2025-03-10 01:24:35,544 - INFO - Connecting to BlueStacks via ADB...
+2025-03-10 01:24:35,576 - INFO - Connecting to ADB on port 5555...
+2025-03-10 01:24:35,608 - INFO - ADB connect result: already connected to 127.0.0.1:5555
+2025-03-10 01:24:35,637 - INFO - Successfully connected to BlueStacks via ADB
+2025-03-10 01:24:36,433 - INFO - OCR detected texts (adaptive): ['we', 'int', 'alliance', 'flag:', '_', '-', '7")', '——', '——', '=', '=', '=', '=', 'i', 'ss2y', '©__', 'nati', ':', ':', 'ss', '©a', '@o', '@o', 'l', '(z)', 'rap', 'to.soin', 'r®', 'keatninzg', 'irecren']
+2025-03-10 01:24:36,830 - INFO - OCR detected texts (otsu): ['~', 'alliance', 'flag', '(a', 'progress:', '35%', 'time', 'left:', '06:52:54', 'per', 'troop', '1', '\\¥', 'reinforcement', 'capacity:', '43/1,500,000', '“', 'x', 'a)', 'qemmnsiyenitin,', 'credit', 'rewards:', '6605/20000', 'next', 'refresh:', '18:3', '1', '@a', '0', '0', 'f', '~', '|', 'tap', 'to', 'join', '“€)', 'katnip24', 'time:', '03:49:50', 'troops:', '1', '&', 'lvl', '1', 'belisarius', '@', '13,790', 'arrived']
+2025-03-10 01:24:36,830 - INFO - Found word 'progress' from 'building progress' at position: (362, 187)
+2025-03-10 01:24:36,852 - INFO - Clicking at coordinates: (362, 332)
+2025-03-10 01:24:56,296 - INFO - Starting BlueStacks Rise of Kingdoms Launcher
+2025-03-10 01:24:56,297 - INFO - Connecting to BlueStacks via ADB...
+2025-03-10 01:24:56,329 - INFO - Connecting to ADB on port 5555...
+2025-03-10 01:24:56,365 - INFO - ADB connect result: already connected to 127.0.0.1:5555
+2025-03-10 01:24:56,407 - INFO - Successfully connected to BlueStacks via ADB
+2025-03-10 01:24:57,369 - INFO - OCR detected texts (adaptive): ['ghoid', '2', 'embstytsl®', 'leflsj', '}', '“ae', '.', 'me', 'es', 'eas', 's', 'ws', 'e', 'a', 'alliance', 'flag', 'laois', '=', 'hy', 'building', 'progress', '35%', 'a)', 'ay', 'o', 'sct', 'time', 'remaining', '06:52:32', 'pe', 'ze', ':', 'nai', 'owner', '[274h]northumbr...', '[233]', 'bs', 'cae', 'ed', 'gh', 'ne', '‘', 'build', 'ss', '24,', 'im', 'garrison', 'building', 'after', 'itis', 'built...']
+2025-03-10 01:24:57,369 - INFO - Found word 'building' from 'building progress' at position: (263, 296)
+2025-03-10 01:24:57,396 - INFO - Clicking at coordinates: (263, 441)
+2025-03-10 01:25:20,852 - INFO - Starting BlueStacks Rise of Kingdoms Launcher
+2025-03-10 01:25:20,853 - INFO - Connecting to BlueStacks via ADB...
+2025-03-10 01:25:20,897 - INFO - Connecting to ADB on port 5555...
+2025-03-10 01:25:20,935 - INFO - ADB connect result: already connected to 127.0.0.1:5555
+2025-03-10 01:25:20,967 - INFO - Successfully connected to BlueStacks via ADB
+2025-03-10 01:25:21,846 - INFO - OCR detected texts (adaptive): ['we', 'int', 'alliance', 'flag:', '_', '-', 'kal', '——', '——', '=', '=', '=', '=', 'hi', 'sszy', '©', '——)', '7', ':', 'ss', 'oa', '@o', '@o', 'k', ';', '(z)', 'rap', 'to.soin', 'r®', 'keatninzg', 'irecren']
+2025-03-10 01:25:22,177 - INFO - OCR detected texts (otsu): ['~', 'alliance', 'flag', '(a', 'progress:', '35%', 'time', 'left:', '06:52:08', 'per', 'troop', '1', '\\¥', 'reinforcement', 'capacity:', '43/1,500,000', '“', 'x', 'a)', 'em', 'siyatiting', 'crevit', 'rewards:', '6605/2000', 'next', 'refresh:', '18:3', '1', '@a', '0', '0', 'f', '~', '|', 'tap', 'to', 'join', '“€)', 'katnip24', 'time:', '03:50:36', 'troops:', '1', '&', 'lvl', '1', 'belisarius', '@', '13,836', 'arrived']
+2025-03-10 01:25:22,177 - INFO - Found word 'progress' from 'building progress' at position: (362, 187)
+2025-03-10 01:25:22,200 - INFO - Clicking at coordinates: (362, 332)
+2025-03-10 01:25:24,187 - INFO - OCR detected texts (adaptive): ['(o', '6a', '«so', '7', 'ss', '~«=infantry', 'fe', 'al', 'cavalry', '<=', '|', '—', '|', '—', '—']
+2025-03-10 01:25:24,335 - INFO - OCR detected texts (otsu): ['ch', '°', 'ax:']
+2025-03-10 01:25:24,487 - INFO - OCR detected texts (inverted): ['ch', '°', 'che']
+2025-03-10 01:25:24,628 - INFO - OCR detected texts (contrast): ['a:']
+2025-03-10 01:25:24,788 - INFO - OCR detected texts (original): ['(o:', 'rs', '>', 'he']
+2025-03-10 01:25:24,788 - INFO - Text 'tap to join' not found in region
+2025-03-10 01:25:24,788 - ERROR - Tap to join button not found
+2025-03-10 01:25:24,788 - INFO - Closing dialogs
+2025-03-10 01:25:24,788 - INFO - Sending ESCAPE key event
+2025-03-10 01:25:25,526 - INFO - Sent escape key to close dialog
+2025-03-10 01:25:36,204 - INFO - Starting BlueStacks Rise of Kingdoms Launcher
+2025-03-10 01:25:36,204 - INFO - Connecting to BlueStacks via ADB...
+2025-03-10 01:25:36,236 - INFO - Connecting to ADB on port 5555...
+2025-03-10 01:25:36,267 - INFO - ADB connect result: already connected to 127.0.0.1:5555
+2025-03-10 01:25:36,297 - INFO - Successfully connected to BlueStacks via ADB
+2025-03-10 01:25:37,159 - INFO - OCR detected texts (adaptive): ['\\\\', 'f', 'alliance', 'flag', 'sa', '«', 's', 'en', 'building', 'progress', '35%', 'fed', 'y', 'in', 'f', '°', 'el', 'oy)', 'time', 'remaining', '06:51:53', '.', 'hes', ':', 'ne', 'owner', '[274h]northumbr...', '233]', 'roe', 'on', 'en', 'oe', 'ss', '\\.', ':', 'build', 'ne', 'im', 'garrison', 'building', 'after', 'itis', 'built', '.°', '.', '—']
+2025-03-10 01:25:37,159 - INFO - Found word 'building' from 'building progress' at position: (263, 296)
+2025-03-10 01:25:37,184 - INFO - Clicking at coordinates: (263, 441)
+2025-03-10 01:25:39,060 - INFO - OCR detected texts (adaptive): ['7', 'jee', 'oe', 'ge', 'a', ';', '(z)', 'rap', 'to.soin', 'r®', 'kathip24', 'in', '‘', 'le', '6137853]']
+2025-03-10 01:25:39,060 - INFO - Found word 'to' from 'tap to join' at position: (307, 448)
+2025-03-10 01:25:39,086 - INFO - Clicking at coordinates: (307, 448)
+2025-03-10 01:25:40,315 - INFO - Closing dialogs
+2025-03-10 01:25:40,315 - INFO - Sending ESCAPE key event
+2025-03-10 01:25:41,032 - INFO - Sent escape key to close dialog
+2025-03-10 01:26:13,506 - INFO - Starting BlueStacks Rise of Kingdoms Launcher
+2025-03-10 01:26:13,507 - INFO - Connecting to BlueStacks via ADB...
+2025-03-10 01:26:13,541 - INFO - Connecting to ADB on port 5555...
+2025-03-10 01:26:13,574 - INFO - ADB connect result: already connected to 127.0.0.1:5555
+2025-03-10 01:26:13,606 - INFO - Successfully connected to BlueStacks via ADB
+2025-03-10 01:26:14,507 - INFO - OCR detected texts (adaptive): ['fe', 'a', '¢', 'a', '~', 's']
+2025-03-10 01:26:14,671 - INFO - OCR detected texts (otsu): ['~', 'ais', '»', '.', '*', 'a', '*', '-', 'a', '=e', '\\', '*', 'law']
+2025-03-10 01:26:14,850 - INFO - OCR detected texts (inverted): ['~', 'ais', '»', ':', '*', 'a', '*', '~-', 'a', '=e', '\\', '*', 'low']
+2025-03-10 01:26:15,001 - INFO - OCR detected texts (contrast): ['fe,', 'y']
+2025-03-10 01:26:15,173 - INFO - OCR detected texts (original): ['n', 'rer)', 'a', 'x', '.', 'i', 'os', 'b', 'rs', '>', '\\', '*', 'ev', '7ae']
+2025-03-10 01:26:15,173 - INFO - Text 'building progress' not found in region
+2025-03-10 01:26:15,173 - ERROR - Build button not found
+2025-03-10 01:26:18,596 - INFO - Starting BlueStacks Rise of Kingdoms Launcher
+2025-03-10 01:26:18,597 - INFO - Connecting to BlueStacks via ADB...
+2025-03-10 01:26:18,630 - INFO - Connecting to ADB on port 5555...
+2025-03-10 01:26:18,661 - INFO - ADB connect result: already connected to 127.0.0.1:5555
+2025-03-10 01:26:18,689 - INFO - Successfully connected to BlueStacks via ADB
+2025-03-10 01:26:19,539 - INFO - OCR detected texts (adaptive): ['aera', ':', 'telecom', 'm', 's', 'ae', '2', 'ge', 'suonghold)', '5s"', '—', 'x:837', '¥:751', 'ony', 'co)', '|', 'alliance', 'f', '-', 'bse', 'j', 'se', 'a', '|', 'hn', 'building', 'prog', 'wiehe', '\\', 'eng)', 'time', 'remaining', 'see', '|', 's', 's14', 'owner', 'build', '@', '‘', 'ae', '|', 'garrison', 'building', '«']
+2025-03-10 01:26:19,539 - INFO - Found word 'building' from 'building progress' at position: (895, 296)
+2025-03-10 01:26:19,566 - INFO - Clicking at coordinates: (895, 441)
+2025-03-10 01:26:21,469 - INFO - OCR detected texts (adaptive): ['7', 'jee', 'oe', 'ge', 'k', ';', '(z)', 'rap', 'to.soin', 'r®', 'kathip24', 'in', '‘', 'le', '(6', 'j137895)']
+2025-03-10 01:26:21,469 - INFO - Found word 'to' from 'tap to join' at position: (307, 448)
+2025-03-10 01:26:21,493 - INFO - Clicking at coordinates: (307, 448)
+2025-03-10 01:26:23,416 - INFO - OCR detected texts (adaptive): [':f', 'dispatchanew', 'troop', 'from', 'your', 'city', 'new', 'troop', '|']
+2025-03-10 01:26:23,416 - INFO - Found text 'Dispatch' at position: (955, 65)
+2025-03-10 01:26:23,416 - INFO - Clicking at coordinates: (955, 155)
+2025-03-10 01:26:24,647 - INFO - Dispatching troops
+2025-03-10 01:26:24,647 - INFO - Clicking at coordinates: (1108, 232)
+2025-03-10 01:26:27,893 - INFO - Clicking at coordinates: (814, 640)
+2025-03-10 01:33:32,569 - INFO - Starting BlueStacks Rise of Kingdoms Launcher
+2025-03-10 01:33:32,570 - INFO - Connecting to BlueStacks via ADB...
+2025-03-10 01:33:32,605 - INFO - Connecting to ADB on port 5555...
+2025-03-10 01:33:32,638 - INFO - ADB connect result: already connected to 127.0.0.1:5555
+2025-03-10 01:33:32,668 - INFO - Successfully connected to BlueStacks via ADB
+2025-03-10 01:33:32,668 - INFO - Dispatching troops
+2025-03-10 01:33:32,668 - INFO - Clicking at coordinates: (1108, 232)
+2025-03-10 01:33:35,879 - INFO - Clicking at coordinates: (814, 640)
+2025-03-10 01:34:38,354 - INFO - Starting BlueStacks Rise of Kingdoms Launcher
+2025-03-10 01:34:38,355 - INFO - Connecting to BlueStacks via ADB...
+2025-03-10 01:34:38,389 - INFO - Connecting to ADB on port 5555...
+2025-03-10 01:34:38,421 - INFO - ADB connect result: already connected to 127.0.0.1:5555
+2025-03-10 01:34:38,452 - INFO - Successfully connected to BlueStacks via ADB
+2025-03-10 01:34:38,452 - INFO - Dispatching troops
+2025-03-10 01:34:38,453 - INFO - Clicking at coordinates: (1108, 232)
+2025-03-10 01:34:41,664 - INFO - Clicking at coordinates: (814, 640)
+2025-03-10 01:35:06,377 - INFO - Starting BlueStacks Rise of Kingdoms Launcher
+2025-03-10 01:35:06,377 - INFO - Connecting to BlueStacks via ADB...
+2025-03-10 01:35:06,409 - INFO - Connecting to ADB on port 5555...
+2025-03-10 01:35:06,444 - INFO - ADB connect result: already connected to 127.0.0.1:5555
+2025-03-10 01:35:06,475 - INFO - Successfully connected to BlueStacks via ADB
+2025-03-10 01:35:06,475 - INFO - Dispatching troops
+2025-03-10 01:35:06,475 - INFO - Clicking at coordinates: (1108, 232)
+2025-03-10 01:35:09,680 - INFO - Clicking at coordinates: (814, 640)
+2025-03-10 01:35:23,401 - INFO - Starting BlueStacks Rise of Kingdoms Launcher
+2025-03-10 01:35:23,402 - INFO - Connecting to BlueStacks via ADB...
+2025-03-10 01:35:23,437 - INFO - Connecting to ADB on port 5555...
+2025-03-10 01:35:23,474 - INFO - ADB connect result: already connected to 127.0.0.1:5555
+2025-03-10 01:35:23,505 - INFO - Successfully connected to BlueStacks via ADB
+2025-03-10 01:35:23,505 - INFO - Dispatching troops
+2025-03-10 01:35:23,505 - INFO - Clicking at coordinates: (1108, 452)
+2025-03-10 01:36:03,824 - INFO - Starting BlueStacks Rise of Kingdoms Launcher
+2025-03-10 01:36:03,826 - INFO - Connecting to BlueStacks via ADB...
+2025-03-10 01:36:03,869 - INFO - Connecting to ADB on port 5555...
+2025-03-10 01:36:03,908 - INFO - ADB connect result: already connected to 127.0.0.1:5555
+2025-03-10 01:36:03,944 - INFO - Successfully connected to BlueStacks via ADB
+2025-03-10 01:36:03,944 - INFO - Dispatching troops
+2025-03-10 01:36:03,944 - INFO - Clicking at coordinates: (1108, 452)
+2025-03-10 01:36:07,164 - INFO - Clicking at coordinates: (814, 640)
+2025-03-10 01:36:36,265 - INFO - Starting BlueStacks Rise of Kingdoms Launcher
+2025-03-10 01:36:36,266 - INFO - Connecting to BlueStacks via ADB...
+2025-03-10 01:36:36,305 - INFO - Connecting to ADB on port 5555...
+2025-03-10 01:36:36,343 - INFO - ADB connect result: already connected to 127.0.0.1:5555
+2025-03-10 01:36:36,374 - INFO - Successfully connected to BlueStacks via ADB
+2025-03-10 01:36:36,374 - INFO - Dispatching troops
+2025-03-10 01:36:36,375 - INFO - Clicking at coordinates: (1108, 452)
+2025-03-10 01:36:39,605 - INFO - Clicking at coordinates: (814, 640)
+2025-03-10 01:37:03,764 - INFO - Starting BlueStacks Rise of Kingdoms Launcher
+2025-03-10 01:37:03,765 - INFO - Connecting to BlueStacks via ADB...
+2025-03-10 01:37:03,827 - INFO - Connecting to ADB on port 5555...
+2025-03-10 01:37:03,871 - INFO - ADB connect result: already connected to 127.0.0.1:5555
+2025-03-10 01:37:03,902 - INFO - Successfully connected to BlueStacks via ADB
+2025-03-10 01:37:03,903 - INFO - Dispatching troops
+2025-03-10 01:37:03,903 - INFO - Clicking at coordinates: (1108, 507)
+2025-03-10 01:37:07,115 - INFO - Clicking at coordinates: (814, 640)
+2025-03-10 01:37:42,807 - INFO - Starting BlueStacks Rise of Kingdoms Launcher
+2025-03-10 01:37:42,808 - INFO - Connecting to BlueStacks via ADB...
+2025-03-10 01:37:42,860 - INFO - Connecting to ADB on port 5555...
+2025-03-10 01:37:42,897 - INFO - ADB connect result: already connected to 127.0.0.1:5555
+2025-03-10 01:37:42,926 - INFO - Successfully connected to BlueStacks via ADB
+2025-03-10 01:37:43,848 - INFO - OCR detected texts (adaptive): ['fas', '|', 'fae.', 'ror', 'hae', 'caked:', 'oe', 'ree', 'i', 'ge', 'suonghold)', '8"', 'x:837', '¥:751', 'wa:', '=|', '4a', 'alliance', 'f', 'y', 'nas', '‘a', 'hn', 'building', 'prog', 'sers,', '\\', 'eng)', 'time', 'remaining', '‘', '.', 'coe', 's', 'en', 'ee', 'owner', 'wa!', 'se', 'if', '>=', 'é', 'me', 'sf', 'a', 'build', 'idee', '2', 'a', '|', 'garrison', 'building', '«', 'aioe', '“i', 'ze', 'san', '(de', 'ee', 'eb']
+2025-03-10 01:37:43,849 - INFO - Found word 'building' from 'building progress' at position: (895, 297)
+2025-03-10 01:37:43,876 - INFO - Clicking at coordinates: (895, 442)
+2025-03-10 01:37:45,876 - INFO - OCR detected texts (adaptive): ['by', '4', 'is:', 'oe', '«ge', 'a', 're)', 'katnip24)', 'ie', 'of20)', '5', '4', '(', '\\katfoods']
+2025-03-10 01:37:46,083 - INFO - OCR detected texts (otsu): ['we', 'a', 'bo', '“€)', 'katnip24', 'tirme:', '04:03:00', 'i', '&', 'lvl', '1', 'belisarius', '@', '14,580', 'qr)', 'katfoods', '*', 'ra', 'lvl', '10', 'cao', 'cao', 'm', 'te', 'watenldk', 'tras', 'rede']
+2025-03-10 01:37:46,267 - INFO - OCR detected texts (inverted): ['we', 'an', 'bo', '“€)', 'katnip24', 'tirme:', '04:03:00', 'i', '&', 'lvl', '1', 'belisarius', '@', '14,580', 'ar)', 'katfoods', '*', '&', 'lvl', '10', 'cao', 'cao', 'm', 'te.', 'watenldk', 'tras', 'yreven']
+2025-03-10 01:37:46,494 - INFO - OCR detected texts (contrast): ['©', 'oa', '°', '“©', 'katnip24', 'time:', '04:03:00', '&', 'lvl', '1', 'belisarius', 'e', '14,580', '®', 'katfoods', 'x', '@', 'ivl10cao', 'cao', 'm', '|', 'watentde', '~', 'timer', 'npepen']
+2025-03-10 01:37:46,723 - INFO - OCR detected texts (original): ['of', 'a0', 'wo', '>)', 'katnip24', 'time:', '04:03:00', '7', 'a', 'lvl', '1', 'belisarius', '@', '14,580', 'a', 'katfoods', 'iy', 'a', 'lvl', '10', 'cao', 'cao', 'm', 'im', 'katonld&', 'time:', '02-62-ef)']
+2025-03-10 01:37:46,724 - INFO - Found word 'to' from 'tap to join' at position: (277, 606)
+2025-03-10 01:37:46,747 - INFO - Clicking at coordinates: (277, 606)
+2025-03-10 01:37:48,596 - INFO - OCR detected texts (adaptive): ['ie']
+2025-03-10 01:37:48,727 - INFO - OCR detected texts (otsu): []
+2025-03-10 01:37:48,852 - INFO - OCR detected texts (inverted): []
+2025-03-10 01:37:48,975 - INFO - OCR detected texts (contrast): []
+2025-03-10 01:37:49,099 - INFO - OCR detected texts (original): []
+2025-03-10 01:37:49,099 - INFO - Text 'Dispatch' not found in region
+2025-03-10 01:37:49,099 - ERROR - New Troop Button not found. Not enough available marches
+2025-03-10 01:37:49,100 - INFO - Closing dialogs
+2025-03-10 01:37:49,100 - INFO - Sending ESCAPE key event
+2025-03-10 01:37:49,797 - INFO - Sent escape key to close dialog
+2025-03-10 01:41:01,925 - INFO - Starting BlueStacks Rise of Kingdoms Launcher
+2025-03-10 01:41:01,926 - INFO - Connecting to BlueStacks via ADB...
+2025-03-10 01:41:01,961 - INFO - Connecting to ADB on port 5555...
+2025-03-10 01:41:01,997 - INFO - ADB connect result: already connected to 127.0.0.1:5555
+2025-03-10 01:41:02,029 - INFO - Successfully connected to BlueStacks via ADB
+2025-03-10 01:41:03,096 - INFO - OCR detected texts (adaptive): ['ie', 'x', 'aa', 'sde', 'kart', 'vets', 'sone', 'am', '*', 'sy', 'n', 'alliance', 'f', 'za', 'kab', 'building', 'prog', 'ors', '\\', 'eng)', 'time', 'remaining', 'ie', '-', 'cse', '|', '‘', '&', 'af', 'owner', '\\', 'a', '=', 'wl', 'oe', 'build', 'fr', '£', '=', 'oe', '|', 'garrison', 'building', ';', 'bia', 'é', 'cw,', 'ob,', 'berr?', 'ss', 'cw', '#']
+2025-03-10 01:41:03,097 - INFO - Found word 'building' from 'building progress' at position: (895, 296)
+2025-03-10 01:41:03,129 - INFO - Clicking at coordinates: (895, 441)
+2025-03-10 01:41:05,085 - INFO - OCR detected texts (adaptive): ['by', '4', 'd', 'sa', 'oa', 'go', 'll', '.', 'ts', 'katnip24', 'ef', 'oo)', 're', '}', 'ix', 'we', 'ord', '5', '4', '(', '9', 'kathoods', 'tl', 'oee', 'tvi37', 'seondeok/', 'uwt37', 'ishida', 'mitsunar!', '[mi']
+2025-03-10 01:41:05,085 - ERROR - Tap to join button not found
+2025-03-10 01:41:05,086 - INFO - Closing dialogs
+2025-03-10 01:41:05,086 - INFO - Sending ESCAPE key event
+2025-03-10 01:41:05,788 - INFO - Sent escape key to close dialog
+2025-03-10 02:14:14,239 - INFO - Starting BlueStacks Rise of Kingdoms Launcher
+2025-03-10 02:14:14,240 - INFO - Starting BlueStacks instance: Nougat64_7
+2025-03-10 02:14:14,249 - INFO - Waiting 30 seconds for BlueStacks to initialize...
+2025-03-10 02:14:44,251 - INFO - Connecting to BlueStacks via ADB...
+2025-03-10 02:14:44,338 - INFO - Connecting to ADB on port 5555...
+2025-03-10 02:14:44,372 - INFO - ADB connect result: already connected to 127.0.0.1:5555
+2025-03-10 02:14:44,402 - INFO - Successfully connected to BlueStacks via ADB
+2025-03-10 02:14:44,402 - INFO - Starting Rise of Kingdoms...
+2025-03-10 02:14:44,624 - INFO - Rise of Kingdoms started successfully
+2025-03-10 02:14:44,624 - INFO - Waiting for Rise of Kingdoms to load...
+2025-03-10 02:14:44,624 - INFO - Waiting 12 seconds for game to load...
+2025-03-10 02:14:58,184 - INFO - OCR detected text (adaptive): {'text': 'OO” orampremn dy, 0.05 ey Tay Xvi0.0 tt SOAR 0.07\nSOL PS ats oa te = Tyee eT\nTae See troop\n\nEge fsb. a 1\n\nNee eS eye i\n'}
+2025-03-10 02:14:58,184 - ERROR - Error detecting text in region: 'dict' object has no attribute 'lower'
+2025-03-10 02:14:58,185 - ERROR - Stack trace:
+Traceback (most recent call last):
+  File "C:\Users\binlo\PycharmProjects\ROK\rok-auto-alliance-bot\src\rok_game_controller.py", line 233, in detect_text_in_region
+    if keyword.lower() in text.lower():
+                          ^^^^^^^^^^
+AttributeError: 'dict' object has no attribute 'lower'
+2025-03-10 02:14:58,186 - INFO - Not in home village
+2025-03-10 02:14:58,186 - INFO - In home village: False
+2025-03-10 02:14:58,186 - INFO - BlueStacks and Rise of Kingdoms started successfully
+2025-03-10 02:15:32,957 - INFO - Starting BlueStacks Rise of Kingdoms Launcher
+2025-03-10 02:15:32,958 - INFO - Starting BlueStacks instance: Nougat64_7
+2025-03-10 02:15:32,967 - INFO - Waiting 30 seconds for BlueStacks to initialize...
+2025-03-10 02:16:02,968 - INFO - Connecting to BlueStacks via ADB...
+2025-03-10 02:16:02,999 - INFO - Connecting to ADB on port 5555...
+2025-03-10 02:16:03,030 - INFO - ADB connect result: already connected to 127.0.0.1:5555
+2025-03-10 02:16:03,059 - INFO - Successfully connected to BlueStacks via ADB
+2025-03-10 02:16:03,059 - INFO - Starting Rise of Kingdoms...
+2025-03-10 02:16:03,059 - INFO - package name: None
+2025-03-10 02:16:03,266 - INFO - Rise of Kingdoms started successfully
+2025-03-10 02:16:03,266 - INFO - Waiting for Rise of Kingdoms to load...
+2025-03-10 02:16:03,266 - INFO - Waiting 12 seconds for game to load...
+2025-03-10 02:16:16,058 - INFO - OCR detected text (adaptive): {'text': "or ena i) Xv: 0.0 Thee ee\ny' sas iy a —. 2 29 9 I\nDN\n"}
+2025-03-10 02:16:16,058 - ERROR - Error detecting text in region: 'dict' object has no attribute 'lower'
+2025-03-10 02:16:16,059 - ERROR - Stack trace:
+Traceback (most recent call last):
+  File "C:\Users\binlo\PycharmProjects\ROK\rok-auto-alliance-bot\src\rok_game_controller.py", line 233, in detect_text_in_region
+    if keyword.lower() in text.lower():
+                          ^^^^^^^^^^
+AttributeError: 'dict' object has no attribute 'lower'
+2025-03-10 02:16:16,060 - INFO - Not in home village
+2025-03-10 02:16:16,060 - INFO - In home village: False
+2025-03-10 02:16:16,060 - INFO - BlueStacks and Rise of Kingdoms started successfully
+2025-03-10 02:18:22,162 - INFO - Starting BlueStacks Rise of Kingdoms Launcher
+2025-03-10 02:18:22,163 - INFO - Starting BlueStacks instance: Nougat64_7
+2025-03-10 02:18:22,177 - INFO - Waiting 30 seconds for BlueStacks to initialize...
+2025-03-10 02:18:52,178 - INFO - Connecting to BlueStacks via ADB...
+2025-03-10 02:18:52,211 - INFO - Connecting to ADB on port 5555...
+2025-03-10 02:18:52,248 - INFO - ADB connect result: already connected to 127.0.0.1:5555
+2025-03-10 02:18:52,286 - INFO - Successfully connected to BlueStacks via ADB
+2025-03-10 02:18:52,286 - INFO - Starting Rise of Kingdoms...
+2025-03-10 02:18:52,286 - INFO - package name: com.lilithgames.rok.gpkr
+2025-03-10 02:18:52,487 - INFO - Rise of Kingdoms started successfully
+2025-03-10 02:18:52,487 - INFO - Waiting for Rise of Kingdoms to load...
+2025-03-10 02:18:52,487 - INFO - Waiting 12 seconds for game to load...
+2025-03-10 02:19:05,288 - INFO - OCR detected text (adaptive): {'text': 'BO ee Ne Ca} Xv: 0.0 soo ota Sy\n5 Bm troop ER\n\nSE eS\n\n1S EN alee: Ks th\n\nen) eR eS 4\n'}
+2025-03-10 02:19:05,289 - ERROR - Error detecting text in region: 'dict' object has no attribute 'lower'
+2025-03-10 02:19:05,289 - ERROR - Stack trace:
+Traceback (most recent call last):
+  File "C:\Users\binlo\PycharmProjects\ROK\rok-auto-alliance-bot\src\rok_game_controller.py", line 243, in detect_text_in_region
+    if keyword.lower() in text.lower():
+                          ^^^^^^^^^^
+AttributeError: 'dict' object has no attribute 'lower'
+2025-03-10 02:19:05,290 - INFO - Not in home village
+2025-03-10 02:19:05,290 - INFO - In home village: False
+2025-03-10 02:19:05,290 - INFO - BlueStacks and Rise of Kingdoms started successfully
+2025-03-10 02:24:56,253 - INFO - Starting BlueStacks Rise of Kingdoms Launcher
+2025-03-10 02:24:56,254 - INFO - Starting BlueStacks instance: Nougat64_7
+2025-03-10 02:24:56,262 - INFO - Waiting 30 seconds for BlueStacks to initialize...
+2025-03-10 02:25:26,263 - INFO - Connecting to BlueStacks via ADB...
+2025-03-10 02:25:26,293 - INFO - Connecting to ADB on port 5555...
+2025-03-10 02:25:28,329 - INFO - ADB connect result: unable to connect to 127.0.0.1:5555: cannot connect to 127.0.0.1:5555: No connection could be made because the target machine actively refused it. (10061)
+2025-03-10 02:25:28,356 - ERROR - Failed to connect to BlueStacks via ADB
+2025-03-10 02:25:28,356 - ERROR - Failed to connect to ADB. Exiting.
+2025-03-10 02:25:52,514 - INFO - Starting BlueStacks Rise of Kingdoms Launcher
+2025-03-10 02:25:52,515 - INFO - Starting BlueStacks instance: Nougat64_7
+2025-03-10 02:25:52,523 - INFO - Waiting 30 seconds for BlueStacks to initialize...
+2025-03-10 02:26:22,524 - INFO - Connecting to BlueStacks via ADB...
+2025-03-10 02:26:22,556 - INFO - Connecting to ADB on port 5555...
+2025-03-10 02:26:24,598 - INFO - ADB connect result: unable to connect to 127.0.0.1:5555: cannot connect to 127.0.0.1:5555: No connection could be made because the target machine actively refused it. (10061)
+2025-03-10 02:26:24,625 - ERROR - Failed to connect to BlueStacks via ADB
+2025-03-10 02:26:24,625 - ERROR - Failed to connect to ADB. Exiting.
+2025-03-10 02:27:26,225 - INFO - Starting BlueStacks Rise of Kingdoms Launcher
+2025-03-10 02:27:26,226 - INFO - Starting BlueStacks instance: Nougat64_7
+2025-03-10 02:27:26,235 - INFO - Waiting 30 seconds for BlueStacks to initialize...
+2025-03-10 02:27:56,235 - INFO - Connecting to BlueStacks via ADB...
+2025-03-10 02:27:56,267 - INFO - Connecting to ADB on port 5555...
+2025-03-10 02:27:58,300 - INFO - ADB connect result: unable to connect to 127.0.0.1:5555: cannot connect to 127.0.0.1:5555: No connection could be made because the target machine actively refused it. (10061)
+2025-03-10 02:27:58,326 - ERROR - Failed to connect to BlueStacks via ADB
+2025-03-10 02:27:58,327 - ERROR - Failed to connect to ADB. Exiting.
+2025-03-10 02:29:08,442 - INFO - Starting BlueStacks Rise of Kingdoms Launcher
+2025-03-10 02:29:08,443 - INFO - Starting BlueStacks instance: Nougat64_7
+2025-03-10 02:29:08,452 - INFO - Waiting 30 seconds for BlueStacks to initialize...
+2025-03-10 02:29:38,453 - INFO - Connecting to BlueStacks via ADB...
+2025-03-10 02:29:38,483 - INFO - Connecting to ADB on port 5555...
+2025-03-10 02:29:38,513 - INFO - ADB connect result: connected to 127.0.0.1:5555
+2025-03-10 02:29:38,541 - INFO - Successfully connected to BlueStacks via ADB
+2025-03-10 02:29:38,541 - INFO - Starting Rise of Kingdoms...
+2025-03-10 02:29:38,541 - INFO - package name: com.lilithgames.rok.gpkr
+2025-03-10 02:29:38,806 - INFO - Rise of Kingdoms started successfully
+2025-03-10 02:29:38,806 - INFO - Waiting for Rise of Kingdoms to load...
+2025-03-10 02:29:38,806 - INFO - Waiting 12 seconds for game to load...
+2025-03-10 02:29:51,870 - INFO - OCR detected text (adaptive): {'text': '0.0 [¥: 0.0 Xv: 0.0 [Yv: 0.0\n{ B Search for games & apps\n'}
+2025-03-10 02:29:51,870 - ERROR - Error detecting text in region: 'dict' object has no attribute 'lower'
+2025-03-10 02:29:51,870 - ERROR - Stack trace:
+Traceback (most recent call last):
+  File "C:\Users\binlo\PycharmProjects\ROK\rok-auto-alliance-bot\src\rok_game_controller.py", line 243, in detect_text_in_region
+    if keyword.lower() in text.lower():
+                          ^^^^^^^^^^
+AttributeError: 'dict' object has no attribute 'lower'
+2025-03-10 02:29:51,871 - INFO - Not in home village
+2025-03-10 02:29:51,871 - INFO - In home village: False
+2025-03-10 02:29:51,872 - INFO - BlueStacks and Rise of Kingdoms started successfully
+2025-03-10 02:41:30,650 - INFO - Starting BlueStacks Rise of Kingdoms Launcher
+2025-03-10 02:41:30,650 - INFO - Starting BlueStacks instance: Nougat64_7
+2025-03-10 02:41:30,660 - INFO - Waiting 30 seconds for BlueStacks to initialize...
+2025-03-10 02:41:51,660 - INFO - Starting BlueStacks Rise of Kingdoms Launcher
+2025-03-10 02:41:51,661 - INFO - Starting BlueStacks instance: Nougat64_7
+2025-03-10 02:41:51,670 - INFO - Waiting 10 seconds for BlueStacks to initialize...
+2025-03-10 02:42:01,670 - INFO - Connecting to BlueStacks via ADB...
+2025-03-10 02:42:01,702 - INFO - Connecting to ADB on port 5555...
+2025-03-10 02:42:03,735 - INFO - ADB connect result: unable to connect to 127.0.0.1:5555: cannot connect to 127.0.0.1:5555: No connection could be made because the target machine actively refused it. (10061)
+2025-03-10 02:42:03,763 - ERROR - Failed to connect to BlueStacks via ADB
+2025-03-10 02:42:03,763 - ERROR - Failed to connect to ADB. Exiting.
+2025-03-10 02:42:21,632 - INFO - Starting BlueStacks Rise of Kingdoms Launcher
+2025-03-10 02:42:21,634 - INFO - Starting BlueStacks instance: Nougat64_7
+2025-03-10 02:42:21,644 - INFO - Waiting 10 seconds for BlueStacks to initialize...
+2025-03-10 02:42:31,646 - INFO - Connecting to BlueStacks via ADB...
+2025-03-10 02:42:31,678 - INFO - Connecting to ADB on port 5555...
+2025-03-10 02:42:31,709 - INFO - ADB connect result: connected to 127.0.0.1:5555
+2025-03-10 02:42:31,735 - INFO - Successfully connected to BlueStacks via ADB
+2025-03-10 02:42:31,736 - INFO - Starting Rise of Kingdoms...
+2025-03-10 02:42:31,736 - INFO - package name: com.lilithgames.rok.gpkr
+2025-03-10 02:42:32,064 - INFO - Rise of Kingdoms started successfully
+2025-03-10 02:42:32,064 - INFO - Waiting for Rise of Kingdoms to load...
+2025-03-10 02:42:32,064 - INFO - Waiting 12 seconds for game to load...
+2025-03-10 02:42:45,226 - INFO - OCR detected text (adaptive): {'text': '0.0 [¥: 0.0 Xv: 0.0 [Yv: 0.0\n{ B Search for games & apps\n'}
+2025-03-10 02:42:45,226 - ERROR - Error detecting text in region: 'dict' object has no attribute 'lower'
+2025-03-10 02:42:45,226 - ERROR - Stack trace:
+Traceback (most recent call last):
+  File "C:\Users\binlo\PycharmProjects\ROK\rok-auto-alliance-bot\src\rok_game_controller.py", line 244, in detect_text_in_region
+    if keyword.lower() in text.lower():
+                          ^^^^^^^^^^
+AttributeError: 'dict' object has no attribute 'lower'
+2025-03-10 02:42:45,228 - INFO - Not in home village
+2025-03-10 02:42:45,228 - INFO - In home village: False
+2025-03-10 02:42:45,228 - INFO - BlueStacks and Rise of Kingdoms started successfully
+2025-03-10 15:51:59,805 - INFO - Starting BlueStacks Rise of Kingdoms Launcher
+2025-03-10 15:51:59,815 - INFO - Connecting to BlueStacks via ADB...
+2025-03-10 15:51:59,940 - INFO - Connecting to ADB on port 5555...
+2025-03-10 15:51:59,977 - INFO - ADB connect result: connected to 127.0.0.1:5625
+2025-03-10 15:52:00,016 - INFO - Successfully connected to BlueStacks via ADB
+2025-03-10 15:52:00,016 - INFO - Starting Rise of Kingdoms...
+2025-03-10 15:52:00,016 - INFO - package name: com.lilithgames.rok.gpkr
+2025-03-10 15:52:00,499 - INFO - Rise of Kingdoms started successfully
+2025-03-10 15:52:00,499 - INFO - Waiting for Rise of Kingdoms to load...
+2025-03-10 15:52:00,499 - INFO - Waiting 12 seconds for game to load...
+2025-03-10 15:52:12,544 - ERROR - Error taking screenshot: Command '"C:\Program Files\BlueStacks_nxt\HD-Adb.exe" -s 127.0.0.1:5555 shell screencap -p /sdcard/screenshot.png' returned non-zero exit status 1.
+2025-03-10 15:52:12,544 - INFO - Not in home village
+2025-03-10 15:52:12,544 - INFO - In home village: False
+2025-03-10 15:52:12,544 - INFO - BlueStacks and Rise of Kingdoms started successfully
+2025-03-10 15:54:56,684 - INFO - Starting BlueStacks Rise of Kingdoms Launcher
+2025-03-10 15:54:56,685 - INFO - Connecting to BlueStacks via ADB...
+2025-03-10 15:54:56,729 - INFO - Connecting to ADB on port 5555...
+2025-03-10 15:54:56,766 - INFO - ADB connect result: already connected to 127.0.0.1:5625
+2025-03-10 15:54:56,798 - INFO - Successfully connected to BlueStacks via ADB
+2025-03-10 15:54:56,798 - INFO - Starting Rise of Kingdoms...
+2025-03-10 15:54:56,799 - INFO - package name: com.lilithgames.rok.gpkr
+2025-03-10 15:54:56,834 - ERROR - Failed to start Rise of Kingdoms: error: device '127.0.0.1:5555' not found
+
+2025-03-10 15:54:56,834 - ERROR - Failed to start Rise of Kingdoms. Exiting.
+2025-03-10 15:54:56,870 - INFO - Disconnected from ADB
+2025-03-10 15:55:04,622 - INFO - Starting BlueStacks Rise of Kingdoms Launcher
+2025-03-10 15:55:04,623 - INFO - Connecting to BlueStacks via ADB...
+2025-03-10 15:55:04,660 - INFO - Connecting to ADB on port 5555...
+2025-03-10 15:55:04,697 - INFO - ADB connect result: connected to 127.0.0.1:5625
+2025-03-10 15:55:04,728 - INFO - Successfully connected to BlueStacks via ADB
+2025-03-10 15:55:04,728 - INFO - Starting Rise of Kingdoms...
+2025-03-10 15:55:04,728 - INFO - package name: com.lilithgames.rok.gpkr
+2025-03-10 15:55:04,967 - INFO - Rise of Kingdoms started successfully
+2025-03-10 15:55:04,967 - INFO - Waiting for Rise of Kingdoms to load...
+2025-03-10 15:55:04,967 - INFO - Waiting 12 seconds for game to load...
+2025-03-10 16:05:57,423 - INFO - Starting BlueStacks Rise of Kingdoms Launcher
+2025-03-10 16:05:57,425 - INFO - Connecting to BlueStacks via ADB...
+2025-03-10 16:05:57,470 - INFO - Connecting to ADB on port 5555...
+2025-03-10 16:05:57,505 - INFO - ADB connect result: already connected to 127.0.0.1:5625
+2025-03-10 16:05:57,537 - INFO - Successfully connected to BlueStacks via ADB
+2025-03-10 16:05:57,537 - INFO - Starting Rise of Kingdoms...
+2025-03-10 16:05:57,537 - INFO - package name: com.rok.gp.vn
+2025-03-10 16:05:57,803 - INFO - Rise of Kingdoms started successfully
+2025-03-10 16:05:57,804 - INFO - Waiting for Rise of Kingdoms to load...
+2025-03-10 16:05:57,804 - INFO - Waiting 12 seconds for game to load...
+2025-03-10 16:06:09,840 - ERROR - Error taking screenshot: Command '"C:\Program Files\BlueStacks_nxt\HD-Adb.exe" -s 127.0.0.1:5555 shell screencap -p /sdcard/screenshot.png' returned non-zero exit status 1.
+2025-03-10 16:06:09,841 - INFO - Not in home village
+2025-03-10 16:06:09,841 - INFO - In home village: False
+2025-03-10 16:06:09,841 - INFO - BlueStacks and Rise of Kingdoms started successfully
+2025-03-10 16:10:29,521 - INFO - Starting BlueStacks Rise of Kingdoms Launcher
+2025-03-10 16:10:29,523 - INFO - Connecting to BlueStacks via ADB...
+2025-03-10 16:10:29,588 - INFO - Connecting to ADB on port 5555...
+2025-03-10 16:10:29,641 - INFO - ADB connect result: already connected to 127.0.0.1:5625
+2025-03-10 16:10:29,675 - INFO - Successfully connected to BlueStacks via ADB
+2025-03-10 16:10:29,675 - INFO - Starting Rise of Kingdoms...
+2025-03-10 16:10:29,676 - INFO - package name: com.lilithgame.roc.gp
+2025-03-10 16:10:29,996 - INFO - Rise of Kingdoms started successfully
+2025-03-10 16:10:29,996 - INFO - Waiting for Rise of Kingdoms to load...
+2025-03-10 16:10:29,996 - INFO - Waiting 12 seconds for game to load...
+2025-03-10 16:10:42,037 - ERROR - Error taking screenshot: Command '"C:\Program Files\BlueStacks_nxt\HD-Adb.exe" -s 127.0.0.1:5555 shell screencap -p /sdcard/screenshot.png' returned non-zero exit status 1.
+2025-03-10 16:10:42,037 - INFO - Not in home village
+2025-03-10 16:10:42,037 - INFO - In home village: False
+2025-03-10 16:10:42,037 - INFO - BlueStacks and Rise of Kingdoms started successfully
