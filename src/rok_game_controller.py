@@ -24,6 +24,10 @@ class RoKGameController:
         rok_config = config_manager.get_rok_config()
         self.rok_version = rok_config.get('rok_version', 'global').lower()
 
+        # Load bluestacks configuration
+        bluestacks_config = config_manager.get_bluestacks_config()
+        self.game_load_wait_seconds = int(bluestacks_config.get('wait_for_startup_seconds', 30))
+
         self.package_name = 'com.lilithgame.roc.gp'
         match self.rok_version:
             case 'global':
@@ -33,7 +37,6 @@ class RoKGameController:
             case 'gamota':
                 self.package_name = 'com.rok.gp.vn'
         self.activity_name = rok_config.get('activity_name')
-        self.game_load_wait_seconds = int(rok_config.get('game_load_wait_seconds', 30))
         self.character_login_screen_loading_time = int(rok_config.get('character_login_screen_loading_time', 3))
         self.will_perform_build = config_manager.get_bool('RiseOfKingdoms', 'perform_build', True)
         self.will_perform_donation = config_manager.get_bool('RiseOfKingdoms', 'perform_donation', True)
@@ -149,9 +152,17 @@ class RoKGameController:
         return True
 
     def click_mid_of_screen(self):
-        """Click at mid of screen to dismiss loading screen"""
+        """Click at a random point to dismiss loading screen"""
+        self.logger.info(f"Clicking at middle of game screen to select")
+        if not self.bluestacks.click(640, 360, self.click_delay_ms):
+            self.logger.error(f"Failed to click middle of screen")
+            return False
+        return True
+
+    def dismiss_loading_screen(self):
+        """Click at a random point to dismiss loading screen"""
         self.logger.info(f"Clicking at middle of game screen to dismiss loading screen")
-        if not self.bluestacks.click(640, 320, self.click_delay_ms):
+        if not self.bluestacks.click(1227, 595, self.click_delay_ms):
             self.logger.error(f"Failed to click middle of screen")
             return False
         return True
@@ -485,13 +496,13 @@ class RoKGameController:
         }
 
         # Find the position of "1 troop" text
-        result = self.detect_text_position("1 troop", one_troop_region)
+        result = self.detect_text_position("troop", one_troop_region)
         if not result:
             self.logger.error("Could not find '1 troop' text")
             return False
 
         go_one_troop_button = {
-            'x': result['x'] + 700,
+            'x': result['x'] + 615,
             'y': result['y'],
         }
 
@@ -526,15 +537,18 @@ class RoKGameController:
         }
 
         # Find the position of "build" text
-        result = self.detect_text_position("building progress", bookmark_region)
+        result = self.detect_text_position("remaining", bookmark_region)
         if result:
             build_button = {
                 'x': result['x'],
-                'y': result['y'] + 145,
+                'y': result['y'] + 160,
             }
+            time.sleep(2)
             if not self.bluestacks.click(build_button['x'], build_button['y'], self.click_delay_ms):
                 self.logger.error("Failed to click on one troop button")
                 return False
+            self.logger.info("Clicking build button")
+            time.sleep(2)
             return True
         else:
             self.logger.error("Build button not found")
@@ -558,6 +572,7 @@ class RoKGameController:
             'height': 300
         }
 
+        time.sleep(1)
         # Find the position of "tap to join" text
         result = self.detect_text_position("tap", bookmark_region, True)
         if result:
@@ -592,6 +607,7 @@ class RoKGameController:
         }
 
         # Find the position of "build" text
+        time.sleep(1)
         result = self.detect_text_position("Dispatch", bookmark_region)
         if result:
             tap_to_join_button = {
@@ -675,29 +691,31 @@ class RoKGameController:
 
         # Find the word 1 troop on screen and click on Go button
         # Then click on middle to select the flag
-        self.find_and_click_one_troop_button()
-
-        # Find the word Building Progress on screen and use it to click on Build Button
-        # If the word Building Progress is not found, it means the flag is already finished or an invalid object
-        if self.find_and_click_build_button():
-            # Find the word Tap To Join on screen and click it
-            if self.find_and_click_tap_to_join_button():
-                # Find and Click new troop button
-                if self.find_and_click_new_troop_button():
-                    success = self.dispatch_troop_to_join_build()
-                    if not success:
-                        self.logger.warning("Failed to dispatch troops")
-                else:  # If the word Dispatch is not found, it means there are no available marches to send out
+        if self.find_and_click_one_troop_button():
+            # Find the word Building Progress on screen and use it to click on Build Button
+            # If the word Building Progress is not found, it means the flag is already finished or an invalid object
+            if self.find_and_click_build_button():
+                # Find the word Tap To Join on screen and click it
+                if self.find_and_click_tap_to_join_button():
+                    # Find and Click new troop button
+                    if self.find_and_click_new_troop_button():
+                        success = self.dispatch_troop_to_join_build()
+                        if not success:
+                            self.logger.warning("Failed to dispatch troops")
+                    else:  # If the word Dispatch is not found, it means there are no available marches to send out
+                        # Exit once
+                        self.close_dialogs()
+                else:  # If the word Tap To Join is not found, it means this account already fills the flag
                     # Exit once
                     self.close_dialogs()
-            else:  # If the word Tap To Join is not found, it means this account already fills the flag
-                # Exit once
-                self.close_dialogs()
+        else:
+            self.logger.warning("Cannot find 1 troop button")
+            self.close_dialogs()
 
         self.logger.info("Build automation completed")
         return True
 
-    def is_in_home_village(self, custom_keywords=None, custom_region=None):
+    def is_in_home_village(self, custom_region=None):
         """
         Check if the game is currently showing the home village
 
@@ -714,16 +732,48 @@ class RoKGameController:
         # Default age-related keywords
         age_keywords = ["Feudal Age", "Dark Age", "Iron Age", "Bronze Age", "Stone Age"]
 
-        # Use custom keywords if provided, otherwise use defaults
-        keywords_to_check = custom_keywords if custom_keywords is not None else age_keywords
-
         # Check for the keywords
-        result = self.detect_text_in_region(keywords_to_check, custom_region)
+        result = self.detect_text_in_region(age_keywords, custom_region)
 
         if result:
             self.logger.info("Currently in home village")
         else:
             self.logger.info("Not in home village")
+
+        return result
+
+    def is_in_map_screen(self, custom_region=None):
+        """
+        Check if the game is currently showing the home village
+
+        Args:
+            custom_keywords (list, optional): Custom keywords to look for. Defaults to age-related keywords.
+            custom_region (dict, optional): Custom region to look in. Defaults to self.text_region.
+
+        Returns:
+            bool: True if in home village, False otherwise
+        """
+        if self.check_stop_requested():
+            return False
+
+        # Default age-related keywords
+        keywords = ["3174"]
+
+        # Text Region
+        custom_region = {
+            'x': 264,
+            'y': 0,
+            'width': 154,
+            'height': 35
+        }
+
+        # Check for the keywords
+        result = self.detect_text_in_region(keywords, custom_region)
+
+        if result:
+            self.logger.info("Currently in map screen")
+        else:
+            self.logger.info("Not in map screen")
 
         return result
 
@@ -765,26 +815,121 @@ class RoKGameController:
 
         return result
 
+
+    def is_bottom_bar_expanded(self):
+        """
+        Check if the game is currently showing the home village
+
+        Args:
+            custom_keywords (list, optional): Custom keywords to look for. Defaults to character-login keywords.
+            custom_region (dict, optional): Custom region to look in. Defaults to self.text_region.
+
+        Returns:
+            bool: True if in character login screen, False otherwise
+        """
+        if self.check_stop_requested():
+            return False
+
+        # Default age-related keywords
+        keywords = ["Campaign", "Items", "Alliance", "Commander", "Mail"]
+
+        # text region
+        custom_region = {
+            'x': 677,
+            'y': 614,
+            'width': 500,
+            'height': 113
+        }
+
+        # Check for the keywords
+        result = self.detect_text_in_region(keywords, custom_region)
+
+        if result:
+            self.logger.info("Bottom bar is already expanded")
+        else:
+            self.logger.info("Bottom bar is not expanded")
+
+        return result
+
+
+    def find_and_donate_recommended_technology(self):
+        """
+         locate "new troop" button
+
+        Returns:
+            dict: Position of "dispatch" text {x, y} if found, None if not found
+        """
+        if self.check_stop_requested():
+            return False
+
+        # Define region to search for "BUILD" text
+        text_region = {
+            'x': 133,
+            'y': 101,
+            'width': 1000,
+            'height': 590
+        }
+
+        # Find the position of "Officer's Recommendation" text
+        result = self.detect_text_position("Officer's Recommendation", text_region)
+        if result:
+            officer_recommendation_button = {
+                'x': result['x'] + 10,
+                'y': result['y'] + 40,
+            }
+            if not self.bluestacks.click(officer_recommendation_button['x'], officer_recommendation_button['y'], self.click_delay_ms):
+                self.logger.error("Failed to click on Recommended Tech")
+                return False
+            donate_button = {
+                'x': 985,
+                'y': 566,
+            }
+            # Click Donate 20 times
+            for i in range(20):
+                self.bluestacks.click(donate_button['x'], donate_button['y'], 500)
+            # Exit to home screen after donation completes
+            for i in range(3):
+                self.close_dialogs()
+            return True
+        else:
+            self.logger.error("recommended Tech not found")
+            # Exit when failing to find recommended tech
+            for i in range(2):
+                self.close_dialogs()
+            return False
+
+
+
     def navigate_to_map(self):
         """Click on map button and check if we're on the map view now"""
         if self.check_stop_requested():
             return False
 
         try:
-            # Click on the map button
-            if not self.bluestacks.click(self.map_button['x'], self.map_button['y'], self.click_delay_ms):
-                self.logger.error("Failed to click on map button")
-                return False
+            # Check if we are in home village
+            # is_home_village = self.is_in_home_village()
+            # # Click on the map button if screen is on home village
+            # if is_home_village:
+            #     if not self.bluestacks.click(self.map_button['x'], self.map_button['y'], self.click_delay_ms):
+            #         self.logger.error("Failed to click on map button")
+            #         return False
+            #     # Wait a moment for the transition
+            #     self.logger.info("Clicked on map button because screen was on home village")
+            #     time.sleep(2)
 
-            # Wait a moment for the transition
-            time.sleep(2)
+            # Check again to see if we're now on the map (NOT in home village)
+            is_on_map = self.is_in_map_screen()
 
-            # Check if we're now on the map (NOT in home village)
-            is_home_village = self.is_in_home_village()
-            time.sleep(2)
+            # Go to map again if not in map
+            if not is_on_map:
+                if not self.bluestacks.click(self.map_button['x'], self.map_button['y'], self.click_delay_ms):
+                    self.logger.error("Failed to click on map button")
+                    return False
+                # Wait a moment for the transition
+                self.logger.info("Clicked on map button because screen was on home village")
+                time.sleep(2)
 
-            # If we're no longer in home village, we're on the map
-            return not is_home_village
+            return True
 
         except Exception as e:
             self.logger.error(f"Error navigating to map: {e}")
@@ -812,6 +957,67 @@ class RoKGameController:
         # Wait for scrolling animation to complete
         time.sleep(1.5)
         return True
+
+    def expand_bottom_bar(self):
+        """Expand bottom bar if it's not expanded yet"""
+        expand_button = {
+            'x': 1227,
+            'y': 670,
+        }
+
+        if not self.is_bottom_bar_expanded():
+            if not self.bluestacks.click(expand_button['x'], expand_button['y'], self.click_delay_ms):
+                self.logger.error('Failed to expand bottom bar')
+                return False
+
+        self.logger.info("Bottom bar is expanded")
+        time.sleep(1)
+        return True
+
+
+    def perform_recommended_tech_donation(self):
+        """Open the alliance tech screen, find officer's recommendation and donate
+        Exit to home screen if Officer's recommendation is not found"""
+        if not self.expand_bottom_bar():
+            self.logger.error("Bottom bar is not expanded")
+            return False
+
+        if self.check_stop_requested():
+            return False
+
+        alliance_button = {
+            'x': 933,
+            'y': 670
+        }
+
+        if not self.bluestacks.click(alliance_button['x'], alliance_button['y'], self.click_delay_ms):
+            self.logger.error("Failed to open alliance screen")
+            return False
+
+        self.logger.info("Alliance screen opened")
+        time.sleep(2)
+
+        technology_button = {
+            'x': 763,
+            'y': 553
+        }
+
+        if not self.bluestacks.click(technology_button['x'], technology_button['y'], self.click_delay_ms):
+            self.logger.error("Failed to open technology screen")
+            return True
+
+        self.logger.info("Tech screen opened")
+        time.sleep(3)
+
+        if not self.find_and_donate_recommended_technology():
+            self.logger.error("Failed to find and donate recommended technology")
+            return False
+
+        self.logger.info("Donate recommended technology completed")
+        time.sleep(1)
+        return True
+
+
 
     def open_character_selection(self):
         """Open the character selection screen"""
@@ -923,7 +1129,7 @@ class RoKGameController:
                     return False
 
                 # Click to dismiss any dialogs
-                self.click_mid_of_screen()
+                self.dismiss_loading_screen()
                 self.wait_for_game_load()
 
             else:
@@ -949,18 +1155,11 @@ class RoKGameController:
 
             if self.will_perform_donation:
                 # Alliance donation not yet implemented
-                pass
+                self.logger.info("Perform Alliance Donation for this character")
+                self.perform_recommended_tech_donation()
 
             self.logger.info(f"Completed processing character at position {pos}")
 
         self.logger.info("Character switching automation completed successfully")
         return True
 
-    def perform_alliance_donation(self):
-        """Perform alliance technology donation (placeholder for future implementation)"""
-        if self.check_stop_requested():
-            return False
-
-        self.logger.info("Alliance donation feature not yet implemented")
-        # Placeholder for future implementation
-        return True

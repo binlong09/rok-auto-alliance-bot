@@ -37,7 +37,7 @@ class RiseOfKingdomsManagerGUI:
         self.adb_path = tk.StringVar(value=self.config_manager.get_config('BlueStacks', 'adb_path'))
         self.instance_name = tk.StringVar(
             value=self.config_manager.get_config('BlueStacks', 'bluestacks_instance_name'))
-        self.adb_port = tk.StringVar(value="5555")
+        self.adb_port = tk.StringVar(value=self.config_manager.get_config('BlueStacks', 'adb_port'))
         self.start_delay = tk.IntVar(
             value=int(self.config_manager.get_config('BlueStacks', 'wait_for_startup_seconds')))
         self.character_count = tk.IntVar(
@@ -320,6 +320,17 @@ class RiseOfKingdomsManagerGUI:
         self.stop_requested = True
         self.stop_button.config(state="disabled")
 
+
+    def wait_in_intervals(self):
+        # Wait in smaller intervals to allow for stopping
+        total_wait = self.rok_controller.game_load_wait_seconds
+        interval = 2  # Check for stop every 2 seconds
+        for _ in range(0, total_wait, interval):
+            if self.stop_requested:
+                raise StopAutomationException("Automation stopped by user")
+            time.sleep(min(interval, total_wait))
+            total_wait -= interval
+
     def _run_automation(self):
         """Run the complete automation sequence in a separate thread"""
         try:
@@ -341,10 +352,10 @@ class RiseOfKingdomsManagerGUI:
             if self.stop_requested:
                 raise StopAutomationException("Automation stopped by user")
 
-            # if not self.bluestacks_controller.start_bluestacks():
-            #     self.log("Failed to start BlueStacks")
-            #     self.status_text.set("Failed to start BlueStacks")
-            #     return
+            if not self.bluestacks_controller.start_bluestacks():
+                self.log("Failed to start BlueStacks")
+                self.status_text.set("Failed to start BlueStacks")
+                return
 
             # 3. Connect to ADB
             if self.stop_requested:
@@ -361,35 +372,29 @@ class RiseOfKingdomsManagerGUI:
             self.is_connected = True
 
             # 4. Start Rise of Kingdoms
-            # if self.stop_requested:
-            #     raise StopAutomationException("Automation stopped by user")
-            #
-            # self.log("Starting Rise of Kingdoms...")
-            # self.status_text.set("Starting Rise of Kingdoms...")
-            #
-            # if not self.rok_controller.start_game():
-            #     self.log("Failed to start Rise of Kingdoms")
-            #     self.status_text.set("Failed to start Rise of Kingdoms")
-            #     return
-            #
-            # # 5. Wait for game to load
-            # self.log("Waiting for Rise of Kingdoms to load...")
-            # self.status_text.set("Waiting for Rise of Kingdoms...")
+            if self.stop_requested:
+                raise StopAutomationException("Automation stopped by user")
+
+            self.log("Starting Rise of Kingdoms...")
+            self.status_text.set("Starting Rise of Kingdoms...")
+
+            if not self.rok_controller.start_game():
+                self.log("Failed to start Rise of Kingdoms")
+                self.status_text.set("Failed to start Rise of Kingdoms")
+                return
+
+            # 5. Wait for game to load
+            self.log("Waiting for Rise of Kingdoms to load...")
+            self.status_text.set("Waiting for Rise of Kingdoms...")
 
             # Wait in smaller intervals to allow for stopping
-            total_wait = self.rok_controller.game_load_wait_seconds
-            interval = 2  # Check for stop every 2 seconds
-            for _ in range(0, total_wait, interval):
-                if self.stop_requested:
-                    raise StopAutomationException("Automation stopped by user")
-                time.sleep(min(interval, total_wait))
-                total_wait -= interval
+            self.wait_in_intervals()
 
             # 6. Click to dismiss any loading screens
             if self.stop_requested:
                 raise StopAutomationException("Automation stopped by user")
 
-            self.rok_controller.click_mid_of_screen()
+            self.rok_controller.dismiss_loading_screen()
 
             # 7. Start character switching automation
             self.log("Starting character switching automation...")
@@ -397,6 +402,8 @@ class RiseOfKingdomsManagerGUI:
 
             # Pass the stop check function to the controller
             self.rok_controller.stop_check_callback = self.check_if_stop_requested
+
+            self.wait_in_intervals()
 
             # The main automation flow - switch characters and perform actions
             if self.rok_controller.switch_character():

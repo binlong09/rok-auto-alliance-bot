@@ -1,0 +1,47 @@
+== RISE OF KINGDOMS AUTOMATION TOOL INSTALLATION GUIDE ==
+
+Thank you for downloading the Rise of Kingdoms Automation Tool!
+This guide will help you get up and running quickly.
+
+=== SYSTEM REQUIREMENTS ===
+
+- Windows 10 or 11 (64-bit)
+- BlueStacks 5 (Nougat 64-bit version recommended)
+- 4GB RAM minimum
+- 100MB free disk space
+- Administrator access
+
+=== INSTALLATION STEPS ===
+
+1. Extract the entire ZIP archive to a location of your choice
+   (Example: C:\Program Files\RoK Automation Tool)
+
+2. Tesseract OCR is already included in the package. No separate installation is required.
+
+3. First time setup:
+   a) Run "RoK Automation.exe" as Administrator (right-click, select "Run as Administrator")
+   b) In the application, set the correct paths:
+      - BlueStacks Path (typically C:\Program Files\BlueStacks_nxt\HD-Player.exe)
+      - ADB Path (typically C:\Program Files\BlueStacks_nxt\HD-Adb.exe)
+      - Instance Name (typically Nougat64_7 or similar)
+      - ADB Port (default is 5555, check your BlueStacks settings)
+   c) Click "Save Configuration" to save these settings
+
+4. Your settings will be saved for future use in the config.ini file.
+
+=== TROUBLESHOOTING ===
+
+If you encounter issues:
+
+1. Ensure BlueStacks is properly installed and running
+2. Verify all paths in the application are correct
+3. Make sure you're running the application as Administrator
+4. Check that Rise of Kingdoms is properly installed in BlueStacks
+5. If the OCR isn't working, verify the Tesseract-OCR folder is in the same directory as the application
+
+For additional help, please contact support or visit our website.
+
+=== DISCLAIMER ===
+
+This tool is for educational purposes only. Use at your own risk.
+The developers are not responsible for any consequences resulting from the use of this tool.

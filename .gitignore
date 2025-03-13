@@ -3,3 +3,9 @@ src/rok_automation.log
 src/config.ini
 src/logs/*
 src/images
+src/Tesseract-OCR/
+assets
+build
+dist
+distribution
+src/__pycache__/
