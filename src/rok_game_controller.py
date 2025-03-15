@@ -27,6 +27,7 @@ class RoKGameController:
         # Load bluestacks configuration
         bluestacks_config = config_manager.get_bluestacks_config()
         self.game_load_wait_seconds = int(bluestacks_config.get('wait_for_startup_seconds', 30))
+        self.debug_mode = bool(bluestacks_config.get('debug_mode', False))
 
         self.package_name = 'com.lilithgame.roc.gp'
         match self.rok_version:
@@ -201,22 +202,26 @@ class RoKGameController:
         )
 
         # Save the processed image after adaptive thresholding
-        cv2.imwrite("ocr_adaptive_thresh.png", adaptive_thresh)
+        if self.debug_mode:
+            cv2.imwrite("ocr_adaptive_thresh.png", adaptive_thresh)
 
         # Also try Otsu's thresholding for comparison
         _, otsu_thresh = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
-        cv2.imwrite("ocr_otsu_thresh.png", otsu_thresh)
+        if self.debug_mode:
+            cv2.imwrite("ocr_otsu_thresh.png", otsu_thresh)
 
         # Try inverting the image (sometimes helps with dark text)
         inverted = cv2.bitwise_not(gray)
         _, inverted_otsu = cv2.threshold(inverted, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
-        cv2.imwrite("ocr_inverted_otsu.png", inverted_otsu)
+        if self.debug_mode:
+            cv2.imwrite("ocr_inverted_otsu.png", inverted_otsu)
 
         # Increase contrast using CLAHE (Contrast Limited Adaptive Histogram Equalization)
         clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8, 8))
         contrast_enhanced = clahe.apply(gray)
         _, contrast_thresh = cv2.threshold(contrast_enhanced, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
-        cv2.imwrite("ocr_contrast_enhanced.png", contrast_thresh)
+        if self.debug_mode:
+            cv2.imwrite("ocr_contrast_enhanced.png", contrast_thresh)
 
         # Return multiple processed versions so we can try OCR on all of them
         return {
@@ -335,7 +340,8 @@ class RoKGameController:
 
             # Crop the image
             cropped = screenshot[region_y:region_y + region_height, region_x:region_x + region_width]
-            cv2.imwrite("text_search_region.png", cropped)
+            if self.debug_mode:
+                cv2.imwrite("text_search_region.png", cropped)
 
             # Preprocess the image for better OCR
             if self.config.get_bool('OCR', 'preprocess_image', True):
@@ -413,9 +419,10 @@ class RoKGameController:
                                 f"Found word '{target_word}' from '{target_text}' at position: ({text_x}, {text_y})")
 
                             # Also save a debug image showing where we're clicking
-                            debug_img = screenshot.copy()
-                            cv2.circle(debug_img, (text_x, text_y), 10, (0, 255, 0), -1)
-                            cv2.imwrite("text_position_debug.png", debug_img)
+                            if self.debug_mode:
+                                debug_img = screenshot.copy()
+                                cv2.circle(debug_img, (text_x, text_y), 10, (0, 255, 0), -1)
+                                cv2.imwrite("text_position_debug.png", debug_img)
 
                             return {'x': text_x, 'y': text_y}
 
@@ -537,11 +544,11 @@ class RoKGameController:
         }
 
         # Find the position of "build" text
-        result = self.detect_text_position("remaining", bookmark_region)
+        result = self.detect_text_position("owner", bookmark_region)
         if result:
             build_button = {
                 'x': result['x'],
-                'y': result['y'] + 160,
+                'y': result['y'] + 80,
             }
             time.sleep(2)
             if not self.bluestacks.click(build_button['x'], build_button['y'], self.click_delay_ms):
@@ -574,7 +581,7 @@ class RoKGameController:
 
         time.sleep(1)
         # Find the position of "tap to join" text
-        result = self.detect_text_position("tap", bookmark_region, True)
+        result = self.detect_text_position("tap", bookmark_region)
         if result:
             tap_to_join_button = {
                 'x': result['x'],
@@ -1064,7 +1071,8 @@ class RoKGameController:
 
     def switch_character(self):
         """Main function to switch through all star characters"""
-        self.logger.info("Starting character switching process")
+        self.logger.info("Starting characteryyyy y"
+                         " switching process")
 
         # Set starting character index - you may want to make this configurable
         start_idx = 0
@@ -1129,7 +1137,7 @@ class RoKGameController:
                     return False
 
                 # Click to dismiss any dialogs
-                self.dismiss_loading_screen()
+                # self.dismiss_loading_screen()
                 self.wait_for_game_load()
 
             else:

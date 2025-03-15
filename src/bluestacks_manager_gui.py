@@ -17,6 +17,8 @@ class StopAutomationException(Exception):
 from config_manager import ConfigManager
 from bluestacks_controller import BlueStacksController
 from rok_game_controller import RoKGameController
+from instance_manager import InstanceManager
+from instance_manager_gui import InstanceManagerDialog
 
 
 class RiseOfKingdomsManagerGUI:
@@ -29,8 +31,17 @@ class RiseOfKingdomsManagerGUI:
         # Set up logging
         self.setup_logging()
 
-        # Initialize configuration manager
-        self.config_manager = ConfigManager()
+        # Initialize instance manager
+        self.instance_manager = InstanceManager()
+
+        # Get current instance
+        self.current_instance = self.instance_manager.get_current_instance()
+
+        # Initialize configuration manager with the current instance's config
+        if self.current_instance:
+            self.config_manager = self.instance_manager.get_config_manager()
+        else:
+            self.config_manager = ConfigManager()
 
         # Variables
         self.bluestacks_path = tk.StringVar(value=self.config_manager.get_config('BlueStacks', 'bluestacks_exe_path'))
@@ -43,6 +54,10 @@ class RiseOfKingdomsManagerGUI:
         self.character_count = tk.IntVar(
             value=int(self.config_manager.get_config('RiseOfKingdoms', 'num_of_characters', 1)))
         self.march_preset = tk.IntVar(value=int(self.config_manager.get_config('RiseOfKingdoms', 'march_preset', 1)))
+
+        # Currently selected instance name for display
+        self.selected_instance_name = tk.StringVar(
+            value=self.current_instance["name"] if self.current_instance else "Default")
 
         # RoK Version selection
         self.rok_version = tk.StringVar(
@@ -107,33 +122,45 @@ class RiseOfKingdomsManagerGUI:
         main_frame = ttk.Frame(self.root, padding="10")
         main_frame.pack(fill=tk.BOTH, expand=True)
 
-        # Instance settings section
-        instance_frame = ttk.LabelFrame(main_frame, text="BlueStacks Settings", padding="10")
+        # Instance selection frame
+        instance_frame = ttk.Frame(main_frame, padding="5")
         instance_frame.pack(fill=tk.X, padx=5, pady=5)
 
+        ttk.Label(instance_frame, text="Current Instance:").pack(side=tk.LEFT, padx=5)
+        ttk.Label(instance_frame, textvariable=self.selected_instance_name, font=("", 10, "bold")).pack(side=tk.LEFT,
+                                                                                                        padx=5)
+
+        # Instance manager button
+        ttk.Button(instance_frame, text="Manage Instances", command=self.open_instance_manager).pack(side=tk.RIGHT,
+                                                                                                     padx=5)
+
+        # BlueStacks settings section
+        bs_frame = ttk.LabelFrame(main_frame, text="BlueStacks Settings", padding="10")
+        bs_frame.pack(fill=tk.X, padx=5, pady=5)
+
         # Grid layout for settings
-        ttk.Label(instance_frame, text="BlueStacks Path:").grid(column=0, row=0, sticky=tk.W, pady=2)
-        ttk.Entry(instance_frame, textvariable=self.bluestacks_path, width=40).grid(column=1, row=0, sticky=tk.W,
-                                                                                    pady=2)
-        ttk.Button(instance_frame, text="Browse", command=self.browse_bluestacks).grid(column=2, row=0, sticky=tk.W,
-                                                                                       pady=2, padx=5)
+        ttk.Label(bs_frame, text="BlueStacks Path:").grid(column=0, row=0, sticky=tk.W, pady=2)
+        ttk.Entry(bs_frame, textvariable=self.bluestacks_path, width=40).grid(column=1, row=0, sticky=tk.W,
+                                                                              pady=2)
+        ttk.Button(bs_frame, text="Browse", command=self.browse_bluestacks).grid(column=2, row=0, sticky=tk.W,
+                                                                                 pady=2, padx=5)
 
-        ttk.Label(instance_frame, text="ADB Path:").grid(column=0, row=1, sticky=tk.W, pady=2)
-        ttk.Entry(instance_frame, textvariable=self.adb_path, width=40).grid(column=1, row=1, sticky=tk.W, pady=2)
-        ttk.Button(instance_frame, text="Browse", command=self.browse_adb).grid(column=2, row=1, sticky=tk.W, pady=2,
-                                                                                padx=5)
+        ttk.Label(bs_frame, text="ADB Path:").grid(column=0, row=1, sticky=tk.W, pady=2)
+        ttk.Entry(bs_frame, textvariable=self.adb_path, width=40).grid(column=1, row=1, sticky=tk.W, pady=2)
+        ttk.Button(bs_frame, text="Browse", command=self.browse_adb).grid(column=2, row=1, sticky=tk.W, pady=2,
+                                                                          padx=5)
 
-        ttk.Label(instance_frame, text="Instance Name:").grid(column=0, row=2, sticky=tk.W, pady=2)
-        ttk.Entry(instance_frame, textvariable=self.instance_name, width=15).grid(column=1, row=2, sticky=tk.W, pady=2)
+        ttk.Label(bs_frame, text="Instance Name:").grid(column=0, row=2, sticky=tk.W, pady=2)
+        ttk.Entry(bs_frame, textvariable=self.instance_name, width=15).grid(column=1, row=2, sticky=tk.W, pady=2)
 
-        ttk.Label(instance_frame, text="ADB Port:").grid(column=0, row=3, sticky=tk.W, pady=2)
-        ttk.Entry(instance_frame, textvariable=self.adb_port, width=15).grid(column=1, row=3, sticky=tk.W, pady=2)
+        ttk.Label(bs_frame, text="ADB Port:").grid(column=0, row=3, sticky=tk.W, pady=2)
+        ttk.Entry(bs_frame, textvariable=self.adb_port, width=15).grid(column=1, row=3, sticky=tk.W, pady=2)
 
-        ttk.Label(instance_frame, text="Startup Wait (sec):").grid(column=0, row=4, sticky=tk.W, pady=2)
-        ttk.Spinbox(instance_frame, from_=5, to=60, increment=5, textvariable=self.start_delay, width=13).grid(column=1,
-                                                                                                               row=4,
-                                                                                                               sticky=tk.W,
-                                                                                                               pady=2)
+        ttk.Label(bs_frame, text="Startup Wait (sec):").grid(column=0, row=4, sticky=tk.W, pady=2)
+        ttk.Spinbox(bs_frame, from_=5, to=60, increment=5, textvariable=self.start_delay, width=13).grid(column=1,
+                                                                                                         row=4,
+                                                                                                         sticky=tk.W,
+                                                                                                         pady=2)
 
         # Game settings section
         game_frame = ttk.LabelFrame(main_frame, text="Rise of Kingdoms Settings", padding="10")
@@ -230,6 +257,50 @@ class RiseOfKingdomsManagerGUI:
         style.configure('Launch.TButton', font=('Helvetica', 12, 'bold'))
         style.configure('Stop.TButton', font=('Helvetica', 12, 'bold'), foreground='red')
 
+    def open_instance_manager(self):
+        """Open the instance manager dialog"""
+        dialog = InstanceManagerDialog(self.root, self.instance_manager, self.on_instance_selected)
+        self.root.wait_window(dialog.dialog)
+
+    def on_instance_selected(self, instance_id):
+        """Handle when a different instance is selected"""
+        # Get the selected instance
+        instance = self.instance_manager.get_instance(instance_id)
+        if not instance:
+            return
+
+        # Update the selected instance name display
+        self.selected_instance_name.set(instance["name"])
+
+        # Load the configuration for the selected instance
+        self.config_manager = self.instance_manager.get_config_manager(instance_id)
+
+        # Update UI with new config values
+        self.load_config_to_ui()
+
+        self.log(f"Switched to instance: {instance['name']}")
+
+    def load_config_to_ui(self):
+        """Load configuration values into UI elements"""
+        # BlueStacks settings
+        self.bluestacks_path.set(self.config_manager.get_config('BlueStacks', 'bluestacks_exe_path'))
+        self.adb_path.set(self.config_manager.get_config('BlueStacks', 'adb_path'))
+        self.instance_name.set(self.config_manager.get_config('BlueStacks', 'bluestacks_instance_name'))
+        self.adb_port.set(self.config_manager.get_config('BlueStacks', 'adb_port'))
+        self.start_delay.set(int(self.config_manager.get_config('BlueStacks', 'wait_for_startup_seconds')))
+
+        # RoK settings
+        self.rok_version.set(self.config_manager.get_config('RiseOfKingdoms', 'rok_version', 'global').capitalize())
+        self.character_count.set(int(self.config_manager.get_config('RiseOfKingdoms', 'num_of_characters', 1)))
+        self.march_preset.set(int(self.config_manager.get_config('RiseOfKingdoms', 'march_preset', 1)))
+
+        # Features
+        self.enable_tech_donation.set(self.config_manager.get_bool('RiseOfKingdoms', 'perform_donation', True))
+        self.enable_troop_build.set(self.config_manager.get_bool('RiseOfKingdoms', 'perform_build', True))
+
+        # Update package display
+        self.package_display.config(text=self.rok_packages.get(self.rok_version.get(), self.rok_packages["Global"]))
+
     def save_configuration(self):
         """Save current configuration to config.ini"""
         try:
@@ -320,7 +391,6 @@ class RiseOfKingdomsManagerGUI:
         self.stop_requested = True
         self.stop_button.config(state="disabled")
 
-
     def wait_in_intervals(self):
         # Wait in smaller intervals to allow for stopping
         total_wait = self.rok_controller.game_load_wait_seconds
@@ -334,8 +404,16 @@ class RiseOfKingdomsManagerGUI:
     def _run_automation(self):
         """Run the complete automation sequence in a separate thread"""
         try:
-            # 1. Initialize controllers with current configuration
-            self.config_manager = ConfigManager()  # Reload config from file
+            # Get current instance information
+            current_instance = self.instance_manager.get_current_instance()
+            instance_name = current_instance["name"] if current_instance else "Default"
+
+            self.log(f"Running automation for instance: {instance_name}")
+
+            # Use the config manager for the current instance
+            self.config_manager = self.instance_manager.get_config_manager()
+
+            # Initialize controllers with current configuration
             self.bluestacks_controller = BlueStacksController(self.config_manager)
 
             # Update ADB device with current port
@@ -345,7 +423,7 @@ class RiseOfKingdomsManagerGUI:
             # Initialize RoK controller
             self.rok_controller = RoKGameController(self.config_manager, self.bluestacks_controller)
 
-            # 2. Start BlueStacks
+            # Start BlueStacks
             self.log(f"Starting BlueStacks instance: {self.instance_name.get()}")
             self.status_text.set("Starting BlueStacks...")
 
@@ -357,7 +435,7 @@ class RiseOfKingdomsManagerGUI:
                 self.status_text.set("Failed to start BlueStacks")
                 return
 
-            # 3. Connect to ADB
+            # Connect to ADB
             if self.stop_requested:
                 raise StopAutomationException("Automation stopped by user")
 
@@ -371,7 +449,7 @@ class RiseOfKingdomsManagerGUI:
 
             self.is_connected = True
 
-            # 4. Start Rise of Kingdoms
+            # Start Rise of Kingdoms
             if self.stop_requested:
                 raise StopAutomationException("Automation stopped by user")
 
@@ -383,20 +461,21 @@ class RiseOfKingdomsManagerGUI:
                 self.status_text.set("Failed to start Rise of Kingdoms")
                 return
 
-            # 5. Wait for game to load
+            # Wait for game to load
             self.log("Waiting for Rise of Kingdoms to load...")
             self.status_text.set("Waiting for Rise of Kingdoms...")
 
             # Wait in smaller intervals to allow for stopping
             self.wait_in_intervals()
 
-            # 6. Click to dismiss any loading screens
+            # Click to dismiss any loading screens
             if self.stop_requested:
                 raise StopAutomationException("Automation stopped by user")
 
-            self.rok_controller.dismiss_loading_screen()
+            # self.rok_controller.dismiss_loading_screen()
+            self.rok_controller.wait_for_game_load()
 
-            # 7. Start character switching automation
+            # Start character switching automation
             self.log("Starting character switching automation...")
             self.status_text.set("Running character automation...")
 

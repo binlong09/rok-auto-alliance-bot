@@ -3,6 +3,7 @@ import os
 import logging
 import tkinter as tk
 from tkinter import messagebox
+import argparse
 
 
 def setup_environment():
@@ -10,6 +11,10 @@ def setup_environment():
     # Create logs directory if not exists
     if not os.path.exists("logs"):
         os.makedirs("logs")
+
+    # Create instances directory if not exists
+    if not os.path.exists("instances"):
+        os.makedirs("instances")
 
     # Setup logging
     logging.basicConfig(
@@ -30,13 +35,33 @@ def main():
     """Main entry point of the application"""
     logger = setup_environment()
 
+    # Parse command line arguments
+    parser = argparse.ArgumentParser(description="Rise of Kingdoms Automation Tool")
+    parser.add_argument("--single", action="store_true", help="Launch single instance mode")
+    parser.add_argument("--multi", action="store_true", help="Launch multi-instance mode (default)")
+    args = parser.parse_args()
+
+    # Determine mode - default to multi-instance
+    use_single_mode = args.single
+    if args.multi:
+        use_single_mode = False
+
     try:
         # Import modules here to catch any import errors
-        from bluestacks_manager_gui import RiseOfKingdomsManagerGUI
+        if use_single_mode:
+            from bluestacks_manager_gui import RiseOfKingdomsManagerGUI
+            logger.info("Starting in single instance mode")
 
-        # Create the main application window
-        root = tk.Tk()
-        app = RiseOfKingdomsManagerGUI(root)
+            # Create the main application window
+            root = tk.Tk()
+            app = RiseOfKingdomsManagerGUI(root)
+        else:
+            from multi_instance_manager_gui import MultiInstanceManagerGUI
+            logger.info("Starting in multi-instance mode")
+
+            # Create the multi-instance manager window
+            root = tk.Tk()
+            app = MultiInstanceManagerGUI(root)
 
         # Set window icon if available
         try:

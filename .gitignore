@@ -9,3 +9,5 @@ build
 dist
 distribution
 src/__pycache__/
+.log
+src/instances
