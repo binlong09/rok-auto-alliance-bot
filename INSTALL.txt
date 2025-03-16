@@ -29,6 +29,10 @@ This guide will help you get up and running quickly.
 
 4. Your settings will be saved for future use in the config.ini file.
 
+5. IMPORTANT: Make sure that your game and bluestacks have these settings:
+- Bluestacks screen resolution: 1280x720
+- Game language: English
+- Disable Opening Animation: True
 === TROUBLESHOOTING ===
 
 If you encounter issues:
