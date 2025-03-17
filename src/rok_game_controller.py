@@ -306,10 +306,11 @@ class RoKGameController:
 
     def detect_text_position(self, target_text, text_region=None, exact_match=False):
         """
-        Detect the position of specific text in a region of the screen
+        Detect the position of specific text in a region of the screen.
+        Can accept a single text string or a list of keywords and returns the first match.
 
         Args:
-            target_text (str): Text to search for
+            target_text (str or list): Text(s) to search for. Can be a single string or a list of strings.
             text_region (dict, optional): Region to search in. Defaults to self.text_region.
             exact_match (bool): Whether to only search for exact match
 
@@ -318,6 +319,9 @@ class RoKGameController:
         """
         if self.check_stop_requested():
             return None
+
+        # Convert single text to list for unified processing
+        target_texts = target_text if isinstance(target_text, list) else [target_text]
 
         try:
             # Use default text region if not specified
@@ -374,97 +378,103 @@ class RoKGameController:
                 if not filtered_texts:
                     continue
 
-                target_text_lower = target_text.lower()
+                # Convert all target texts to lowercase
+                target_texts_lower = [t.lower() for t in target_texts]
 
-                # Check for exact matches
-                for i, idx in enumerate(filtered_indices):
-                    if target_text_lower in filtered_texts[i]:
-                        # Calculate Y position correctly (center of text)
-                        text_y = region_y + data['top'][idx] + (data['height'][idx] // 2)
-
-                        # For X position, use left edge plus 20% of width instead of center
-                        # This tends to be more accurate for clicking on text
-                        text_x = region_x + data['left'][idx] + int(data['width'][idx] * 0.2)
-
-                        self.logger.info(f"Found text '{target_text}' at position: ({text_x}, {text_y})")
-                        return {'x': text_x, 'y': text_y}
-
-                # if only allow exact match, exit from here
-                if exact_match:
-                    return None
-
-                # Check for individual words from target
-                target_words = target_text_lower.split()
-                for target_word in target_words:
+                # First pass: Check for exact matches for any of the target texts
+                for target_text_lower in target_texts_lower:
                     for i, idx in enumerate(filtered_indices):
-                        text = filtered_texts[i]
-                        if target_word in text:
-                            # Calculate Y position as before
+                        if target_text_lower in filtered_texts[i]:
+                            # Calculate Y position correctly (center of text)
                             text_y = region_y + data['top'][idx] + (data['height'][idx] // 2)
 
-                            # For X position:
-                            # Find the approximate position of the word within the text
-                            # and offset from the left edge accordingly
-                            word_index = text.find(target_word)
-                            if word_index > 0:
-                                # Estimate the X position based on character position
-                                # Assuming an average character width proportional to total width
-                                char_width = data['width'][idx] / len(text)
-                                text_x = region_x + data['left'][idx] + int(word_index * char_width)
-                            else:
-                                # If word is at the beginning, use left edge plus small offset
-                                text_x = region_x + data['left'][idx] + 5
+                            # For X position, use left edge plus 20% of width instead of center
+                            text_x = region_x + data['left'][idx] + int(data['width'][idx] * 0.2)
 
                             self.logger.info(
-                                f"Found word '{target_word}' from '{target_text}' at position: ({text_x}, {text_y})")
-
-                            # Also save a debug image showing where we're clicking
-                            if self.debug_mode:
-                                debug_img = screenshot.copy()
-                                cv2.circle(debug_img, (text_x, text_y), 10, (0, 255, 0), -1)
-                                cv2.imwrite("text_position_debug.png", debug_img)
+                                f"Found text '{target_texts[target_texts_lower.index(target_text_lower)]}' at position: ({text_x}, {text_y})")
 
                             return {'x': text_x, 'y': text_y}
 
-                # Check for stop again before continuing
+                # if only allow exact match, skip to next preprocessing method
+                if exact_match:
+                    continue
+
+                # Second pass: Check for individual words from each target text
+                for target_idx, target_text_lower in enumerate(target_texts_lower):
+                    target_words = target_text_lower.split()
+                    for target_word in target_words:
+                        for i, idx in enumerate(filtered_indices):
+                            text = filtered_texts[i]
+                            if target_word in text:
+                                # Calculate Y position as before
+                                text_y = region_y + data['top'][idx] + (data['height'][idx] // 2)
+
+                                # For X position:
+                                # Find the approximate position of the word within the text
+                                # and offset from the left edge accordingly
+                                word_index = text.find(target_word)
+                                if word_index > 0:
+                                    # Estimate the X position based on character position
+                                    # Assuming an average character width proportional to total width
+                                    char_width = data['width'][idx] / len(text)
+                                    text_x = region_x + data['left'][idx] + int(word_index * char_width)
+                                else:
+                                    # If word is at the beginning, use left edge plus small offset
+                                    text_x = region_x + data['left'][idx] + 5
+
+                                self.logger.info(
+                                    f"Found word '{target_word}' from '{target_texts[target_idx]}' at position: ({text_x}, {text_y})")
+
+                                # Also save a debug image showing where we're clicking
+                                if self.debug_mode:
+                                    debug_img = screenshot.copy()
+                                    cv2.circle(debug_img, (text_x, text_y), 10, (0, 255, 0), -1)
+                                    cv2.imwrite("text_position_debug.png", debug_img)
+
+                                return {'x': text_x, 'y': text_y}
+
+                # Check for stop again before continuing with fallback approach
                 if self.check_stop_requested():
                     return None
 
-                # If we still haven't found anything, try one more approach:
-                # Look at the region where the text should be based on OCR detection
-                # and use a more sophisticated method to determine a good click position
-
-                # Join all detected text to see if our target is in there
+                # Third pass (fallback): Join all detected text and look for any target word
                 joined_text = ' '.join(filtered_texts)
-                if any(word in joined_text for word in target_words):
-                    # Pick the first detected text area that contains any target word
-                    for i, idx in enumerate(filtered_indices):
-                        text = filtered_texts[i]
-                        if any(word in text for word in target_words):
-                            # Calculate Y position
-                            text_y = region_y + data['top'][idx] + (data['height'][idx] // 2)
+                for target_idx, target_text_lower in enumerate(target_texts_lower):
+                    target_words = target_text_lower.split()
+                    if any(word in joined_text for word in target_words):
+                        # Pick the first detected text area that contains any target word
+                        for i, idx in enumerate(filtered_indices):
+                            text = filtered_texts[i]
+                            # Check if any word from the current target text is in this detected text
+                            matching_words = [word for word in target_words if word in text]
+                            if matching_words:
+                                # Calculate Y position
+                                text_y = region_y + data['top'][idx] + (data['height'][idx] // 2)
 
-                            # For X position, use a position 1/4 of the way into the text element
-                            # This is often more reliable than just the center or left edge
-                            text_x = region_x + data['left'][idx] + (data['width'][idx] // 4)
+                                # For X position, use a position 1/4 of the way into the text element
+                                text_x = region_x + data['left'][idx] + (data['width'][idx] // 4)
 
-                            self.logger.info(
-                                f"Found partial match for '{target_text}' at position: ({text_x}, {text_y})")
+                                self.logger.info(
+                                    f"Found partial match for '{target_texts[target_idx]}' at position: ({text_x}, {text_y})")
 
-                            # Save debug image
-                            debug_img = screenshot.copy()
-                            cv2.circle(debug_img, (text_x, text_y), 10, (0, 0, 255), -1)
-                            cv2.imwrite("text_position_fallback.png", debug_img)
+                                # Save debug image
+                                if self.debug_mode:
+                                    debug_img = screenshot.copy()
+                                    cv2.circle(debug_img, (text_x, text_y), 10, (0, 0, 255), -1)
+                                    cv2.imwrite("text_position_fallback.png", debug_img)
 
-                            return {'x': text_x, 'y': text_y}
+                                return {'x': text_x, 'y': text_y}
 
-            self.logger.info(f"Text '{target_text}' not found in region")
+            keywords_list = ", ".join(target_texts)
+            self.logger.info(f"None of the keywords [{keywords_list}] found in region")
             return None
 
         except Exception as e:
             self.logger.error(f"Error detecting text position: {e}")
             self.logger.exception("Stack trace:")
             return None
+
 
     def navigate_to_bookmark(self):
         """ Navigate to bookmark screen from home screen"""
@@ -878,7 +888,7 @@ class RoKGameController:
         }
 
         # Find the position of "Officer's Recommendation" text
-        result = self.detect_text_position("Officer's Recommendation", text_region)
+        result = self.detect_text_position(["Officer's Recommendation", "Officer", "Recommendation", "mendation"], text_region)
         if result:
             officer_recommendation_button = {
                 'x': result['x'] + 10,
@@ -1014,7 +1024,7 @@ class RoKGameController:
             return True
 
         self.logger.info("Tech screen opened")
-        time.sleep(3)
+        time.sleep(6)
 
         if not self.find_and_donate_recommended_technology():
             self.logger.error("Failed to find and donate recommended technology")
@@ -1071,7 +1081,7 @@ class RoKGameController:
 
     def switch_character(self):
         """Main function to switch through all star characters"""
-        self.logger.info("Starting characteryyyy y"
+        self.logger.info("Starting character"
                          " switching process")
 
         # Set starting character index - you may want to make this configurable
@@ -1136,10 +1146,6 @@ class RoKGameController:
                 if self.check_stop_requested():
                     return False
 
-                # Click to dismiss any dialogs
-                # self.dismiss_loading_screen()
-                self.wait_for_game_load()
-
             else:
                 # This means that the character being selected is already the current one
                 self.logger.info("Character already selected, returning to main screen")
@@ -1148,7 +1154,7 @@ class RoKGameController:
                     if self.check_stop_requested():
                         return False
                     self.close_dialogs()
-                    time.sleep(0.5)
+                    time.sleep(1)
 
             if self.check_stop_requested():
                 return False
@@ -1164,6 +1170,7 @@ class RoKGameController:
             if self.will_perform_donation:
                 # Alliance donation not yet implemented
                 self.logger.info("Perform Alliance Donation for this character")
+                time.sleep(1)
                 self.perform_recommended_tech_donation()
 
             self.logger.info(f"Completed processing character at position {pos}")

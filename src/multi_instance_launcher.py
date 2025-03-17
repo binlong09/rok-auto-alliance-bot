@@ -4,6 +4,7 @@ import sys
 import time
 import logging
 import threading
+import subprocess
 import tkinter as tk
 from tkinter import ttk, messagebox
 from queue import Queue
@@ -17,7 +18,7 @@ from rok_game_controller import RoKGameController
 class AutomationThread(threading.Thread):
     """Thread class for running automation on a specific instance"""
 
-    def __init__(self, instance_id, instance_name, config_manager, queue, stop_event=None):
+    def __init__(self, instance_id, instance_name, config_manager, queue, stop_event=None, exit_after_complete=True):
         super().__init__()
         self.instance_id = instance_id
         self.instance_name = instance_name
@@ -25,6 +26,7 @@ class AutomationThread(threading.Thread):
         self.queue = queue  # Message queue for communication with main thread
         self.stop_event = stop_event or threading.Event()
         self.daemon = True  # Thread will exit when main program exits
+        self.exit_after_complete = exit_after_complete  # Whether to exit BlueStacks after completion
 
         # Set up logging
         self.logger = logging.getLogger(f"automation.{instance_id}")
@@ -46,8 +48,57 @@ class AutomationThread(threading.Thread):
             "message": status
         })
 
+    def close_bluestacks(self, bluestacks_controller):
+        """Close the BlueStacks instance using ADB or direct process termination"""
+        try:
+            # First try to get the instance name
+            bs_instance_name = self.config_manager.get_config('BlueStacks', 'bluestacks_instance_name')
+
+            # Method 1: Use ADB to force stop the app and then try to close BlueStacks
+            try:
+                # Force stop RoK app
+                package_name = self.config_manager.get_config('RiseOfKingdoms', 'package_name', 'com.lilithgame.roc.gp')
+                force_stop_cmd = f'"{bluestacks_controller.adb_path}" -s {bluestacks_controller.adb_device} shell am force-stop {package_name}'
+                self.log(f"Stopping RoK app with command: {force_stop_cmd}")
+                subprocess.run(force_stop_cmd, shell=True, capture_output=True, timeout=10)
+                time.sleep(1)
+            except Exception as e:
+                self.log(f"Error force stopping RoK app: {e}")
+
+            # Method 2: Try to terminate the BlueStacks process directly
+            try:
+                # On Windows, use taskkill to find and terminate BlueStacks processes
+                if sys.platform == "win32":
+                    # First try to close gracefully
+                    self.log(f"Attempting to close BlueStacks instance: {bs_instance_name}")
+                    close_cmd = f'"{bluestacks_controller.bluestacks_exe_path}" --instance {bs_instance_name} --cmd quit'
+                    subprocess.run(close_cmd, shell=True, capture_output=True, timeout=10)
+                    time.sleep(2)
+
+                    # If that doesn't work, force it
+                    self.log("Using taskkill to terminate BlueStacks")
+                    subprocess.run("taskkill /f /im HD-Player.exe", shell=True, capture_output=True, timeout=10)
+                    subprocess.run("taskkill /f /im HD-MultiInstanceManager.exe", shell=True, capture_output=True,
+                                   timeout=10)
+                else:
+                    # On Linux/Mac, try to use pkill
+                    self.log("Using pkill to terminate BlueStacks")
+                    subprocess.run("pkill -f 'BlueStacks'", shell=True, capture_output=True, timeout=10)
+            except Exception as e:
+                self.log(f"Error terminating BlueStacks process: {e}")
+
+            self.log("BlueStacks instance closed")
+            return True
+
+        except Exception as e:
+            self.logger.error(f"Error closing BlueStacks: {e}")
+            self.logger.exception("Stack trace:")
+            self.log(f"Failed to close BlueStacks: {e}")
+            return False
+
     def run(self):
         """Run the automation sequence for this instance"""
+        bluestacks_controller = None
         try:
             self.log(f"Starting automation for instance '{self.instance_name}'")
             self.update_status("Starting")
@@ -83,6 +134,9 @@ class AutomationThread(threading.Thread):
             if self.stop_event.is_set():
                 self.log("Automation stopped after BlueStacks startup")
                 self.update_status("Stopped")
+                if self.exit_after_complete and bluestacks_controller:
+                    self.log("Closing BlueStacks instance")
+                    self.close_bluestacks(bluestacks_controller)
                 return
 
             # Connect to ADB
@@ -92,12 +146,18 @@ class AutomationThread(threading.Thread):
             if not bluestacks_controller.connect_adb():
                 self.log("Failed to connect to ADB")
                 self.update_status("Failed to connect to ADB")
+                if self.exit_after_complete and bluestacks_controller:
+                    self.log("Closing BlueStacks instance")
+                    self.close_bluestacks(bluestacks_controller)
                 return
 
             # Start Rise of Kingdoms
             if self.stop_event.is_set():
                 self.log("Automation stopped before launching game")
                 self.update_status("Stopped")
+                if self.exit_after_complete and bluestacks_controller:
+                    self.log("Closing BlueStacks instance")
+                    self.close_bluestacks(bluestacks_controller)
                 return
 
             self.log("Starting Rise of Kingdoms")
@@ -106,6 +166,9 @@ class AutomationThread(threading.Thread):
             if not rok_controller.start_game():
                 self.log("Failed to start Rise of Kingdoms")
                 self.update_status("Failed to start RoK")
+                if self.exit_after_complete and bluestacks_controller:
+                    self.log("Closing BlueStacks instance")
+                    self.close_bluestacks(bluestacks_controller)
                 return
 
             # Wait for game to load with periodic stop checks
@@ -120,16 +183,13 @@ class AutomationThread(threading.Thread):
                 if self.stop_event.is_set():
                     self.log("Automation stopped during game loading")
                     self.update_status("Stopped")
+                    if self.exit_after_complete and bluestacks_controller:
+                        self.log("Closing BlueStacks instance")
+                        self.close_bluestacks(bluestacks_controller)
                     return
 
                 time.sleep(min(interval, total_wait))
                 total_wait -= interval
-
-            # Dismiss loading screens
-            if self.stop_event.is_set():
-                self.log("Automation stopped before dismissing loading screens")
-                self.update_status("Stopped")
-                return
 
             rok_controller.wait_for_game_load()
 
@@ -158,6 +218,11 @@ class AutomationThread(threading.Thread):
             self.log(f"Error in automation: {str(e)}")
 
         finally:
+            # Close BlueStacks if configured to do so
+            if self.exit_after_complete and bluestacks_controller:
+                self.log("Automation complete, closing BlueStacks instance")
+                self.close_bluestacks(bluestacks_controller)
+
             self.log("Automation thread completed")
 
 
@@ -184,10 +249,17 @@ class MultiInstanceLauncher:
         self.log_callback = None
         self.status_callback = None
 
+        # Default to exit BlueStacks after completion
+        self.exit_after_complete = True
+
     def set_callbacks(self, log_callback=None, status_callback=None):
         """Set callbacks for log and status messages"""
         self.log_callback = log_callback
         self.status_callback = status_callback
+
+    def set_exit_after_complete(self, exit_after_complete):
+        """Set whether to exit BlueStacks after automation completes"""
+        self.exit_after_complete = exit_after_complete
 
     def _process_messages(self):
         """Process messages from automation threads"""
@@ -236,7 +308,8 @@ class MultiInstanceLauncher:
             instance_name=instance["name"],
             config_manager=config_manager,
             queue=self.message_queue,
-            stop_event=stop_event
+            stop_event=stop_event,
+            exit_after_complete=self.exit_after_complete
         )
 
         # Store thread and stop event

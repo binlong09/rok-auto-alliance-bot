@@ -38,6 +38,9 @@ class MultiInstanceManagerGUI:
         # Track if app is closing
         self.is_closing = False
 
+        # Auto exit option
+        self.auto_exit_var = True
+
         # Create UI elements
         self.create_widgets()
 
@@ -94,6 +97,16 @@ class MultiInstanceManagerGUI:
             text="Stop All",
             command=self.stop_all_instances
         ).pack(side=tk.RIGHT, padx=5)
+
+        # Auto-exit option
+        self.auto_exit_var = tk.BooleanVar(value=True)
+        auto_exit_cb = ttk.Checkbutton(
+            top_frame,
+            text="Auto-exit BlueStacks after completion",
+            variable=self.auto_exit_var,
+            command=self.toggle_auto_exit
+        )
+        auto_exit_cb.pack(side=tk.LEFT, padx=20)
 
         # Instances panel (left side)
         instances_frame = ttk.LabelFrame(main_frame, text="BlueStacks Instances")
@@ -190,6 +203,13 @@ class MultiInstanceManagerGUI:
         ttk.Label(status_bar, text="Running Instances:").pack(side=tk.LEFT, padx=5)
         self.running_count_label = ttk.Label(status_bar, text="0")
         self.running_count_label.pack(side=tk.LEFT, padx=5)
+
+
+    def toggle_auto_exit(self):
+        """Toggle auto-exit setting in launcher"""
+        self.launcher.set_exit_after_complete(self.auto_exit_var.get())
+        self.logger.info(f"Auto-exit BlueStacks after completion: {self.auto_exit_var.get()}")
+
 
     def load_instances(self):
         """Load instances into treeview"""
