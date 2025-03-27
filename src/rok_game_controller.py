@@ -773,8 +773,8 @@ class RoKGameController:
         if self.check_stop_requested():
             return False
 
-        # Default age-related keywords
-        keywords = ["3174"]
+        # Check for kingdom number
+        keywords = ["3174", "1960"]
 
         # Text Region
         custom_region = {

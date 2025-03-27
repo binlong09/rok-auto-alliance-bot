@@ -49,45 +49,78 @@ class AutomationThread(threading.Thread):
         })
 
     def close_bluestacks(self, bluestacks_controller):
-        """Close the BlueStacks instance using ADB or direct process termination"""
+        """Close the specific BlueStacks instance without affecting other instances or restarting them"""
         try:
-            # First try to get the instance name
+            # Get the instance name
             bs_instance_name = self.config_manager.get_config('BlueStacks', 'bluestacks_instance_name')
 
-            # Method 1: Use ADB to force stop the app and then try to close BlueStacks
-            try:
-                # Force stop RoK app
-                package_name = self.config_manager.get_config('RiseOfKingdoms', 'package_name', 'com.lilithgame.roc.gp')
-                force_stop_cmd = f'"{bluestacks_controller.adb_path}" -s {bluestacks_controller.adb_device} shell am force-stop {package_name}'
-                self.log(f"Stopping RoK app with command: {force_stop_cmd}")
-                subprocess.run(force_stop_cmd, shell=True, capture_output=True, timeout=10)
-                time.sleep(1)
-            except Exception as e:
-                self.log(f"Error force stopping RoK app: {e}")
+            self.log(f"Closing BlueStacks instance: {bs_instance_name}")
 
-            # Method 2: Try to terminate the BlueStacks process directly
-            try:
-                # On Windows, use taskkill to find and terminate BlueStacks processes
-                if sys.platform == "win32":
-                    # First try to close gracefully
-                    self.log(f"Attempting to close BlueStacks instance: {bs_instance_name}")
-                    close_cmd = f'"{bluestacks_controller.bluestacks_exe_path}" --instance {bs_instance_name} --cmd quit'
-                    subprocess.run(close_cmd, shell=True, capture_output=True, timeout=10)
+            # First check if the instance is actually running before trying to interact with it
+            is_running = False
+            if sys.platform == "win32":
+                check_instance_cmd = f'wmic process where "name=\'HD-Player.exe\' and commandline like \'%{bs_instance_name}%\'" get processid'
+                try:
+                    process_info = subprocess.run(check_instance_cmd, shell=True, capture_output=True, text=True,
+                                                  timeout=5)
+                    process_output = process_info.stdout.strip()
+                    is_running = 'ProcessId' in process_output and len(process_output.split('\n')) > 1
+                except Exception as e:
+                    self.log(f"Error checking if instance is running: {e}")
+                    # Assume it might be running to be safe
+                    is_running = True
+            else:
+                # For non-Windows, assume it's running
+                is_running = True
+
+            # Only proceed with ADB commands if the instance is running
+            if is_running:
+                # Use ADB to force stop the app first
+                try:
+                    # Force stop only the RoK app on this specific instance
+                    package_name = self.config_manager.get_config('RiseOfKingdoms', 'package_name',
+                                                                  'com.lilithgame.roc.gp')
+                    adb_device = bluestacks_controller.adb_device
+                    force_stop_cmd = f'"{bluestacks_controller.adb_path}" -s {adb_device} shell am force-stop {package_name}'
+                    self.log(f"Stopping RoK app with command: {force_stop_cmd}")
+                    subprocess.run(force_stop_cmd, shell=True, capture_output=True, timeout=10)
+
+                    # Add a delay to ensure app is fully stopped
                     time.sleep(2)
+                except Exception as e:
+                    self.log(f"Error force stopping RoK app: {e}")
 
-                    # If that doesn't work, force it
-                    self.log("Using taskkill to terminate BlueStacks")
-                    subprocess.run("taskkill /f /im HD-Player.exe", shell=True, capture_output=True, timeout=10)
-                    subprocess.run("taskkill /f /im HD-MultiInstanceManager.exe", shell=True, capture_output=True,
-                                   timeout=10)
-                else:
-                    # On Linux/Mac, try to use pkill
-                    self.log("Using pkill to terminate BlueStacks")
-                    subprocess.run("pkill -f 'BlueStacks'", shell=True, capture_output=True, timeout=10)
-            except Exception as e:
-                self.log(f"Error terminating BlueStacks process: {e}")
+            # Now directly kill the process for the specific instance
+            if sys.platform == "win32" and is_running:
+                # Find and kill the specific BlueStacks instance process
+                check_instance_cmd = f'wmic process where "name=\'HD-Player.exe\' and commandline like \'%{bs_instance_name}%\'" get processid'
+                try:
+                    process_info = subprocess.run(check_instance_cmd, shell=True, capture_output=True, text=True,
+                                                  timeout=5)
+                    process_output = process_info.stdout.strip()
 
-            self.log("BlueStacks instance closed")
+                    # Extract and kill PIDs
+                    if 'ProcessId' in process_output:
+                        lines = process_output.split('\n')
+                        for line in lines[1:]:  # Skip header line
+                            if line.strip():
+                                pid = line.strip()
+                                self.log(f"Found process ID for instance {bs_instance_name}: {pid}")
+                                # Kill this specific PID
+                                kill_cmd = f'taskkill /F /PID {pid}'
+                                self.log(f"Killing process with command: {kill_cmd}")
+                                subprocess.run(kill_cmd, shell=True, capture_output=True, timeout=5)
+                    else:
+                        self.log(f"No running process found for instance {bs_instance_name}")
+                except Exception as e:
+                    self.log(f"Error killing instance-specific process: {e}")
+            elif not sys.platform == "win32":
+                # On Linux/Mac, try to use pkill with instance name filter
+                self.log(f"Using pkill to terminate BlueStacks instance {bs_instance_name}")
+                subprocess.run(f"pkill -f 'BlueStacks.*{bs_instance_name}'", shell=True, capture_output=True,
+                               timeout=10)
+
+            self.log(f"BlueStacks instance {bs_instance_name} closed")
             return True
 
         except Exception as e:
@@ -344,13 +377,128 @@ class MultiInstanceLauncher:
         return True
 
     def stop_all_instances(self):
-        """Stop all running instances"""
-        instance_ids = list(self.running_threads.keys())
+        """Stop all running instances with improved user feedback"""
+        running_instances = self.launcher.get_running_instances()
 
-        for instance_id in instance_ids:
-            self.stop_instance(instance_id)
+        if not running_instances:
+            messagebox.showinfo("None Running", "No instances are currently running.")
+            return
 
-        self.logger.info(f"Requested stop for all {len(instance_ids)} running instances")
+        # Confirm with user
+        result = messagebox.askyesno(
+            "Stop All",
+            f"Stop automation for {len(running_instances)} running instances?"
+        )
+
+        if not result:
+            return
+
+        # Disable Stop All button during operation
+        stop_all_button = None
+        for widget in self.root.winfo_children():
+            if isinstance(widget, ttk.Frame):
+                for child in widget.winfo_children():
+                    if isinstance(child, ttk.Frame):
+                        for button in child.winfo_children():
+                            if isinstance(button, ttk.Button) and button['text'] == "Stop All":
+                                stop_all_button = button
+                                button.config(state=tk.DISABLED)
+                                break
+
+        # Show stopping progress
+        progress_window = tk.Toplevel(self.root)
+        progress_window.title("Stopping Instances")
+        progress_window.geometry("400x200")
+        progress_window.transient(self.root)
+        progress_window.grab_set()
+
+        ttk.Label(progress_window, text=f"Stopping {len(running_instances)} instances...",
+                  font=("", 12, "bold")).pack(pady=10)
+
+        # Add progress bar
+        progress = ttk.Progressbar(progress_window, orient="horizontal", length=300, mode="determinate")
+        progress.pack(pady=10)
+        progress["maximum"] = len(running_instances)
+        progress["value"] = 0
+
+        # Status text
+        status_var = tk.StringVar(value="Initiating stop commands...")
+        ttk.Label(progress_window, textvariable=status_var).pack(pady=5)
+
+        # List of instances being stopped
+        stopping_frame = ttk.Frame(progress_window)
+        stopping_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=5)
+        stopping_list = tk.Text(stopping_frame, height=5, width=40)
+        stopping_list.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        scrollbar = ttk.Scrollbar(stopping_frame, orient=tk.VERTICAL, command=stopping_list.yview)
+        scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+        stopping_list.config(yscrollcommand=scrollbar.set)
+
+        # Stop instances one by one to provide visual feedback
+        def stop_instances_with_progress():
+            try:
+                # Get instance names for nicer display
+                instance_names = {}
+                for instance_id in running_instances:
+                    instance = self.instance_manager.get_instance(instance_id)
+                    if instance:
+                        instance_names[instance_id] = instance["name"]
+                    else:
+                        instance_names[instance_id] = f"Instance {instance_id}"
+
+                # Stop each instance with feedback
+                for i, instance_id in enumerate(running_instances):
+                    instance_name = instance_names.get(instance_id, f"Instance {instance_id}")
+
+                    # Update progress window
+                    self.root.after_idle(lambda: status_var.set(f"Stopping {instance_name}..."))
+                    self.root.after_idle(lambda: stopping_list.insert(tk.END, f"Stopping {instance_name}...\n"))
+                    self.root.after_idle(lambda: stopping_list.see(tk.END))
+                    self.root.after_idle(lambda: progress.config(value=i))
+
+                    # Stop the instance
+                    self.launcher.stop_instance(instance_id)
+
+                    # Update status in the main UI
+                    self.root.after_idle(lambda id=instance_id: self.update_instance_status(id, "Stopping"))
+
+                    # Small delay for visual feedback
+                    time.sleep(0.5)
+
+                # All instances are being stopped
+                self.root.after_idle(lambda: status_var.set("All instances are stopping..."))
+                self.root.after_idle(lambda: progress.config(value=len(running_instances)))
+
+                # Wait a moment before closing the progress window
+                time.sleep(2)
+
+                # Final update to UI
+                self.root.after_idle(self.load_instances)
+                self.root.after_idle(lambda: self.on_instance_select(None))
+
+                # Re-enable the Stop All button if it exists
+                if stop_all_button:
+                    self.root.after_idle(lambda: stop_all_button.config(state=tk.NORMAL))
+
+                # Show completion message and close progress window
+                self.root.after_idle(lambda: messagebox.showinfo("Operation Complete",
+                                                                 f"Stop commands sent to {len(running_instances)} instances.\n\n"
+                                                                 "Instances will shut down shortly."))
+                self.root.after_idle(progress_window.destroy)
+
+            except Exception as e:
+                # Handle any errors
+                self.logger.error(f"Error in stop_all operation: {e}")
+                self.root.after_idle(lambda: messagebox.showerror("Error",
+                                                                  f"An error occurred while stopping instances: {str(e)}"))
+
+                # Make sure to re-enable button and close window
+                if stop_all_button:
+                    self.root.after_idle(lambda: stop_all_button.config(state=tk.NORMAL))
+                self.root.after_idle(progress_window.destroy)
+
+        # Run the stopping process in a separate thread
+        threading.Thread(target=stop_instances_with_progress, daemon=True).start()
 
     def get_running_instances(self):
         """Get list of running instance IDs"""
@@ -362,7 +510,11 @@ class MultiInstanceLauncher:
 
     def shutdown(self):
         """Shutdown the launcher and stop all instances"""
-        self.stop_all_instances()
+        instance_ids = list(self.running_threads.keys())
+
+        for instance_id in instance_ids:
+            self.stop_instance(instance_id)
+
         self.is_running = False
 
         # Wait for message thread to terminate

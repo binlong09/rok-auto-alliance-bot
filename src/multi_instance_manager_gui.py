@@ -117,8 +117,7 @@ class MultiInstanceManagerGUI:
             instances_frame,
             columns=("name", "bs_instance", "status"),
             show="headings",
-            selectmode="browse",
-            height=20
+            selectmode="extended"  # This allows multiple selection with Shift/Ctrl keys
         )
 
         # Define columns
@@ -144,6 +143,16 @@ class MultiInstanceManagerGUI:
         # Create buttons under the treeview
         buttons_frame = ttk.Frame(instances_frame)
         buttons_frame.pack(fill=tk.X, pady=5)
+
+        # 2. Add a "Launch Selected" button to the buttons_frame under the treeview:
+        # Find the section with launch_button, stop_button, edit_button and add:
+        self.launch_selected_button = ttk.Button(
+            buttons_frame,
+            text="Launch Selected",
+            command=self.launch_selected_instances,
+            state=tk.DISABLED
+        )
+        self.launch_selected_button.pack(side=tk.LEFT, padx=5)
 
         self.launch_button = ttk.Button(
             buttons_frame,
@@ -266,6 +275,163 @@ class MultiInstanceManagerGUI:
         running_instances = self.launcher.get_running_instances()
         self.running_count_label.config(text=str(len(running_instances)))
 
+    def launch_selected_instances(self):
+        """Launch all selected instances without showing delay dialog"""
+        # Get selected instance IDs
+        selected_ids = self.instances_tree.selection()
+
+        if not selected_ids:
+            messagebox.showinfo("No Selection", "No instances selected for launch.")
+            return
+
+        # Filter out already running instances
+        running_instances = self.launcher.get_running_instances()
+        to_launch = [instance_id for instance_id in selected_ids if instance_id not in running_instances]
+
+        if not to_launch:
+            messagebox.showinfo("Already Running", "All selected instances are already running.")
+            return
+
+        # Get instance names for display
+        instance_names = []
+        for instance_id in to_launch:
+            instance = self.instance_manager.get_instance(instance_id)
+            if instance:
+                instance_names.append(instance["name"])
+            else:
+                instance_names.append(f"Instance {instance_id}")
+
+        # Confirm with user
+        names_str = "\n".join(f"• {name}" for name in instance_names[:5])
+        if len(instance_names) > 5:
+            names_str += f"\n• ...and {len(instance_names) - 5} more"
+
+        confirm = messagebox.askyesno(
+            "Confirm Launch",
+            f"Launch the following {len(to_launch)} instances?\n\n{names_str}"
+        )
+
+        if not confirm:
+            return
+
+        # Default delay between instances (could be made configurable in settings)
+        delay_seconds = 5
+
+        # Start the launch process with the default delay
+        self._launch_multiple_instances(to_launch, delay_seconds)
+
+    # 5. Add the method to handle the actual launching:
+    def _launch_multiple_instances(self, instance_ids, delay_seconds):
+        """Launch multiple instances with progress display"""
+        if not instance_ids:
+            return
+
+        # Show progress window
+        progress_window = tk.Toplevel(self.root)
+        progress_window.title("Launching Instances")
+        progress_window.geometry("400x250")
+        progress_window.transient(self.root)
+        progress_window.grab_set()
+
+        ttk.Label(
+            progress_window,
+            text=f"Launching {len(instance_ids)} instances...",
+            font=("", 12, "bold")
+        ).pack(pady=10)
+
+        # Add progress bar
+        progress = ttk.Progressbar(progress_window, orient="horizontal", length=350, mode="determinate")
+        progress.pack(pady=10, padx=10, fill=tk.X)
+        progress["maximum"] = len(instance_ids)
+        progress["value"] = 0
+
+        # Status text
+        status_var = tk.StringVar(value="Starting...")
+        ttk.Label(progress_window, textvariable=status_var).pack(pady=5)
+
+        # List of instances being launched
+        launch_frame = ttk.Frame(progress_window)
+        launch_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=5)
+        launch_list = tk.Text(launch_frame, height=8, width=45)
+        launch_list.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        scrollbar = ttk.Scrollbar(launch_frame, orient=tk.VERTICAL, command=launch_list.yview)
+        scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+        launch_list.config(yscrollcommand=scrollbar.set)
+
+        # Function to launch instances in the background
+        def launch_with_progress():
+            try:
+                # Get instance names for nicer display
+                instance_names = {}
+                for instance_id in instance_ids:
+                    instance = self.instance_manager.get_instance(instance_id)
+                    if instance:
+                        instance_names[instance_id] = instance["name"]
+                    else:
+                        instance_names[instance_id] = f"Instance {instance_id}"
+
+                # Launch each instance with feedback
+                for i, instance_id in enumerate(instance_ids):
+                    instance_name = instance_names.get(instance_id, f"Instance {instance_id}")
+
+                    # Update progress window
+                    self.root.after_idle(lambda: status_var.set(f"Launching {instance_name}..."))
+                    self.root.after_idle(lambda: launch_list.insert(tk.END, f"Launching {instance_name}...\n"))
+                    self.root.after_idle(lambda: launch_list.see(tk.END))
+                    self.root.after_idle(lambda: progress.config(value=i))
+
+                    # Launch the instance
+                    success = self.launcher.launch_instance(instance_id)
+
+                    if success:
+                        status_msg = f"Launched {instance_name} successfully."
+                        self.root.after_idle(lambda id=instance_id: self.update_instance_status(id, "Starting"))
+                    else:
+                        status_msg = f"Failed to launch {instance_name}."
+
+                    # Update status
+                    self.root.after_idle(lambda msg=status_msg: launch_list.insert(tk.END, f"{msg}\n"))
+                    self.root.after_idle(lambda: launch_list.see(tk.END))
+
+                    # Wait for the specified delay (except after the last instance)
+                    if i < len(instance_ids) - 1 and delay_seconds > 0:
+                        for sec in range(delay_seconds, 0, -1):
+                            if sec % 5 == 0 or sec <= 3:  # Show countdown at intervals
+                                status_msg = f"Waiting {sec} seconds before next launch..."
+                                self.root.after_idle(lambda msg=status_msg: status_var.set(msg))
+                            time.sleep(1)
+
+                # All instances launched
+                self.root.after_idle(lambda: status_var.set("All launch commands sent."))
+                self.root.after_idle(lambda: progress.config(value=len(instance_ids)))
+
+                # Wait a moment before closing the progress window
+                time.sleep(2)
+
+                # Final update to UI
+                self.root.after_idle(self.load_instances)
+
+                # Show completion message and close progress window
+                self.root.after_idle(lambda: messagebox.showinfo(
+                    "Launch Complete",
+                    f"Started {len(instance_ids)} instances."
+                ))
+                self.root.after_idle(progress_window.destroy)
+
+            except Exception as e:
+                # Handle any errors
+                self.logger.error(f"Error in launch operation: {e}")
+                self.root.after_idle(lambda: messagebox.showerror(
+                    "Error",
+                    f"An error occurred during launch: {str(e)}"
+                ))
+
+                # Close the progress window
+                self.root.after_idle(progress_window.destroy)
+
+        # Run the launching process in a separate thread
+        threading.Thread(target=launch_with_progress, daemon=True).start()
+
     def find_instance_item(self, instance_id):
         """Find treeview item ID for an instance ID"""
         # Check if the item exists directly
@@ -289,16 +455,51 @@ class MultiInstanceManagerGUI:
 
     def on_instance_select(self, event):
         """Handle instance selection"""
-        instance_id = self.get_selected_instance_id()
-        if not instance_id:
-            # Disable buttons and clear info
+        selection = self.instances_tree.selection()
+
+        if not selection:
+            # Disable all buttons if nothing is selected
             self.launch_button.config(state=tk.DISABLED)
             self.stop_button.config(state=tk.DISABLED)
             self.edit_button.config(state=tk.DISABLED)
+            self.launch_selected_button.config(state=tk.DISABLED)
             self.selected_instance_label.config(text="None")
             self.selected_instance_status.config(text="Not Running")
             self.log_text.delete(1.0, tk.END)
             return
+
+        # Get running instances
+        running_instances = self.launcher.get_running_instances()
+
+        # Handle multiple selection
+        if len(selection) > 1:
+            # Multiple instances selected
+            self.selected_instance_label.config(text=f"{len(selection)} instances selected")
+            self.selected_instance_status.config(text="Multiple")
+
+            # Enable launch selected button if at least one instance is not running
+            can_launch = any(item_id not in running_instances for item_id in selection)
+            self.launch_selected_button.config(state=tk.NORMAL if can_launch else tk.DISABLED)
+
+            # Disable single-instance buttons
+            self.launch_button.config(state=tk.DISABLED)
+            self.stop_button.config(state=tk.DISABLED)
+            self.edit_button.config(state=tk.DISABLED)
+
+            # Show info about multiple selection
+            self.log_text.delete(1.0, tk.END)
+            self.log_text.insert(tk.END, f"Selected {len(selection)} instances:\n\n")
+
+            for item_id in selection:
+                instance = self.instance_manager.get_instance(item_id)
+                if instance:
+                    status = "Running" if item_id in running_instances else "Not Running"
+                    self.log_text.insert(tk.END, f"• {instance['name']} ({status})\n")
+
+            return
+
+        # Single instance selected - original behavior
+        instance_id = selection[0]
 
         # Get instance details
         instance = self.instance_manager.get_instance(instance_id)
@@ -317,6 +518,7 @@ class MultiInstanceManagerGUI:
         self.launch_button.config(state=tk.DISABLED if is_running else tk.NORMAL)
         self.stop_button.config(state=tk.NORMAL if is_running else tk.DISABLED)
         self.edit_button.config(state=tk.DISABLED if is_running else tk.NORMAL)
+        self.launch_selected_button.config(state=tk.DISABLED if is_running else tk.NORMAL)
 
         # Clear log and show status
         self.log_text.delete(1.0, tk.END)
