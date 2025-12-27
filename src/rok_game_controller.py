@@ -494,6 +494,20 @@ class RoKGameController:
         time.sleep(2)
         return True
 
+    def find_closest_value(self, x, array):
+        """
+        Returns the closest value to x from the provided array.
+
+        Args:
+            x: The target value to find the closest match for
+            array: The list of values to search through
+
+        Returns:
+            The value from array that is closest to x
+        """
+        return min(array, key=lambda val: abs(val - x))
+
+
     def find_and_click_one_troop_button(self):
         """
          locate "1 troop" button
@@ -518,9 +532,12 @@ class RoKGameController:
             self.logger.error("Could not find '1 troop' text")
             return False
 
+        go_button_y_coordinates = [220,300,390,477,563]
+        go_button_y = self.find_closest_value(result['y'], go_button_y_coordinates)
+
         go_one_troop_button = {
-            'x': result['x'] + 615,
-            'y': result['y'],
+            'x': 1012,
+            'y': go_button_y,
         }
 
         if not self.bluestacks.click(go_one_troop_button['x'], go_one_troop_button['y'], self.click_delay_ms):
@@ -554,11 +571,11 @@ class RoKGameController:
         }
 
         # Find the position of "build" text
-        result = self.detect_text_position("owner", bookmark_region)
+        result = self.detect_text_position(["remaining", "time"], bookmark_region)
         if result:
             build_button = {
                 'x': result['x'],
-                'y': result['y'] + 80,
+                'y': result['y'] + 122,
             }
             time.sleep(2)
             if not self.bluestacks.click(build_button['x'], build_button['y'], self.click_delay_ms):
@@ -868,6 +885,35 @@ class RoKGameController:
 
         return result
 
+    def is_char_in_alliance(self):
+        """
+        Detect if this account is not in alliance. Skip it if it's not in alliance.
+        :return:
+        bool: True if in alliance, False otherwise
+        """
+        if self.check_stop_requested():
+            return False
+
+        # Keywords
+        keywords = ["Technology", "Territory"]
+
+        # text region
+        custom_region = {
+            'x': 533,
+            'y': 334,
+            'width': 604,
+            'height': 315
+        }
+
+        # Check for the keywords
+        result = self.detect_text_in_region(keywords, custom_region)
+
+        if result:
+            self.logger.info("account is in an alliance")
+        else:
+            self.logger.info("account is not in an alliance")
+
+        return result
 
     def find_and_donate_recommended_technology(self):
         """
@@ -991,7 +1037,6 @@ class RoKGameController:
         time.sleep(1)
         return True
 
-
     def perform_recommended_tech_donation(self):
         """Open the alliance tech screen, find officer's recommendation and donate
         Exit to home screen if Officer's recommendation is not found"""
@@ -1014,6 +1059,11 @@ class RoKGameController:
         self.logger.info("Alliance screen opened")
         time.sleep(2)
 
+        if not self.is_char_in_alliance():
+            self.close_dialogs()
+            self.logger.error("Character is not in alliance")
+            return False
+
         technology_button = {
             'x': 763,
             'y': 553
@@ -1033,8 +1083,6 @@ class RoKGameController:
         self.logger.info("Donate recommended technology completed")
         time.sleep(1)
         return True
-
-
 
     def open_character_selection(self):
         """Open the character selection screen"""

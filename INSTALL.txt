@@ -1,51 +1,45 @@
-== RISE OF KINGDOMS AUTOMATION TOOL INSTALLATION GUIDE ==
-
-Thank you for downloading the Rise of Kingdoms Automation Tool!
-This guide will help you get up and running quickly.
-
-=== SYSTEM REQUIREMENTS ===
-
-- Windows 10 or 11 (64-bit)
-- BlueStacks 5 (Nougat 64-bit version recommended)
-- 4GB RAM minimum
-- 100MB free disk space
-- Administrator access
-
-=== INSTALLATION STEPS ===
+=== HOW TO USE ===
+0. Use bluestacks Multi-instance manager to create an instance: IMPORTANT MAKE SURE YOU ARE IN ENGLISH VERSION OR NOUGAT WON'T SHOW
+    a) + Instance -> Fresh Instance -> Choose Android version -> Nougat 64-bit -> Next
+    b) Resolution: Use 1280 x 720 (*REQUIRED)
+    c) Create
+    d) Click on the Create Desktop Shortcut icon next to gear icon. Go to your PC Desktop -> Right click on the new instance name (for example, Bluestacks App Player 2) and Click properties -> Read the Target line, note down the word after --instance (for example: Nougat64_2). This will be your INSTANCE NUMBER
+    d) Start Instance -> Install your version of Rise of Kingdoms with an APK. Note down which version this is (Global, Gamota or Korean supported). Add Katherine from 3174 if you want to have more version supported. (discord: simplecoders)
+    e) Run the game -> Login -> Change Game Language to English (*REQUIRED) -> Disable Opening Animation: True (*REQUIRED)
+    f) Click on the gear icon (settings) in the bluestacks instance -> Advanced -> Android Debug Bridge -> Copy the number after 127.0.0.1. This is your PORT NUMBER
+    g) Close the instance.
 
 1. Extract the entire ZIP archive to a location of your choice
    (Example: C:\Program Files\RoK Automation Tool)
 
-2. Tesseract OCR is already included in the package. No separate installation is required.
+2. To Create your first bot instance:
+    a) Click on Manage Instances -> New Instance
+    b) Fill out:
+    - Instance Name: Whatever you want
+    - BlueStack Instance: use INSTANCE_NUMBER you noted above
+    - ADB Port: use PORT_NUMBER you noted above
+    - Description: Whatever you want
+    -> Click Save
+    c) Click Select
+    d) On the middle panel, Click Edit Config
+      - BlueStacks Path (typically C:\Program Files\BlueStacks_nxt\HD-Player.exe) - no need change if default setting is used
+      - ADB Path (typically C:\Program Files\BlueStacks_nxt\HD-Adb.exe) - no need change if default setting is used
+      - Instance Name: No need to change
+      - ADB Port: No need to change
+      - Startup Wait sec: Time to wait for an instance to start. Default is 20s. Increase if your pc is slow but will make bot works slower.
+      - Rok Version: Choose between Global, KR and Gamota, whichever version you installed in this instance
+      - Character Count: The number of STAR CHARACTERS you want to run. The bot will always run the first character and then from left to right, then go down the list.
+      - March Preset: The blue preset you set for your 1 troop build.
+      - Automation Features: Check the box for the one you want to use. IMPORTANT: FOR 1 TROOP BUILD FEATURE TO WORK, OFFICERS NEED TO SET THE MARKER NAME TO "1 TROOP", NO MORE NO LESS. AND MAKE SURE THIS MARKER IS VISIBLE IN BOOKMARK PAGE WITHOUT HAVING TO SCROLL DOWN. Otherwise bot won't be able to find this marker
+      -> Click Save Configuration. Your settings will be saved for future use in the config.ini file. -> Exit
+     e) Click Launch or Launch Selected. Let it do its thing. DON'T TOUCH OR INTERFERE WITH THE BOT. If the account is logged in during automation, you'll have to stop and exit the bot because it won't know how to handle this situation.
 
-3. First time setup:
-   a) Run "RoK Automation.exe" as Administrator (right-click, select "Run as Administrator")
-   b) In the application, set the correct paths:
-      - BlueStacks Path (typically C:\Program Files\BlueStacks_nxt\HD-Player.exe)
-      - ADB Path (typically C:\Program Files\BlueStacks_nxt\HD-Adb.exe)
-      - Instance Name (typically Nougat64_7 or similar)
-      - ADB Port (default is 5555, check your BlueStacks settings)
-   c) Click "Save Configuration" to save these settings
+3. Use Step 1 and 3 to create new bluestack and bot instances. Once you have multiple bots, you can multi-select them with Shift + Click and then click on Launch Selected to Launch multiple at once. Do not run too many instances at once if your pc is not good enough
 
-4. Your settings will be saved for future use in the config.ini file.
-
-5. IMPORTANT: Make sure that your game and bluestacks have these settings:
-- Bluestacks screen resolution: 1280x720
-- Game language: English
-- Disable Opening Animation: True
-=== TROUBLESHOOTING ===
-
-If you encounter issues:
-
-1. Ensure BlueStacks is properly installed and running
-2. Verify all paths in the application are correct
-3. Make sure you're running the application as Administrator
-4. Check that Rise of Kingdoms is properly installed in BlueStacks
-5. If the OCR isn't working, verify the Tesseract-OCR folder is in the same directory as the application
-
-For additional help, please contact support or visit our website.
-
+=== HOW TO UPGRADE TO NEW VERSION ===
+1. Download and extract zip file to new location
+2. Copy the Instances folder from the old version and paste it to new location.
+3. Delete files from old location. Start bot from new location folder.
 === DISCLAIMER ===
 
-This tool is for educational purposes only. Use at your own risk.
-The developers are not responsible for any consequences resulting from the use of this tool.
+This bot might only work correctly in 1960 and 3174's home kingdom.
