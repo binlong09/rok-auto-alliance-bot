@@ -21,6 +21,7 @@ assets
 build
 dist
 distribution
+releases
 src/images
 
 # Python

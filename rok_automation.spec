@@ -13,8 +13,7 @@ a = Analysis(
     binaries=[],
     datas=[
         (os.path.join(SRC_DIR, 'config.ini'), '.'),  # Config file from src directory
-        # Add any additional data files
-        # ('assets/*', 'assets'),  # Uncomment if you have an assets folder
+        (os.path.join(SRC_DIR, 'coordinates.json'), '.'),  # Coordinates config
     ],
     hiddenimports=[
         'PIL._tkinter_finder',
