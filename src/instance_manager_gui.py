@@ -6,6 +6,43 @@ import logging
 from instance_manager import InstanceManager
 
 
+def position_dialog_at_cursor(dialog, width, height):
+    """Position a dialog window near the mouse cursor.
+
+    Args:
+        dialog: The Toplevel dialog window
+        width: Dialog width in pixels
+        height: Dialog height in pixels
+    """
+    # Get mouse cursor position
+    x = dialog.winfo_pointerx()
+    y = dialog.winfo_pointery()
+
+    # Get screen dimensions
+    screen_width = dialog.winfo_screenwidth()
+    screen_height = dialog.winfo_screenheight()
+
+    # Offset from cursor (so dialog doesn't appear directly under cursor)
+    offset_x = 20
+    offset_y = 20
+
+    # Calculate position (cursor position + offset)
+    pos_x = x + offset_x
+    pos_y = y + offset_y
+
+    # Ensure dialog stays within screen bounds
+    if pos_x + width > screen_width:
+        pos_x = x - width - offset_x  # Place to the left of cursor
+    if pos_y + height > screen_height:
+        pos_y = y - height - offset_y  # Place above cursor
+
+    # Ensure we don't go negative
+    pos_x = max(0, pos_x)
+    pos_y = max(0, pos_y)
+
+    dialog.geometry(f"{width}x{height}+{pos_x}+{pos_y}")
+
+
 class InstanceManagerDialog:
     """Dialog for managing multiple BlueStacks instances"""
 
@@ -19,7 +56,7 @@ class InstanceManagerDialog:
         # Create a top-level dialog window
         self.dialog = tk.Toplevel(parent)
         self.dialog.title("Instance Manager")
-        self.dialog.geometry("600x500")
+        position_dialog_at_cursor(self.dialog, 600, 500)
         self.dialog.resizable(True, True)
         self.dialog.transient(parent)  # Set as transient to parent window
         self.dialog.grab_set()  # Make dialog modal
@@ -327,7 +364,7 @@ class InstanceEditDialog:
         # Create dialog window
         self.dialog = tk.Toplevel(parent)
         self.dialog.title(title)
-        self.dialog.geometry("400x250")
+        position_dialog_at_cursor(self.dialog, 400, 250)
         self.dialog.resizable(False, False)
         self.dialog.transient(parent)
         self.dialog.grab_set()
@@ -410,7 +447,7 @@ class InstanceNameDialog:
         # Create dialog window
         self.dialog = tk.Toplevel(parent)
         self.dialog.title(title)
-        self.dialog.geometry("300x120")
+        position_dialog_at_cursor(self.dialog, 300, 120)
         self.dialog.resizable(False, False)
         self.dialog.transient(parent)
         self.dialog.grab_set()
