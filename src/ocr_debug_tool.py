@@ -23,50 +23,85 @@ import argparse
 import logging
 from datetime import datetime
 
+# =============================================================================
+# CONFIGURATION - Edit these values to match your BlueStacks instance
+# =============================================================================
+BLUESTACKS_INSTANCE = "Nougat64_15"  # BlueStacks instance name
+ADB_PORT = "5705"                    # ADB port for this instance
+ADB_PATH = r"C:\Program Files\BlueStacks_nxt\HD-Adb.exe"  # Path to ADB executable
+TESSERACT_PATH = r"Tesseract-OCR\tesseract.exe"  # Path to tesseract executable
+# =============================================================================
+
 # Add parent directory to path for imports
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from bluestacks_controller import BlueStacksController
-from config_manager import ConfigManager
 from coordinate_manager import CoordinateManager
+
+
+class SimpleConfig:
+    """Simple config wrapper for debug tool."""
+
+    def get_bluestacks_config(self):
+        return {
+            'bluestacks_instance_name': BLUESTACKS_INSTANCE,
+            'adb_port': ADB_PORT,
+            'adb_path': ADB_PATH,
+            'bluestacks_exe_path': '',
+            'wait_for_startup_seconds': '30'
+        }
 
 
 class OCRDebugTool:
     """Debug tool for visualizing OCR results."""
 
-    def __init__(self, config_path="config.ini"):
-        """Initialize the debug tool."""
+    def __init__(self):
+        """Initialize the debug tool using hardcoded config values."""
         self.logger = logging.getLogger(__name__)
 
-        # Load config
-        if os.path.exists(config_path):
-            self.config = ConfigManager(config_path)
-        else:
-            # Try to find config in common locations
-            for path in ["src/config.ini", "../config.ini", "config.ini"]:
-                if os.path.exists(path):
-                    self.config = ConfigManager(path)
-                    break
-            else:
-                print("Warning: config.ini not found, using defaults")
-                self.config = None
-
         # Configure tesseract
-        if self.config:
-            ocr_config = self.config.get_ocr_config()
-            pytesseract.pytesseract.tesseract_cmd = ocr_config.get('tesseract_path')
+        pytesseract.pytesseract.tesseract_cmd = TESSERACT_PATH
+
+        # Create simple config with hardcoded values
+        config = SimpleConfig()
 
         # Initialize BlueStacks controller
-        self.bluestacks = BlueStacksController(self.config)
+        self.bluestacks = BlueStacksController(config)
+        self.bluestacks.adb_device = f"127.0.0.1:{ADB_PORT}"
+
         self.coords = CoordinateManager()
 
-        # Colors for visualization (BGR format)
-        self.colors = {
-            'box': (0, 255, 0),      # Green for bounding boxes
-            'text': (255, 0, 0),      # Blue for text labels
-            'region': (0, 0, 255),    # Red for region outline
-            'center': (255, 255, 0),  # Cyan for center points
-        }
+        print(f"Using BlueStacks: {BLUESTACKS_INSTANCE} (Port: {ADB_PORT})")
+
+        # Connect to ADB
+        print(f"Connecting to ADB...")
+        if self._connect_adb():
+            print("ADB connected successfully!")
+        else:
+            print("WARNING: ADB connection may have failed. Screenshots might not work.")
+
+    def _connect_adb(self):
+        """Connect to ADB device."""
+        import subprocess
+        try:
+            # Connect to the device
+            connect_cmd = f'"{ADB_PATH}" connect 127.0.0.1:{ADB_PORT}'
+            result = subprocess.run(connect_cmd, shell=True, capture_output=True, text=True)
+            print(f"ADB connect output: {result.stdout.strip()}")
+            if result.stderr:
+                print(f"ADB stderr: {result.stderr.strip()}")
+            return "connected" in result.stdout.lower() or "already" in result.stdout.lower()
+        except Exception as e:
+            print(f"ADB connect error: {e}")
+            return False
+
+    # Colors for visualization (BGR format)
+    colors = {
+        'box': (0, 255, 0),       # Green for bounding boxes
+        'text': (255, 0, 0),      # Blue for text labels
+        'region': (0, 0, 255),    # Red for region outline
+        'center': (255, 255, 0),  # Cyan for center points
+    }
 
     def preprocess_image(self, image):
         """Apply different preprocessing methods."""
@@ -335,14 +370,13 @@ def main():
     parser = argparse.ArgumentParser(description="OCR Debug Tool for RoK Automation")
     parser.add_argument('--region', '-r', type=str, help='Region to analyze: X,Y,WIDTH,HEIGHT')
     parser.add_argument('--interactive', '-i', action='store_true', help='Run in interactive mode')
-    parser.add_argument('--config', '-c', type=str, default='config.ini', help='Path to config.ini')
     args = parser.parse_args()
 
     # Setup logging
     logging.basicConfig(level=logging.WARNING)  # Suppress debug logs
 
-    # Initialize tool
-    tool = OCRDebugTool(args.config)
+    # Initialize tool (uses hardcoded config at top of file)
+    tool = OCRDebugTool()
 
     if args.interactive:
         tool.interactive_mode()
