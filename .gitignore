@@ -12,6 +12,7 @@ src/ocr_*.png
 src/star_mask.png
 src/check_mark_*.png
 src/normal_characters_region.png
+src/ocr_debug_output/
 
 # Tesseract OCR (bundled separately)
 src/Tesseract-OCR/
