@@ -68,7 +68,7 @@ class ScreenDetector:
             return False
 
         # Check for kingdom number
-        keywords = ["3174", "1960"]
+        keywords = ["3174", "1960", "3494"]
         region = self.coords.get_region('kingdom_check')
 
         result = self.ocr.detect_text_in_region(keywords, region)

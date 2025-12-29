@@ -15,6 +15,7 @@ from screen_detector import ScreenDetector
 from build_automation import BuildAutomation
 from donation_automation import DonationAutomation
 from character_switcher import CharacterSwitcher
+from recovery_manager import RecoveryManager
 
 
 class RoKGameController:
@@ -84,12 +85,20 @@ class RoKGameController:
             click_delay_ms=self.click_delay_ms,
             stop_check_callback=self.ocr.check_stop_requested
         )
+        self.recovery = RecoveryManager(
+            self.screen,
+            self.bluestacks,
+            self.coords,
+            click_delay_ms=self.click_delay_ms,
+            stop_check_callback=self.ocr.check_stop_requested
+        )
         self.character_switcher = CharacterSwitcher(
             self.bluestacks,
             self.coords,
             self.screen,
             self.build,
             self.donation,
+            self.recovery,
             num_of_chars=int(rok_config.get('num_of_characters', 1)),
             march_preset=int(rok_config.get('march_preset', 1)),
             click_delay_ms=self.click_delay_ms,

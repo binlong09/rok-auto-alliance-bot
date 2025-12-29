@@ -4,17 +4,20 @@ Character Switcher - Handles character selection and switching workflow.
 
 This module automates the process of switching between characters in
 Rise of Kingdoms, navigating the character selection screen.
+Includes recovery and graceful degradation for failed characters.
 """
 import time
 import logging
 import numpy as np
 
+from recovery_manager import RetryConfig, with_retry
+
 
 class CharacterSwitcher:
-    """Automates character switching workflow."""
+    """Automates character switching workflow with recovery support."""
 
     def __init__(self, bluestacks, coords, screen_detector, build_automation, donation_automation,
-                 num_of_chars=1, march_preset=1, click_delay_ms=1000,
+                 recovery_manager, num_of_chars=1, march_preset=1, click_delay_ms=1000,
                  character_login_loading_time=3, game_load_wait_seconds=30,
                  will_perform_build=True, will_perform_donation=True,
                  stop_check_callback=None, navigate_to_map_callback=None):
@@ -27,6 +30,7 @@ class CharacterSwitcher:
             screen_detector: ScreenDetector instance for screen state detection
             build_automation: BuildAutomation instance for build workflow
             donation_automation: DonationAutomation instance for donation workflow
+            recovery_manager: RecoveryManager instance for error recovery
             num_of_chars: Number of characters to switch through
             march_preset: March preset number to use for builds
             click_delay_ms: Delay between clicks in milliseconds
@@ -43,6 +47,7 @@ class CharacterSwitcher:
         self.screen = screen_detector
         self.build = build_automation
         self.donation = donation_automation
+        self.recovery = recovery_manager
 
         # Configuration
         self.num_of_chars = num_of_chars
@@ -278,45 +283,94 @@ class CharacterSwitcher:
 
         return True
 
+    @with_retry(RetryConfig(max_retries=2, recover_to_home=True, delay_between_retries=2.0))
+    def _process_single_character(self, index):
+        """
+        Process a single character with retry support.
+
+        This method is wrapped with @with_retry decorator for automatic
+        recovery and retry on failure.
+
+        Args:
+            index: Zero-based character index
+
+        Returns:
+            bool: True if successful, False otherwise
+        """
+        # Open character selection screen
+        if not self.open_character_selection():
+            self.logger.error("Failed to open character selection screen")
+            return False
+
+        # Navigate to and click the character
+        if not self.navigate_to_character(index):
+            self.logger.error(f"Failed to navigate to character {index}")
+            return False
+
+        # Confirm switch or handle already-selected case
+        if not self.confirm_character_switch():
+            self.logger.error("Failed to confirm character switch")
+            return False
+
+        # Perform actions for this character
+        if not self.perform_character_actions():
+            self.logger.error("Failed to perform character actions")
+            return False
+
+        return True
+
     def switch_all_characters(self, start_from=0):
         """
-        Main function to switch through all characters.
+        Main function to switch through all characters with graceful degradation.
+
+        Failed characters are logged and skipped, allowing the automation
+        to continue with remaining characters.
 
         Args:
             start_from: Character index to start from (0-based)
 
         Returns:
-            bool: True if completed successfully, False otherwise
+            bool: True if all characters processed successfully, False if any failed
         """
         self.logger.info("Starting character switching process")
+
+        successful_characters = 0
+        failed_characters = []
 
         for i in range(start_from, self.num_of_chars):
             if self.check_stop_requested():
                 self.logger.info("Automation stopped during character switching")
-                return False
+                break
 
             self.logger.info(f"Processing character {i + 1} of {self.num_of_chars}")
 
-            # Open character selection screen
-            if not self.open_character_selection():
-                self.logger.error("Failed to open character selection screen")
-                return False
+            try:
+                # Process this character with retry support
+                if self._process_single_character(i):
+                    successful_characters += 1
+                    pos = self.get_character_position(i)
+                    self.logger.info(f"Successfully completed character {i + 1} at position {pos}")
+                else:
+                    failed_characters.append(i + 1)  # 1-based for logging
+                    self.logger.warning(
+                        f"Character {i + 1} failed after retries, attempting recovery"
+                    )
+                    # Try to return to home before next character
+                    self.recovery.return_to_home(max_attempts=3)
 
-            # Navigate to and click the character
-            if not self.navigate_to_character(i):
-                self.logger.error(f"Failed to navigate to character {i}")
-                return False
+            except Exception as e:
+                failed_characters.append(i + 1)
+                self.logger.error(f"Exception processing character {i + 1}: {e}")
+                # Try to return to home before next character
+                self.recovery.return_to_home(max_attempts=3)
 
-            # Confirm switch or handle already-selected case
-            if not self.confirm_character_switch():
-                return False
+        # Report summary
+        total = self.num_of_chars - start_from
+        self.logger.info(
+            f"Character switching completed: {successful_characters}/{total} successful"
+        )
 
-            # Perform actions for this character
-            if not self.perform_character_actions():
-                return False
+        if failed_characters:
+            self.logger.warning(f"Failed characters: {failed_characters}")
 
-            pos = self.get_character_position(i)
-            self.logger.info(f"Completed processing character at position {pos}")
-
-        self.logger.info("Character switching automation completed successfully")
-        return True
+        return len(failed_characters) == 0
