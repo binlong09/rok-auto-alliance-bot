@@ -1,13 +1,46 @@
-src/bluestacks_rok_launcher.log
-src/rok_automation.log
+# Logs
+*.log
+src/logs/
+
+# Local config (track config.ini.example instead)
 src/config.ini
-src/logs/*
-src/images
+
+# Debug/temp images
+src/temp_screenshot.png
+src/text_region.png
+src/ocr_*.png
+src/star_mask.png
+src/check_mark_*.png
+src/normal_characters_region.png
+
+# Tesseract OCR (bundled separately)
 src/Tesseract-OCR/
+
+# Assets/build output
 assets
 build
 dist
 distribution
+src/images
+
+# Python
+*.pyc
+__pycache__/
 src/__pycache__/
-.log
-src/instances
+.venv/
+venv/
+
+# IDE
+.idea/
+.vscode/
+*.code-workspace
+
+# Claude Code workspace
+.claude/
+
+# Instance configs (user-specific)
+src/instances/
+
+# OS files
+.DS_Store
+Thumbs.db
