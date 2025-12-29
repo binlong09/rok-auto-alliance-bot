@@ -14,6 +14,7 @@ from ocr_helper import OCRHelper
 from screen_detector import ScreenDetector
 from build_automation import BuildAutomation
 from donation_automation import DonationAutomation
+from expedition_automation import ExpeditionAutomation
 from character_switcher import CharacterSwitcher
 from recovery_manager import RecoveryManager
 
@@ -92,12 +93,21 @@ class RoKGameController:
             click_delay_ms=self.click_delay_ms,
             stop_check_callback=self.ocr.check_stop_requested
         )
+        self.expedition = ExpeditionAutomation(
+            self.ocr,
+            self.screen,
+            self.bluestacks,
+            self.coords,
+            click_delay_ms=self.click_delay_ms,
+            stop_check_callback=self.ocr.check_stop_requested
+        )
         self.character_switcher = CharacterSwitcher(
             self.bluestacks,
             self.coords,
             self.screen,
             self.build,
             self.donation,
+            self.expedition,
             self.recovery,
             num_of_chars=int(rok_config.get('num_of_characters', 1)),
             march_preset=int(rok_config.get('march_preset', 1)),
@@ -106,6 +116,7 @@ class RoKGameController:
             game_load_wait_seconds=self.game_load_wait_seconds,
             will_perform_build=config_manager.get_bool('RiseOfKingdoms', 'perform_build', True),
             will_perform_donation=config_manager.get_bool('RiseOfKingdoms', 'perform_donation', True),
+            will_perform_expedition=config_manager.get_bool('RiseOfKingdoms', 'perform_expedition', True),
             stop_check_callback=self.ocr.check_stop_requested,
             navigate_to_map_callback=self.navigate_to_map
         )

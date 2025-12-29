@@ -149,3 +149,54 @@ class ScreenDetector:
             self.logger.info("Account is not in an alliance")
 
         return result
+
+    def is_exit_game_dialog(self):
+        """
+        Detect if the "Exit the game?" dialog is showing.
+
+        This dialog appears when pressing Escape on the home screen.
+        It has NOTICE title and "Exit the game?" text with CONFIRM/CANCEL buttons.
+
+        Returns:
+            bool: True if exit dialog is showing, False otherwise
+        """
+        if self.check_stop_requested():
+            return False
+
+        # Look for "Exit" or "NOTICE" text in the dialog region
+        keywords = ["Exit", "exit", "NOTICE", "Notice"]
+        region = self.coords.get_region('exit_dialog')
+
+        result = self.ocr.detect_text_in_region(keywords, region)
+
+        if result:
+            self.logger.info("Exit game dialog detected")
+        else:
+            self.logger.debug("Exit game dialog not present")
+
+        return result
+
+    def is_rewards_dialog(self):
+        """
+        Detect if the "Rewards" dialog is showing.
+
+        This dialog appears after collecting expedition rewards.
+
+        Returns:
+            bool: True if rewards dialog is showing, False otherwise
+        """
+        if self.check_stop_requested():
+            return False
+
+        # Look for "Rewards" text in the dialog region
+        keywords = ["Rewards", "rewards", "REWARDS"]
+        region = self.coords.get_region('rewards_dialog')
+
+        result = self.ocr.detect_text_in_region(keywords, region)
+
+        if result:
+            self.logger.info("Rewards dialog detected")
+        else:
+            self.logger.debug("Rewards dialog not present")
+
+        return result

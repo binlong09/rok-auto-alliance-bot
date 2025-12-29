@@ -7,6 +7,7 @@ text detection, and text position finding.
 """
 import logging
 import cv2
+import numpy as np
 import pytesseract
 from pytesseract import Output
 
@@ -304,3 +305,106 @@ class OCRHelper:
             The value from array that is closest to x
         """
         return min(array, key=lambda val: abs(val - x))
+
+    def detect_red_banner_position(self, search_region=None):
+        """
+        Detect the position of the red "Officer's Recommendation" banner using color detection.
+
+        This is more reliable than OCR for white text on red background.
+        Red in HSV wraps around 0/180, so we check both ranges.
+
+        Args:
+            search_region (dict, optional): Region to search in {x, y, width, height}
+
+        Returns:
+            dict: Position of banner center {x, y} if found, None if not found
+        """
+        if self.check_stop_requested():
+            return None
+
+        try:
+            if search_region is None:
+                search_region = self.coords.get_region('officer_recommendation')
+
+            screenshot = self.bluestacks.take_screenshot()
+            if screenshot is None:
+                self.logger.error("Failed to take screenshot for red banner detection")
+                return None
+
+            height, width = screenshot.shape[:2]
+
+            # Crop to search region
+            region_x = min(search_region['x'], width - 1)
+            region_y = min(search_region['y'], height - 1)
+            region_width = min(search_region['width'], width - region_x)
+            region_height = min(search_region['height'], height - region_y)
+
+            cropped = screenshot[region_y:region_y + region_height, region_x:region_x + region_width]
+
+            if self.debug_mode:
+                cv2.imwrite("red_banner_search_region.png", cropped)
+
+            # Convert to HSV
+            hsv = cv2.cvtColor(cropped, cv2.COLOR_BGR2HSV)
+
+            # Get color detection config
+            color_config = self.coords.get_color_detection('officer_recommendation_banner')
+
+            # Red wraps around in HSV, so we need two ranges
+            lower1 = np.array(color_config['hsv_lower'])
+            upper1 = np.array(color_config['hsv_upper'])
+            lower2 = np.array(color_config['hsv_lower_wrap'])
+            upper2 = np.array(color_config['hsv_upper_wrap'])
+            min_area = color_config.get('min_contour_area', 500)
+
+            # Create masks for both red ranges
+            mask1 = cv2.inRange(hsv, lower1, upper1)
+            mask2 = cv2.inRange(hsv, lower2, upper2)
+            mask = cv2.bitwise_or(mask1, mask2)
+
+            if self.debug_mode:
+                cv2.imwrite("red_banner_mask.png", mask)
+
+            # Find contours
+            contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+
+            if not contours:
+                self.logger.info("No red regions found in search area")
+                return None
+
+            # Find the largest contour that meets minimum area
+            valid_contours = [c for c in contours if cv2.contourArea(c) >= min_area]
+
+            if not valid_contours:
+                self.logger.info(f"No red regions large enough (min area: {min_area})")
+                return None
+
+            # Get the largest valid contour (likely the banner)
+            largest_contour = max(valid_contours, key=cv2.contourArea)
+            area = cv2.contourArea(largest_contour)
+
+            # Get bounding box and center
+            x, y, w, h = cv2.boundingRect(largest_contour)
+
+            # Calculate center position in original screenshot coordinates
+            center_x = region_x + x + (w // 2)
+            center_y = region_y + y + (h // 2)
+
+            self.logger.info(f"Red banner detected at ({center_x}, {center_y}), size: {w}x{h}, area: {area}")
+
+            if self.debug_mode:
+                debug_img = screenshot.copy()
+                # Draw the detected region
+                cv2.rectangle(debug_img,
+                              (region_x + x, region_y + y),
+                              (region_x + x + w, region_y + y + h),
+                              (0, 255, 0), 2)
+                cv2.circle(debug_img, (center_x, center_y), 5, (0, 0, 255), -1)
+                cv2.imwrite("red_banner_detected.png", debug_img)
+
+            return {'x': center_x, 'y': center_y, 'width': w, 'height': h}
+
+        except Exception as e:
+            self.logger.error(f"Error detecting red banner: {e}")
+            self.logger.exception("Stack trace:")
+            return None

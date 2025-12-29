@@ -14,7 +14,14 @@
     "technology_button": {"x": 763, "y": 553},
     "march_button": {"x": 814, "y": 640},
     "donate_button": {"x": 985, "y": 566},
-    "close_button": {"x": 1212, "y": 126}
+    "close_button": {"x": 1212, "y": 126},
+    "campaign_button": {"x": 728, "y": 674},
+    "expedition_button": {"x": 200, "y": 225},
+    "expedition_chest_1": {"x": 125, "y": 125},
+    "expedition_chest_2": {"x": 988, "y": 277},
+    "expedition_collect": {"x": 124, "y": 223},
+    "exit_dialog_cancel": {"x": 887, "y": 545},
+    "rewards_dialog_confirm": {"x": 640, "y": 545}
   },
 
   "screen": {
@@ -75,7 +82,10 @@
     "alliance_check": {"x": 533, "y": 334, "width": 604, "height": 315},
     "star_detection": {"x": 1170, "y": 300, "width": 70, "height": 400},
     "normal_characters_text": {"x": 200, "y": 500, "width": 800, "height": 100},
-    "check_mark": {"x": 720, "y": 250, "width": 100, "height": 400}
+    "check_mark": {"x": 720, "y": 250, "width": 100, "height": 400},
+    "campaign_screen": {"x": 50, "y": 150, "width": 400, "height": 300},
+    "exit_dialog": {"x": 370, "y": 175, "width": 540, "height": 250},
+    "rewards_dialog": {"x": 370, "y": 175, "width": 540, "height": 250}
   },
 
   "scroll": {
@@ -108,6 +118,14 @@
       "hsv_lower": [40, 100, 100],
       "hsv_upper": [80, 255, 255],
       "pixel_threshold": 100
+    },
+    "officer_recommendation_banner": {
+      "description": "Red banner color detection - finds banner anywhere in region",
+      "hsv_lower": [0, 100, 100],
+      "hsv_upper": [10, 255, 255],
+      "hsv_lower_wrap": [170, 100, 100],
+      "hsv_upper_wrap": [180, 255, 255],
+      "min_contour_area": 500
     }
   }
 }

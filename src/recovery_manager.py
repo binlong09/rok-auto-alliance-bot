@@ -21,6 +21,7 @@ class GameScreen(Enum):
     MAP_SCREEN = auto()        # World map view - kingdom numbers visible
     CHARACTER_LOGIN = auto()   # Character selection/login screen
     ALLIANCE_MENU = auto()     # Alliance screen open
+    EXIT_GAME_DIALOG = auto()  # "Exit the game?" dialog showing
     DIALOG_OPEN = auto()       # Some dialog/popup is open
     UNKNOWN = auto()           # Cannot determine screen state
 
@@ -57,6 +58,7 @@ class RecoveryManager:
 
         # Navigation coordinates
         self.map_button = coords.get_nav('map_button')
+        self.exit_dialog_cancel = coords.get_nav('exit_dialog_cancel')
 
     def check_stop_requested(self):
         """Check if automation should stop."""
@@ -80,6 +82,11 @@ class RecoveryManager:
 
         # Check in order of specificity (most unique text first)
         # Each check uses OCR with 5 preprocessing methods internally
+
+        # Check exit dialog first - it's important to handle this quickly
+        if self.screen.is_exit_game_dialog():
+            self.logger.debug("Detected: EXIT_GAME_DIALOG")
+            return GameScreen.EXIT_GAME_DIALOG
 
         if self.screen.is_in_character_login():
             self.logger.debug("Detected: CHARACTER_LOGIN")
@@ -134,7 +141,17 @@ class RecoveryManager:
                 return True
 
             # Apply recovery action based on current screen
-            if current_screen == GameScreen.MAP_SCREEN:
+            if current_screen == GameScreen.EXIT_GAME_DIALOG:
+                # Click cancel to dismiss exit dialog
+                self.logger.info("Exit dialog showing, clicking Cancel")
+                self.bluestacks.click(
+                    self.exit_dialog_cancel['x'],
+                    self.exit_dialog_cancel['y'],
+                    self.click_delay_ms
+                )
+                time.sleep(1)
+
+            elif current_screen == GameScreen.MAP_SCREEN:
                 # Click map button to toggle back to home
                 self.logger.info("On map screen, clicking map button to return home")
                 self.bluestacks.click(

@@ -150,6 +150,9 @@ class RiseOfKingdomsManagerGUI:
         self.enable_troop_build = tk.BooleanVar(
             value=self.config_manager.get_bool('RiseOfKingdoms', 'perform_build', True)
         )
+        self.enable_expedition = tk.BooleanVar(
+            value=self.config_manager.get_bool('RiseOfKingdoms', 'perform_expedition', True)
+        )
 
         # Status variables
         self.status_text = tk.StringVar(value="Ready to start")
@@ -388,6 +391,10 @@ class RiseOfKingdomsManagerGUI:
         ttk.Checkbutton(content, text="Enable Tech Donation", variable=self.enable_tech_donation).grid(
             row=row, column=2, columnspan=2, sticky=tk.W, pady=5)
 
+        row += 1
+        ttk.Checkbutton(content, text="Enable Expedition Collection", variable=self.enable_expedition).grid(
+            row=row, column=0, columnspan=2, sticky=tk.W, pady=5)
+
     def create_advanced_settings(self, parent):
         """Create advanced settings section (collapsed by default)"""
         advanced = CollapsibleFrame(parent, title="Advanced Settings", collapsed=True)
@@ -518,6 +525,7 @@ class RiseOfKingdomsManagerGUI:
 
         self.enable_tech_donation.set(self.config_manager.get_bool('RiseOfKingdoms', 'perform_donation', True))
         self.enable_troop_build.set(self.config_manager.get_bool('RiseOfKingdoms', 'perform_build', True))
+        self.enable_expedition.set(self.config_manager.get_bool('RiseOfKingdoms', 'perform_expedition', True))
 
         self.on_character_count_change()
 
@@ -539,6 +547,7 @@ class RiseOfKingdomsManagerGUI:
             config['RiseOfKingdoms']['march_preset'] = str(self.march_preset.get())
             config['RiseOfKingdoms']['perform_build'] = str(self.enable_troop_build.get())
             config['RiseOfKingdoms']['perform_donation'] = str(self.enable_tech_donation.get())
+            config['RiseOfKingdoms']['perform_expedition'] = str(self.enable_expedition.get())
 
             with open(self.config_manager.config_path, 'w') as configfile:
                 config.write(configfile)

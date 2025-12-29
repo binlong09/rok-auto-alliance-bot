@@ -118,5 +118,5 @@ class ConfigManager:
         """Get configuration value as boolean"""
         try:
             return self.config.getboolean(section, key)
-        except (KeyError, ValueError, configparser.NoSectionError):
+        except (KeyError, ValueError, configparser.NoSectionError, configparser.NoOptionError):
             return default

@@ -17,9 +17,9 @@ class CharacterSwitcher:
     """Automates character switching workflow with recovery support."""
 
     def __init__(self, bluestacks, coords, screen_detector, build_automation, donation_automation,
-                 recovery_manager, num_of_chars=1, march_preset=1, click_delay_ms=1000,
+                 expedition_automation, recovery_manager, num_of_chars=1, march_preset=1, click_delay_ms=1000,
                  character_login_loading_time=3, game_load_wait_seconds=30,
-                 will_perform_build=True, will_perform_donation=True,
+                 will_perform_build=True, will_perform_donation=True, will_perform_expedition=True,
                  stop_check_callback=None, navigate_to_map_callback=None):
         """
         Initialize the character switcher.
@@ -30,6 +30,7 @@ class CharacterSwitcher:
             screen_detector: ScreenDetector instance for screen state detection
             build_automation: BuildAutomation instance for build workflow
             donation_automation: DonationAutomation instance for donation workflow
+            expedition_automation: ExpeditionAutomation instance for expedition rewards
             recovery_manager: RecoveryManager instance for error recovery
             num_of_chars: Number of characters to switch through
             march_preset: March preset number to use for builds
@@ -38,6 +39,7 @@ class CharacterSwitcher:
             game_load_wait_seconds: Time to wait for game to load after switch
             will_perform_build: Whether to perform build automation
             will_perform_donation: Whether to perform donation automation
+            will_perform_expedition: Whether to perform expedition collection
             stop_check_callback: Optional callback to check if automation should stop
             navigate_to_map_callback: Optional callback to navigate to map
         """
@@ -47,6 +49,7 @@ class CharacterSwitcher:
         self.screen = screen_detector
         self.build = build_automation
         self.donation = donation_automation
+        self.expedition = expedition_automation
         self.recovery = recovery_manager
 
         # Configuration
@@ -57,6 +60,7 @@ class CharacterSwitcher:
         self.game_load_wait_seconds = game_load_wait_seconds
         self.will_perform_build = will_perform_build
         self.will_perform_donation = will_perform_donation
+        self.will_perform_expedition = will_perform_expedition
 
         # Callbacks
         self.stop_check = stop_check_callback
@@ -259,7 +263,7 @@ class CharacterSwitcher:
 
     def perform_character_actions(self):
         """
-        Perform configured actions (build, donation) for the current character.
+        Perform configured actions (build, donation, expedition) for the current character.
 
         Returns:
             bool: True if successful, False otherwise
@@ -280,6 +284,15 @@ class CharacterSwitcher:
             self.logger.info("Performing Alliance Donation for this character")
             time.sleep(1)
             self.donation.perform_recommended_tech_donation()
+
+        if self.check_stop_requested():
+            return False
+
+        # Perform expedition reward collection
+        if self.will_perform_expedition:
+            self.logger.info("Collecting expedition rewards for this character")
+            time.sleep(1)
+            self.expedition.perform_expedition_collection()
 
         return True
 

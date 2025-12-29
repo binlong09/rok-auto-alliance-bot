@@ -69,6 +69,9 @@ class DonationAutomation:
         """
         Find Officer's Recommendation and donate to it.
 
+        Uses color detection (red banner) as primary method,
+        falls back to OCR if color detection fails.
+
         Returns:
             bool: True if successful, False otherwise
         """
@@ -76,12 +79,24 @@ class DonationAutomation:
             return False
 
         region = self.coords.get_region('officer_recommendation')
+        result = None
 
-        # Find the position of "Officer's Recommendation" text
-        result = self.ocr.detect_text_position(
-            ["Officer's Recommendation", "Officer", "Recommendation", "mendation"],
-            region
-        )
+        # Method 1: Try color detection for red banner (most reliable)
+        self.logger.info("Trying color detection for Officer's Recommendation banner...")
+        result = self.ocr.detect_red_banner_position(region)
+
+        if result:
+            self.logger.info(f"Found Officer's Recommendation via color detection at ({result['x']}, {result['y']})")
+        else:
+            # Method 2: Fall back to OCR
+            self.logger.info("Color detection failed, trying OCR fallback...")
+            result = self.ocr.detect_text_position(
+                ["Officer's Recommendation", "Officer", "Recommendation", "mendation"],
+                region
+            )
+            if result:
+                self.logger.info(f"Found Officer's Recommendation via OCR at ({result['x']}, {result['y']})")
+
         if result:
             offset = self.coords.get_offset('officer_recommendation_click')
             click_x = result['x'] + offset['x']
@@ -101,7 +116,7 @@ class DonationAutomation:
                 self.close_dialogs()
             return True
         else:
-            self.logger.error("Recommended Tech not found")
+            self.logger.error("Recommended Tech not found (both color and OCR detection failed)")
             for i in range(2):
                 self.close_dialogs()
             return False

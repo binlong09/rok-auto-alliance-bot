@@ -121,9 +121,9 @@ class MultiInstanceManagerGUI:
     def __init__(self, root):
         self.root = root
         self.root.title("RoK Multi-Instance Manager")
-        self.root.geometry("1150x850")
+        self.root.geometry("1150x900")
         self.root.resizable(True, True)
-        self.root.minsize(950, 750)
+        self.root.minsize(950, 850)
         self.root.protocol("WM_DELETE_WINDOW", self.on_closing)
 
         # Setup logging
@@ -372,24 +372,57 @@ class MultiInstanceManagerGUI:
 
         # Header row
         header = tk.Frame(inner, bg=self.colors['card'])
-        header.pack(fill=tk.X, pady=(0, 15))
+        header.pack(fill=tk.X, pady=(0, 10))
 
         tk.Label(header, text="Instances", font=('Segoe UI', 14, 'bold'),
                 bg=self.colors['card'], fg=self.colors['text']).pack(side=tk.LEFT)
 
-        # Header buttons
-        btn_frame = tk.Frame(header, bg=self.colors['card'])
-        btn_frame.pack(side=tk.RIGHT)
+        # Management buttons (right side of header)
+        mgmt_frame = tk.Frame(header, bg=self.colors['card'])
+        mgmt_frame.pack(side=tk.RIGHT)
 
-        manage_btn = ModernButton(btn_frame, text="Manage", bg=self.colors['primary'],
+        manage_btn = ModernButton(mgmt_frame, text="Manage", bg=self.colors['primary'],
                                  hover_bg=self.colors['primary_dark'], width=90, height=32,
                                  command=self.open_instance_manager)
         manage_btn.pack(side=tk.LEFT, padx=(0, 8))
 
-        refresh_btn = ModernButton(btn_frame, text="Refresh", bg="#78909c",
+        refresh_btn = ModernButton(mgmt_frame, text="Refresh", bg="#78909c",
                                   hover_bg="#546e7a", width=90, height=32,
                                   command=self.load_instances)
         refresh_btn.pack(side=tk.LEFT)
+
+        # Action buttons row (Launch, Stop, Edit)
+        actions = tk.Frame(inner, bg=self.colors['card'])
+        actions.pack(fill=tk.X, pady=(0, 10))
+
+        self.launch_selected_btn = ModernButton(
+            actions, text="Launch", icon="▶", bg=self.colors['success'],
+            hover_bg="#2e7d32", width=100, height=32
+        )
+        self.launch_selected_btn.pack(side=tk.LEFT, padx=(0, 8))
+        self.launch_selected_btn.set_disabled(True)
+        self.launch_selected_btn.command = self.launch_selected_instances
+
+        self.stop_btn = ModernButton(
+            actions, text="Stop", icon="■", bg=self.colors['error'],
+            hover_bg="#c62828", width=85, height=32
+        )
+        self.stop_btn.pack(side=tk.LEFT, padx=(0, 8))
+        self.stop_btn.set_disabled(True)
+        self.stop_btn.command = self.stop_selected_instance
+
+        self.edit_btn = ModernButton(
+            actions, text="Edit", icon="✎", bg="#78909c",
+            hover_bg="#546e7a", width=80, height=32
+        )
+        self.edit_btn.pack(side=tk.LEFT, padx=(0, 8))
+        self.edit_btn.set_disabled(True)
+        self.edit_btn.command = self.edit_selected_instance
+
+        # Auto-exit checkbox (same row as action buttons)
+        ttk.Checkbutton(actions, text="Auto-exit after done",
+                       variable=self.auto_exit_var, command=self.toggle_auto_exit,
+                       style='Card.TCheckbutton').pack(side=tk.RIGHT)
 
         # Divider
         tk.Frame(inner, bg=self.colors['border'], height=1).pack(fill=tk.X, pady=(0, 15))
@@ -419,42 +452,6 @@ class MultiInstanceManagerGUI:
         scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
 
         self.instances_tree.bind("<<TreeviewSelect>>", self.on_instance_select)
-
-        # Action buttons row
-        actions = tk.Frame(inner, bg=self.colors['card'])
-        actions.pack(fill=tk.X, pady=(15, 0))
-
-        self.launch_selected_btn = ModernButton(
-            actions, text="Launch", icon="▶", bg=self.colors['success'],
-            hover_bg="#2e7d32", width=100, height=34
-        )
-        self.launch_selected_btn.pack(side=tk.LEFT, padx=(0, 8))
-        self.launch_selected_btn.set_disabled(True)
-        self.launch_selected_btn.command = self.launch_selected_instances
-
-        self.stop_btn = ModernButton(
-            actions, text="Stop", icon="■", bg=self.colors['error'],
-            hover_bg="#c62828", width=85, height=34
-        )
-        self.stop_btn.pack(side=tk.LEFT, padx=(0, 8))
-        self.stop_btn.set_disabled(True)
-        self.stop_btn.command = self.stop_selected_instance
-
-        self.edit_btn = ModernButton(
-            actions, text="Edit", icon="✎", bg="#78909c",
-            hover_bg="#546e7a", width=80, height=34
-        )
-        self.edit_btn.pack(side=tk.LEFT)
-        self.edit_btn.set_disabled(True)
-        self.edit_btn.command = self.edit_selected_instance
-
-        # Options
-        options = tk.Frame(inner, bg=self.colors['card'])
-        options.pack(fill=tk.X, pady=(15, 0))
-
-        ttk.Checkbutton(options, text="Auto-exit BlueStacks after completion",
-                       variable=self.auto_exit_var, command=self.toggle_auto_exit,
-                       style='Card.TCheckbutton').pack(anchor=tk.W)
 
     def create_detail_panel(self, parent):
         """Create right panel with details and logs"""
