@@ -1,32 +1,105 @@
 #!/usr/bin/env python3
 import os
+import sys
 import json
 import logging
 import uuid
-from pathlib import Path
+import shutil
 from config_manager import ConfigManager
+
+# Application name for AppData folder
+APP_NAME = "RoK Automation"
+
+
+def get_appdata_dir():
+    """Get the appropriate application data directory for the current OS."""
+    if sys.platform == "win32":
+        # Windows: Use %APPDATA%/RoK Automation
+        base = os.environ.get("APPDATA", os.path.expanduser("~"))
+    elif sys.platform == "darwin":
+        # macOS: Use ~/Library/Application Support/RoK Automation
+        base = os.path.join(os.path.expanduser("~"), "Library", "Application Support")
+    else:
+        # Linux/other: Use ~/.config/RoK Automation
+        base = os.environ.get("XDG_CONFIG_HOME", os.path.join(os.path.expanduser("~"), ".config"))
+
+    return os.path.join(base, APP_NAME)
 
 
 class InstanceManager:
     """Manager for multiple BlueStacks instances with separate configurations"""
 
-    def __init__(self, instances_dir="instances"):
+    def __init__(self, instances_dir=None, portable=False):
+        """
+        Initialize the instance manager.
+
+        Args:
+            instances_dir: Custom directory for instances (optional)
+            portable: If True, use local 'instances' folder instead of AppData
+        """
         self.logger = logging.getLogger(__name__)
-        self.instances_dir = instances_dir
         self.instances = {}
         self.current_instance_id = None
 
+        # Determine instances directory
+        if instances_dir:
+            # Custom directory specified
+            self.instances_dir = instances_dir
+        elif portable or os.path.exists("portable.txt"):
+            # Portable mode: use local instances folder
+            self.instances_dir = "instances"
+            self.logger.info("Running in portable mode - using local instances folder")
+        else:
+            # Standard mode: use AppData
+            self.instances_dir = os.path.join(get_appdata_dir(), "instances")
+            self.logger.info(f"Using AppData for instances: {self.instances_dir}")
+
+        # Check for migration from old local instances folder
+        self._migrate_from_local()
+
         # Create instances directory if it doesn't exist
-        if not os.path.exists(instances_dir):
-            os.makedirs(instances_dir)
+        if not os.path.exists(self.instances_dir):
+            os.makedirs(self.instances_dir)
 
         # Create index file if it doesn't exist
-        self.index_file = os.path.join(instances_dir, "index.json")
+        self.index_file = os.path.join(self.instances_dir, "index.json")
         if not os.path.exists(self.index_file):
             self._create_default_index()
 
         # Load instance index
         self._load_instances()
+
+    def _migrate_from_local(self):
+        """Migrate instances from old local folder to AppData if needed."""
+        local_instances = "instances"
+        local_index = os.path.join(local_instances, "index.json")
+
+        # Only migrate if:
+        # 1. We're using AppData (not the local folder)
+        # 2. Local instances folder exists with data
+        # 3. AppData instances folder doesn't exist yet
+        if (self.instances_dir != local_instances and
+            os.path.exists(local_index) and
+            not os.path.exists(self.instances_dir)):
+
+            self.logger.info("Migrating instances from local folder to AppData...")
+            try:
+                # Create parent directory
+                os.makedirs(os.path.dirname(self.instances_dir), exist_ok=True)
+
+                # Copy entire instances folder to AppData
+                shutil.copytree(local_instances, self.instances_dir)
+
+                # Rename old folder to indicate migration completed
+                backup_name = f"{local_instances}_migrated_backup"
+                if os.path.exists(backup_name):
+                    shutil.rmtree(backup_name)
+                os.rename(local_instances, backup_name)
+
+                self.logger.info(f"Migration complete. Old folder renamed to: {backup_name}")
+            except Exception as e:
+                self.logger.error(f"Migration failed: {e}. Using local instances folder.")
+                self.instances_dir = local_instances
 
     def _create_default_index(self):
         """Create a default index file with a single instance"""
@@ -48,7 +121,6 @@ class InstanceManager:
         default_config_path = os.path.join(self.instances_dir, "default.ini")
         if os.path.exists("config.ini"):
             # Copy existing config.ini to instances directory
-            import shutil
             shutil.copy("config.ini", default_config_path)
         else:
             # Create a new default config
@@ -150,7 +222,6 @@ class InstanceManager:
             template_path = "config.ini"
 
         if os.path.exists(template_path):
-            import shutil
             shutil.copy(template_path, config_path)
 
         # Update the new config with instance-specific settings

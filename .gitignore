@@ -41,6 +41,8 @@ venv/
 
 # Instance configs (user-specific)
 src/instances/
+instances/
+instances_migrated_backup/
 
 # OS files
 .DS_Store
