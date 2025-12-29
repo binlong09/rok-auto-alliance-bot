@@ -65,6 +65,44 @@ class DonationAutomation:
         time.sleep(1)
         return True
 
+    def click_technology_button(self):
+        """
+        Click the Technology button on the alliance screen.
+
+        Uses OCR to find "Technology" text first (handles KvK layout changes),
+        falls back to hardcoded coordinates if OCR fails.
+
+        Returns:
+            bool: True if clicked successfully, False otherwise
+        """
+        if self.check_stop_requested():
+            return False
+
+        self.logger.info("Looking for Technology button...")
+
+        # Method 1: Try OCR to find "Technology" text
+        alliance_menu_region = self.coords.get_region('alliance_menu')
+        result = self.ocr.detect_text_position(
+            ["Technology", "technology", "TECHNOLOGY"],
+            alliance_menu_region
+        )
+
+        if result:
+            self.logger.info(f"Found Technology via OCR at ({result['x']}, {result['y']})")
+            if not self.bluestacks.click(result['x'], result['y'], self.click_delay_ms):
+                self.logger.error("Failed to click Technology button (OCR position)")
+                return False
+            return True
+
+        # Method 2: Fall back to hardcoded position
+        self.logger.info("Technology not found via OCR, using fallback position")
+        technology_button = self.coords.get_nav('technology_button')
+        if not self.bluestacks.click(technology_button['x'], technology_button['y'], self.click_delay_ms):
+            self.logger.error("Failed to click Technology button (fallback position)")
+            return False
+
+        return True
+
     def find_and_donate_recommended_technology(self):
         """
         Find Officer's Recommendation and donate to it.
@@ -149,8 +187,8 @@ class DonationAutomation:
             self.logger.error("Character is not in alliance")
             return False
 
-        technology_button = self.coords.get_nav('technology_button')
-        if not self.bluestacks.click(technology_button['x'], technology_button['y'], self.click_delay_ms):
+        # Click Technology button (OCR first, then fallback to hardcoded)
+        if not self.click_technology_button():
             self.logger.error("Failed to open technology screen")
             return True
 
