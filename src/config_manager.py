@@ -20,6 +20,7 @@ class ConfigManager:
         config = configparser.ConfigParser()
 
         # Default config values
+        # Note: UI coordinates are now in coordinates.json
         default_config = {
             'BlueStacks': {
                 'bluestacks_exe_path': 'C:\\Program Files\\BlueStacks_nxt\\HD-Player.exe',
@@ -34,15 +35,9 @@ class ConfigManager:
             },
             'OCR': {
                 'tesseract_path': 'C:\\Program Files\\Tesseract-OCR\\tesseract.exe',
-                'text_region_x': '200',
-                'text_region_y': '20',
-                'text_region_width': '600',
-                'text_region_height': '150',
                 'preprocess_image': 'True'
             },
-            'Navigation': {
-                'map_button_x': '65',
-                'map_button_y': '650',
+            'Timing': {
                 'click_delay_ms': '1000'
             }
         }
@@ -88,8 +83,15 @@ class ConfigManager:
         return self.config['OCR']
 
     def get_navigation_config(self):
-        """Get navigation configuration"""
-        return self.config['Navigation']
+        """Get timing/navigation configuration (for backwards compatibility)"""
+        # Navigation coordinates moved to coordinates.json
+        # This now returns Timing section for click_delay_ms
+        if 'Timing' in self.config:
+            return self.config['Timing']
+        elif 'Navigation' in self.config:
+            return self.config['Navigation']
+        else:
+            return {'click_delay_ms': '1000'}
 
     def get_config(self, section, key, default=None):
         """Get a specific configuration value"""

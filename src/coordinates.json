@@ -1,0 +1,113 @@
+{
+  "resolution": "1280x720",
+  "description": "All UI coordinates for Rise of Kingdoms automation",
+
+  "navigation": {
+    "avatar_icon": {"x": 50, "y": 50},
+    "settings_icon": {"x": 1109, "y": 581},
+    "characters_icon": {"x": 350, "y": 370},
+    "map_button": {"x": 65, "y": 650},
+    "yes_button": {"x": 815, "y": 515},
+    "bookmark_button": {"x": 477, "y": 20},
+    "expand_button": {"x": 1227, "y": 670},
+    "alliance_button": {"x": 933, "y": 670},
+    "technology_button": {"x": 763, "y": 553},
+    "march_button": {"x": 814, "y": 640},
+    "donate_button": {"x": 985, "y": 566},
+    "close_button": {"x": 1212, "y": 126}
+  },
+
+  "screen": {
+    "center": {"x": 640, "y": 360},
+    "loading_dismiss": {"x": 1227, "y": 595}
+  },
+
+  "character_grid": {
+    "first_rotation": [
+      {"x": 400, "y": 240},
+      {"x": 800, "y": 240},
+      {"x": 400, "y": 380},
+      {"x": 800, "y": 380},
+      {"x": 400, "y": 520},
+      {"x": 800, "y": 520}
+    ],
+    "after_scroll": [
+      {"x": 400, "y": 220},
+      {"x": 800, "y": 220},
+      {"x": 400, "y": 360},
+      {"x": 800, "y": 360},
+      {"x": 400, "y": 520},
+      {"x": 800, "y": 520}
+    ]
+  },
+
+  "character_switcher_grid": [
+    {"x": 450, "y": 330},
+    {"x": 450, "y": 480},
+    {"x": 450, "y": 630},
+    {"x": 450, "y": 780},
+    {"x": 970, "y": 330},
+    {"x": 970, "y": 480},
+    {"x": 970, "y": 630},
+    {"x": 970, "y": 780}
+  ],
+
+  "march_presets": {
+    "x": 1108,
+    "y_positions": [262, 316, 372, 422, 482, 536, 590]
+  },
+
+  "go_button": {
+    "x": 1012,
+    "y_positions": [220, 300, 390, 477, 563]
+  },
+
+  "ocr_regions": {
+    "default_text": {"x": 200, "y": 20, "width": 600, "height": 150},
+    "one_troop": {"x": 150, "y": 175, "width": 650, "height": 500},
+    "build_button": {"x": 150, "y": 121, "width": 850, "height": 450},
+    "tap_to_join": {"x": 150, "y": 312, "width": 600, "height": 300},
+    "new_troop": {"x": 900, "y": 30, "width": 200, "height": 150},
+    "officer_recommendation": {"x": 133, "y": 101, "width": 1000, "height": 590},
+    "kingdom_check": {"x": 264, "y": 0, "width": 154, "height": 35},
+    "character_login": {"x": 247, "y": 109, "width": 780, "height": 490},
+    "bottom_bar": {"x": 677, "y": 614, "width": 500, "height": 113},
+    "alliance_check": {"x": 533, "y": 334, "width": 604, "height": 315},
+    "star_detection": {"x": 1170, "y": 300, "width": 70, "height": 400},
+    "normal_characters_text": {"x": 200, "y": 500, "width": 800, "height": 100},
+    "check_mark": {"x": 720, "y": 250, "width": 100, "height": 400}
+  },
+
+  "scroll": {
+    "character_list": {
+      "start": {"x": 640, "y": 600},
+      "end": {"x": 640, "y": 325},
+      "duration_ms": 800
+    },
+    "character_switcher": {
+      "start": {"x": 700, "y": 700},
+      "end": {"x": 700, "y": 300},
+      "duration_ms": 800
+    }
+  },
+
+  "offsets": {
+    "officer_recommendation_click": {"x": 10, "y": 40},
+    "build_button_offset_y": 122,
+    "star_from_character": {"x": 100, "y": -20},
+    "check_mark_from_character": {"x": 30, "y": -10}
+  },
+
+  "color_detection": {
+    "yellow_star": {
+      "hsv_lower": [20, 100, 100],
+      "hsv_upper": [40, 255, 255],
+      "pixel_threshold": 1000
+    },
+    "green_checkmark": {
+      "hsv_lower": [40, 100, 100],
+      "hsv_upper": [80, 255, 255],
+      "pixel_threshold": 100
+    }
+  }
+}

@@ -8,6 +8,7 @@ import pytesseract
 import subprocess
 from config_manager import ConfigManager
 from bluestacks_controller import BlueStacksController
+from coordinate_manager import CoordinateManager
 
 
 class RoKCharacterSwitcher:
@@ -18,48 +19,22 @@ class RoKCharacterSwitcher:
         self.config = config_manager
         self.bluestacks = bluestacks_controller
 
+        # Load coordinates from centralized JSON config
+        self.coords = CoordinateManager()
+
         # Navigation coordinates
-        self.avatar_icon = {'x': 50, 'y': 50}
-        self.settings_icon = {'x': 1109, 'y': 581}
-        self.characters_icon = {'x': 350, 'y': 370}
-        self.close_button = {'x': 1212, 'y': 126}  # X button in top right of dialogs
+        self.avatar_icon = self.coords.get_nav('avatar_icon')
+        self.settings_icon = self.coords.get_nav('settings_icon')
+        self.characters_icon = self.coords.get_nav('characters_icon')
+        self.close_button = self.coords.get_nav('close_button')
 
         # Character detection regions
-        self.star_detection_region = {
-            'x': 1170,
-            'y': 300,
-            'width': 70,
-            'height': 400
-        }
+        self.star_detection_region = self.coords.get_region('star_detection')
+        self.normal_characters_text_region = self.coords.get_region('normal_characters_text')
+        self.check_mark_region = self.coords.get_region('check_mark')
 
-        self.normal_characters_text_region = {
-            'x': 200,
-            'y': 500,
-            'width': 800,
-            'height': 100
-        }
-
-        self.character_click_positions = [
-            # Left column characters
-            {'x': 450, 'y': 330},  # First row
-            {'x': 450, 'y': 480},  # Second row
-            {'x': 450, 'y': 630},  # Third row
-            {'x': 450, 'y': 780},  # Fourth row (if visible)
-
-            # Right column characters
-            {'x': 970, 'y': 330},  # First row
-            {'x': 970, 'y': 480},  # Second row
-            {'x': 970, 'y': 630},  # Third row
-            {'x': 970, 'y': 780},  # Fourth row (if visible)
-        ]
-
-        # Green check mark detection for selected character
-        self.check_mark_region = {
-            'x': 720,
-            'y': 250,
-            'width': 100,
-            'height': 400
-        }
+        # Character click positions
+        self.character_click_positions = self.coords.get_character_switcher_grid()
 
         # Delay between actions
         self.click_delay = 1000  # ms
@@ -102,45 +77,38 @@ class RoKCharacterSwitcher:
         """Detect which character slots have a star next to them"""
         self.logger.info("Looking for star characters")
 
-        # Take a screenshot
         screenshot = self.bluestacks.take_screenshot()
         if screenshot is None:
             self.logger.error("Failed to take screenshot")
             return []
 
-        # Convert screenshot to HSV
         hsv = cv2.cvtColor(screenshot, cv2.COLOR_BGR2HSV)
 
-        # Define yellow star color range in HSV
-        lower_yellow = np.array([20, 100, 100])
-        upper_yellow = np.array([40, 255, 255])
+        # Get color detection config for yellow stars
+        star_config = self.coords.get_color_detection('yellow_star')
+        lower_yellow = np.array(star_config['hsv_lower'])
+        upper_yellow = np.array(star_config['hsv_upper'])
+        pixel_threshold = star_config['pixel_threshold']
 
-        # Create a mask for yellow stars
         mask = cv2.inRange(hsv, lower_yellow, upper_yellow)
-
-        # Save the mask for debugging
         cv2.imwrite("star_mask.png", mask)
 
-        # Detect stars in each character position
         stars_found = []
+        star_offset = self.coords.get_offset('star_from_character')
 
         for idx, pos in enumerate(self.character_click_positions):
-            # Define region around the character position where a star would be
-            star_x_offset = 100  # Approximate x-offset from character position to star
-            region_x = pos['x'] + star_x_offset
-            region_y = pos['y'] - 20  # Slightly above character center
+            region_x = pos['x'] + star_offset['x']
+            region_y = pos['y'] + star_offset['y']
             region_width = 50
             region_height = 50
 
-            # Ensure region is within screenshot bounds
             if (region_x + region_width <= screenshot.shape[1] and
-                    region_y + region_height <= screenshot.shape[0]):
+                    region_y + region_height <= screenshot.shape[0] and
+                    region_x >= 0 and region_y >= 0):
 
-                # Extract region and check for yellow pixels
                 region = mask[region_y:region_y + region_height, region_x:region_x + region_width]
 
-                # If the region contains white pixels in the mask (yellow in original), it's a star
-                if np.sum(region) > 1000:  # Threshold for detection
+                if np.sum(region) > pixel_threshold:
                     stars_found.append(idx)
                     self.logger.info(f"Star detected at character position {idx}")
 
@@ -191,18 +159,15 @@ class RoKCharacterSwitcher:
         """Scroll down in the character list"""
         self.logger.info("Scrolling down character list")
 
-        # Define scroll parameters
-        start_x = 700  # Middle of screen horizontally
-        start_y = 700  # Lower part of character list
-        end_x = 700  # Same x position
-        end_y = 300  # Upper part of character list
+        scroll = self.coords.get_scroll('character_switcher')
+        start = scroll['start']
+        end = scroll['end']
+        duration = scroll['duration_ms']
 
-        # Scroll from bottom to top to move list down
-        if not self.bluestacks.swipe(start_x, start_y, end_x, end_y, 800):
+        if not self.bluestacks.swipe(start['x'], start['y'], end['x'], end['y'], duration):
             self.logger.error("Failed to scroll down")
             return False
 
-        # Wait for scrolling animation to complete
         time.sleep(1.5)
         return True
 
@@ -229,52 +194,43 @@ class RoKCharacterSwitcher:
             self.logger.error(f"Invalid character position index: {position_idx}")
             return False
 
-        # Take a screenshot
         screenshot = self.bluestacks.take_screenshot()
         if screenshot is None:
             self.logger.error("Failed to take screenshot")
             return False
 
-        # Get character position
         pos = self.character_click_positions[position_idx]
+        check_offset = self.coords.get_offset('check_mark_from_character')
 
-        # Define region to check for green checkmark
-        check_x = pos['x'] + 30  # Offset from character position
-        check_y = pos['y'] - 10
+        check_x = pos['x'] + check_offset['x']
+        check_y = pos['y'] + check_offset['y']
         check_width = 40
         check_height = 40
 
-        # Ensure region is within screenshot bounds
         if (check_x + check_width > screenshot.shape[1] or
                 check_y + check_height > screenshot.shape[0] or
                 check_x < 0 or check_y < 0):
             self.logger.error("Check mark region is out of bounds")
             return False
 
-        # Extract region
         region = screenshot[check_y:check_y + check_height, check_x:check_x + check_width]
-
-        # Convert to HSV for better color detection
         hsv = cv2.cvtColor(region, cv2.COLOR_BGR2HSV)
 
-        # Define green check mark color range
-        lower_green = np.array([40, 100, 100])
-        upper_green = np.array([80, 255, 255])
+        # Get color detection config for green checkmark
+        check_config = self.coords.get_color_detection('green_checkmark')
+        lower_green = np.array(check_config['hsv_lower'])
+        upper_green = np.array(check_config['hsv_upper'])
+        pixel_threshold = check_config['pixel_threshold']
 
-        # Create mask
         mask = cv2.inRange(hsv, lower_green, upper_green)
-
-        # Check if there are enough green pixels
         green_pixels = np.sum(mask) / 255
 
-        # Save for debugging
         cv2.imwrite(f"check_mark_region_{position_idx}.png", region)
         cv2.imwrite(f"check_mark_mask_{position_idx}.png", mask)
 
         self.logger.info(f"Green pixels in check mark region: {green_pixels}")
 
-        # Return True if enough green pixels are found
-        return green_pixels > 100
+        return green_pixels > pixel_threshold
 
     def close_dialogs(self):
         """Close any open dialogs by clicking X button"""

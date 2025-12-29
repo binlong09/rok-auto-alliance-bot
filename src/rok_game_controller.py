@@ -7,6 +7,7 @@ import pytesseract
 import subprocess
 
 from pytesseract import Output
+from coordinate_manager import CoordinateManager
 
 
 class RoKGameController:
@@ -46,66 +47,30 @@ class RoKGameController:
         ocr_config = config_manager.get_ocr_config()
         pytesseract.pytesseract.tesseract_cmd = ocr_config.get('tesseract_path')
 
-        # Navigation coordinates
-        self.avatar_icon = {'x': 50, 'y': 50}
-        self.settings_icon = {'x': 1109, 'y': 581}
-        self.characters_icon = {'x': 350, 'y': 370}
+        # Load coordinates from centralized JSON config
+        self.coords = CoordinateManager()
 
-        # Text detection region
-        self.text_region = {
-            'x': int(ocr_config.get('text_region_x', 200)),
-            'y': int(ocr_config.get('text_region_y', 20)),
-            'width': int(ocr_config.get('text_region_width', 600)),
-            'height': int(ocr_config.get('text_region_height', 150))
-        }
+        # Navigation coordinates (from coordinates.json)
+        self.avatar_icon = self.coords.get_nav('avatar_icon')
+        self.settings_icon = self.coords.get_nav('settings_icon')
+        self.characters_icon = self.coords.get_nav('characters_icon')
+        self.map_button = self.coords.get_nav('map_button')
+        self.yes_button = self.coords.get_nav('yes_button')
+
+        # Default text detection region
+        self.text_region = self.coords.get_region('default_text')
 
         # Num Of Chars
         rok_config = config_manager.get_rok_config()
         self.num_of_chars = int(rok_config.get('num_of_characters', 1))
         self.march_preset = int(rok_config.get('march_preset', 1))
 
-        # Navigation coordinates
+        # Character grid positions (from coordinates.json)
+        self.character_click_positions_first_rotation = self.coords.get_character_grid('first_rotation')
+        self.character_click_positions_after_first_rotation = self.coords.get_character_grid('after_scroll')
+
+        # Click delay from config (timing, not coordinate)
         nav_config = config_manager.get_navigation_config()
-        self.map_button = {
-            'x': int(nav_config.get('map_button_x', 65)),
-            'y': int(nav_config.get('map_button_y', 650))
-        }
-        self.avatar_icon = {
-            'x': int(nav_config.get('avatar_icon_x', 65)),
-            'y': int(nav_config.get('avatar_icon_y', 650))
-        }
-        self.settings_icon = {
-            'x': int(nav_config.get('settings_icon_x', 65)),
-            'y': int(nav_config.get('settings_icon_y', 650))
-        }
-        self.characters_icon = {
-            'x': int(nav_config.get('characters_icon_x', 65)),
-            'y': int(nav_config.get('characters_icon_y', 650))
-        }
-        self.yes_button = {
-            'x': int(nav_config.get('yes_button_x', 815)),
-            'y': int(nav_config.get('yes_button_y', 515))
-        }
-
-        self.character_click_positions_first_rotation = [
-            # Left column characters
-            {'x': 400, 'y': 240},  # First row left
-            {'x': 800, 'y': 240},  # First row right
-            {'x': 400, 'y': 380},  # Second row left
-            {'x': 800, 'y': 380},  # Second row right
-            {'x': 400, 'y': 520},  # Third row left
-            {'x': 800, 'y': 520},  # Third row right
-        ]
-
-        self.character_click_positions_after_first_rotation = [
-            # Left column characters
-            {'x': 400, 'y': 220},  # First row left
-            {'x': 800, 'y': 220},  # First row right
-            {'x': 400, 'y': 360},  # Second row left
-            {'x': 800, 'y': 360},  # Second row right
-            {'x': 400, 'y': 520},  # Third row left
-            {'x': 800, 'y': 520},  # Third row right
-        ]
         self.click_delay_ms = int(nav_config.get('click_delay_ms', 1000))
 
     def check_stop_requested(self):
@@ -153,18 +118,20 @@ class RoKGameController:
         return True
 
     def click_mid_of_screen(self):
-        """Click at a random point to dismiss loading screen"""
-        self.logger.info(f"Clicking at middle of game screen to select")
-        if not self.bluestacks.click(640, 360, self.click_delay_ms):
-            self.logger.error(f"Failed to click middle of screen")
+        """Click at center of screen to dismiss loading screen or select"""
+        self.logger.info("Clicking at middle of game screen to select")
+        center = self.coords.get_screen('center')
+        if not self.bluestacks.click(center['x'], center['y'], self.click_delay_ms):
+            self.logger.error("Failed to click middle of screen")
             return False
         return True
 
     def dismiss_loading_screen(self):
-        """Click at a random point to dismiss loading screen"""
-        self.logger.info(f"Clicking at middle of game screen to dismiss loading screen")
-        if not self.bluestacks.click(1227, 595, self.click_delay_ms):
-            self.logger.error(f"Failed to click middle of screen")
+        """Click to dismiss loading screen"""
+        self.logger.info("Clicking to dismiss loading screen")
+        pos = self.coords.get_screen('loading_dismiss')
+        if not self.bluestacks.click(pos['x'], pos['y'], self.click_delay_ms):
+            self.logger.error("Failed to dismiss loading screen")
             return False
         return True
 
@@ -477,16 +444,13 @@ class RoKGameController:
 
 
     def navigate_to_bookmark(self):
-        """ Navigate to bookmark screen from home screen"""
+        """Navigate to bookmark screen from home screen"""
         if self.check_stop_requested():
             return False
 
         self.logger.info("Navigating to bookmark screen")
 
-        # Bookmark button coordinates
-        bookmark_button = {'x': 477, 'y': 20}
-
-        # Click on bookmark button
+        bookmark_button = self.coords.get_nav('bookmark_button')
         if not self.bluestacks.click(bookmark_button['x'], bookmark_button['y'], self.click_delay_ms):
             self.logger.error("Failed to click on bookmark button")
             return False
@@ -510,76 +474,51 @@ class RoKGameController:
 
     def find_and_click_one_troop_button(self):
         """
-         locate "1 troop" button
+        Locate "1 troop" button and click the corresponding Go button.
 
         Returns:
-            dict: Position of "1 troop" text {x, y} if found, None if not found
+            bool: True if found and clicked, False otherwise
         """
         if self.check_stop_requested():
             return False
 
-        # Define region to search for "1 troop" text
-        one_troop_region = {
-            'x': 150,
-            'y': 175,
-            'width': 650,
-            'height': 500
-        }
-
-        # Find the position of "1 troop" text
+        one_troop_region = self.coords.get_region('one_troop')
         result = self.detect_text_position("troop", one_troop_region)
         if not result:
             self.logger.error("Could not find '1 troop' text")
             return False
 
-        go_button_y_coordinates = [220,300,390,477,563]
-        go_button_y = self.find_closest_value(result['y'], go_button_y_coordinates)
+        go_button_y_positions = self.coords.get_go_button_y_positions()
+        go_button_y = self.find_closest_value(result['y'], go_button_y_positions)
+        go_button_x = self.coords.get_go_button_x()
 
-        go_one_troop_button = {
-            'x': 1012,
-            'y': go_button_y,
-        }
-
-        if not self.bluestacks.click(go_one_troop_button['x'], go_one_troop_button['y'], self.click_delay_ms):
+        if not self.bluestacks.click(go_button_x, go_button_y, self.click_delay_ms):
             self.logger.error("Failed to click on one troop button")
             return False
 
-        # Wait for one troop navigation to happen
         time.sleep(3)
-
-        # Click middle of screen to select flag
         self.click_mid_of_screen()
         time.sleep(1)
         return True
 
     def find_and_click_build_button(self):
         """
-         locate "building progress" button
+        Locate "building progress" button and click it.
 
         Returns:
-            dict: Position of "building progress" text {x, y} if found, None if not found
+            bool: True if found and clicked, False otherwise
         """
         if self.check_stop_requested():
             return False
 
-        # Define region to search for "BUILD" text
-        bookmark_region = {
-            'x': 150,
-            'y': 121,
-            'width': 850,
-            'height': 450
-        }
-
-        # Find the position of "build" text
-        result = self.detect_text_position(["remaining", "time"], bookmark_region)
+        build_region = self.coords.get_region('build_button')
+        result = self.detect_text_position(["remaining", "time"], build_region)
         if result:
-            build_button = {
-                'x': result['x'],
-                'y': result['y'] + 122,
-            }
+            offset_y = self.coords.get_offset('build_button_offset_y')
+            build_button_y = result['y'] + offset_y
             time.sleep(2)
-            if not self.bluestacks.click(build_button['x'], build_button['y'], self.click_delay_ms):
-                self.logger.error("Failed to click on one troop button")
+            if not self.bluestacks.click(result['x'], build_button_y, self.click_delay_ms):
+                self.logger.error("Failed to click on build button")
                 return False
             self.logger.info("Clicking build button")
             time.sleep(2)
@@ -590,32 +529,20 @@ class RoKGameController:
 
     def find_and_click_tap_to_join_button(self):
         """
-         locate "tap to join button" button
+        Locate "tap to join" button and click it.
 
         Returns:
-            dict: Position of "tap to join" text {x, y} if found, None if not found
+            bool: True if found and clicked, False otherwise
         """
         if self.check_stop_requested():
             return False
 
-        # Define region to search for "BUILD" text
-        bookmark_region = {
-            'x': 150,
-            'y': 312,
-            'width': 600,
-            'height': 300
-        }
-
+        tap_region = self.coords.get_region('tap_to_join')
         time.sleep(1)
-        # Find the position of "tap to join" text
-        result = self.detect_text_position("tap", bookmark_region)
+        result = self.detect_text_position("tap", tap_region)
         if result:
-            tap_to_join_button = {
-                'x': result['x'],
-                'y': result['y'],
-            }
-            if not self.bluestacks.click(tap_to_join_button['x'], tap_to_join_button['y'], self.click_delay_ms):
-                self.logger.error("Failed to click on one troop button")
+            if not self.bluestacks.click(result['x'], result['y'], self.click_delay_ms):
+                self.logger.error("Failed to click on tap to join button")
                 return False
             return True
         else:
@@ -624,31 +551,21 @@ class RoKGameController:
 
     def find_and_click_new_troop_button(self):
         """
-         locate "new troop" button
+        Locate "Dispatch" button for new troop and click it.
 
         Returns:
-            dict: Position of "dispatch" text {x, y} if found, None if not found
+            bool: True if found and clicked, False otherwise
         """
         if self.check_stop_requested():
             return False
 
-        # Define region to search for "BUILD" text
-        bookmark_region = {
-            'x': 900,
-            'y': 30,
-            'width': 200,
-            'height': 150
-        }
-
-        # Find the position of "build" text
+        new_troop_region = self.coords.get_region('new_troop')
         time.sleep(1)
-        result = self.detect_text_position("Dispatch", bookmark_region)
+        result = self.detect_text_position("Dispatch", new_troop_region)
         if result:
-            tap_to_join_button = {
-                'x': result['x'],
-                'y': result['y'] + 90,
-            }
-            if not self.bluestacks.click(tap_to_join_button['x'], tap_to_join_button['y'], self.click_delay_ms):
+            # New troop button is 90px below the Dispatch text
+            new_troop_button_y = result['y'] + 90
+            if not self.bluestacks.click(result['x'], new_troop_button_y, self.click_delay_ms):
                 self.logger.error("Failed to click on New Troop button")
                 return False
             return True
@@ -657,41 +574,17 @@ class RoKGameController:
             return False
 
     def dispatch_troop_to_join_build(self):
-        """ Dispatching troops"""
+        """Dispatch troops using the configured march preset."""
         if self.check_stop_requested():
             return False
 
         self.logger.info("Dispatching troops")
 
-        # Preset 1 button coordinates
-        preset_1_button = {'x': 1108, 'y': 262}
-        preset_2_button = {'x': 1108, 'y': 316}
-        preset_3_button = {'x': 1108, 'y': 372}
-        preset_4_button = {'x': 1108, 'y': 422}
-        preset_5_button = {'x': 1108, 'y': 482}
-        preset_6_button = {'x': 1108, 'y': 536}
-        preset_7_button = {'x': 1108, 'y': 590}
+        # Get preset button position from coordinates
+        preset_button = self.coords.get_march_preset_position(self.march_preset)
 
-        preset_button = preset_1_button
-        match self.march_preset:
-            case 1:
-                preset_button = preset_1_button
-            case 2:
-                preset_button = preset_2_button
-            case 3:
-                preset_button = preset_3_button
-            case 4:
-                preset_button = preset_4_button
-            case 5:
-                preset_button = preset_5_button
-            case 6:
-                preset_button = preset_6_button
-            case 7:
-                preset_button = preset_7_button
-
-        # Click on chosen preset button
         if not self.bluestacks.click(preset_button['x'], preset_button['y'], self.click_delay_ms):
-            self.logger.error("Failed to click on preset 1 button")
+            self.logger.error(f"Failed to click on preset {self.march_preset} button")
             return False
 
         time.sleep(2)
@@ -699,10 +592,7 @@ class RoKGameController:
         if self.check_stop_requested():
             return False
 
-        # March button coordinates
-        march_button = {'x': 814, 'y': 640}
-
-        # Click on march button
+        march_button = self.coords.get_nav('march_button')
         if not self.bluestacks.click(march_button['x'], march_button['y'], self.click_delay_ms):
             self.logger.error("Failed to click march button")
             return False
@@ -776,33 +666,21 @@ class RoKGameController:
 
         return result
 
-    def is_in_map_screen(self, custom_region=None):
+    def is_in_map_screen(self):
         """
-        Check if the game is currently showing the home village
-
-        Args:
-            custom_keywords (list, optional): Custom keywords to look for. Defaults to age-related keywords.
-            custom_region (dict, optional): Custom region to look in. Defaults to self.text_region.
+        Check if the game is currently showing the map screen.
 
         Returns:
-            bool: True if in home village, False otherwise
+            bool: True if in map screen, False otherwise
         """
         if self.check_stop_requested():
             return False
 
         # Check for kingdom number
         keywords = ["3174", "1960"]
+        region = self.coords.get_region('kingdom_check')
 
-        # Text Region
-        custom_region = {
-            'x': 264,
-            'y': 0,
-            'width': 154,
-            'height': 35
-        }
-
-        # Check for the keywords
-        result = self.detect_text_in_region(keywords, custom_region)
+        result = self.detect_text_in_region(keywords, region)
 
         if result:
             self.logger.info("Currently in map screen")
@@ -813,11 +691,10 @@ class RoKGameController:
 
     def is_in_character_login(self, custom_keywords=None):
         """
-        Check if the game is currently showing the home village
+        Check if the game is currently showing the character login screen.
 
         Args:
-            custom_keywords (list, optional): Custom keywords to look for. Defaults to character-login keywords.
-            custom_region (dict, optional): Custom region to look in. Defaults to self.text_region.
+            custom_keywords (list, optional): Custom keywords to look for.
 
         Returns:
             bool: True if in character login screen, False otherwise
@@ -825,22 +702,11 @@ class RoKGameController:
         if self.check_stop_requested():
             return False
 
-        # Default age-related keywords
         keywords = ["Character Login", "Log in"]
-
-        # Use custom keywords if provided, otherwise use defaults
         keywords_to_check = custom_keywords if custom_keywords is not None else keywords
 
-        # text region
-        custom_region = {
-            'x': 247,
-            'y': 109,
-            'width': 780,
-            'height': 490
-        }
-
-        # Check for the keywords
-        result = self.detect_text_in_region(keywords_to_check, custom_region)
+        region = self.coords.get_region('character_login')
+        result = self.detect_text_in_region(keywords_to_check, region)
 
         if result:
             self.logger.info("Currently in Character Login Screen")
@@ -849,34 +715,20 @@ class RoKGameController:
 
         return result
 
-
     def is_bottom_bar_expanded(self):
         """
-        Check if the game is currently showing the home village
-
-        Args:
-            custom_keywords (list, optional): Custom keywords to look for. Defaults to character-login keywords.
-            custom_region (dict, optional): Custom region to look in. Defaults to self.text_region.
+        Check if the bottom navigation bar is expanded.
 
         Returns:
-            bool: True if in character login screen, False otherwise
+            bool: True if bottom bar is expanded, False otherwise
         """
         if self.check_stop_requested():
             return False
 
-        # Default age-related keywords
         keywords = ["Campaign", "Items", "Alliance", "Commander", "Mail"]
+        region = self.coords.get_region('bottom_bar')
 
-        # text region
-        custom_region = {
-            'x': 677,
-            'y': 614,
-            'width': 500,
-            'height': 113
-        }
-
-        # Check for the keywords
-        result = self.detect_text_in_region(keywords, custom_region)
+        result = self.detect_text_in_region(keywords, region)
 
         if result:
             self.logger.info("Bottom bar is already expanded")
@@ -887,76 +739,63 @@ class RoKGameController:
 
     def is_char_in_alliance(self):
         """
-        Detect if this account is not in alliance. Skip it if it's not in alliance.
-        :return:
-        bool: True if in alliance, False otherwise
+        Detect if this account is in an alliance.
+
+        Returns:
+            bool: True if in alliance, False otherwise
         """
         if self.check_stop_requested():
             return False
 
-        # Keywords
         keywords = ["Technology", "Territory"]
+        region = self.coords.get_region('alliance_check')
 
-        # text region
-        custom_region = {
-            'x': 533,
-            'y': 334,
-            'width': 604,
-            'height': 315
-        }
-
-        # Check for the keywords
-        result = self.detect_text_in_region(keywords, custom_region)
+        result = self.detect_text_in_region(keywords, region)
 
         if result:
-            self.logger.info("account is in an alliance")
+            self.logger.info("Account is in an alliance")
         else:
-            self.logger.info("account is not in an alliance")
+            self.logger.info("Account is not in an alliance")
 
         return result
 
     def find_and_donate_recommended_technology(self):
         """
-         locate "new troop" button
+        Find Officer's Recommendation and donate to it.
 
         Returns:
-            dict: Position of "dispatch" text {x, y} if found, None if not found
+            bool: True if successful, False otherwise
         """
         if self.check_stop_requested():
             return False
 
-        # Define region to search for "BUILD" text
-        text_region = {
-            'x': 133,
-            'y': 101,
-            'width': 1000,
-            'height': 590
-        }
+        region = self.coords.get_region('officer_recommendation')
 
         # Find the position of "Officer's Recommendation" text
-        result = self.detect_text_position(["Officer's Recommendation", "Officer", "Recommendation", "mendation"], text_region)
+        result = self.detect_text_position(
+            ["Officer's Recommendation", "Officer", "Recommendation", "mendation"],
+            region
+        )
         if result:
-            officer_recommendation_button = {
-                'x': result['x'] + 10,
-                'y': result['y'] + 40,
-            }
-            if not self.bluestacks.click(officer_recommendation_button['x'], officer_recommendation_button['y'], self.click_delay_ms):
+            offset = self.coords.get_offset('officer_recommendation_click')
+            click_x = result['x'] + offset['x']
+            click_y = result['y'] + offset['y']
+
+            if not self.bluestacks.click(click_x, click_y, self.click_delay_ms):
                 self.logger.error("Failed to click on Recommended Tech")
                 return False
-            donate_button = {
-                'x': 985,
-                'y': 566,
-            }
+
+            donate_button = self.coords.get_nav('donate_button')
             # Click Donate 20 times
             for i in range(20):
                 self.bluestacks.click(donate_button['x'], donate_button['y'], 500)
+
             # Exit to home screen after donation completes
             for i in range(3):
                 self.close_dialogs()
             return True
         else:
-            self.logger.error("recommended Tech not found")
-            # Exit when failing to find recommended tech
+            self.logger.error("Recommended Tech not found")
             for i in range(2):
                 self.close_dialogs()
             return False
@@ -1006,29 +845,22 @@ class RoKGameController:
 
         self.logger.info("Scrolling down character list")
 
-        # Define scroll parameters
-        start_x = 640  # Middle of screen horizontally
-        start_y = 600  # Lower part of character list
-        end_x = 640  # Same x position
-        end_y = 325  # Upper part of character list (325 working)
+        scroll = self.coords.get_scroll('character_list')
+        start = scroll['start']
+        end = scroll['end']
+        duration = scroll['duration_ms']
 
-        # Scroll from bottom to top to move list down
-        if not self.bluestacks.swipe(start_x, start_y, end_x, end_y, 800):
+        if not self.bluestacks.swipe(start['x'], start['y'], end['x'], end['y'], duration):
             self.logger.error("Failed to scroll down")
             return False
 
-        # Wait for scrolling animation to complete
         time.sleep(1.5)
         return True
 
     def expand_bottom_bar(self):
         """Expand bottom bar if it's not expanded yet"""
-        expand_button = {
-            'x': 1227,
-            'y': 670,
-        }
-
         if not self.is_bottom_bar_expanded():
+            expand_button = self.coords.get_nav('expand_button')
             if not self.bluestacks.click(expand_button['x'], expand_button['y'], self.click_delay_ms):
                 self.logger.error('Failed to expand bottom bar')
                 return False
@@ -1038,8 +870,8 @@ class RoKGameController:
         return True
 
     def perform_recommended_tech_donation(self):
-        """Open the alliance tech screen, find officer's recommendation and donate
-        Exit to home screen if Officer's recommendation is not found"""
+        """Open the alliance tech screen, find officer's recommendation and donate.
+        Exit to home screen if Officer's recommendation is not found."""
         if not self.expand_bottom_bar():
             self.logger.error("Bottom bar is not expanded")
             return False
@@ -1047,11 +879,7 @@ class RoKGameController:
         if self.check_stop_requested():
             return False
 
-        alliance_button = {
-            'x': 933,
-            'y': 670
-        }
-
+        alliance_button = self.coords.get_nav('alliance_button')
         if not self.bluestacks.click(alliance_button['x'], alliance_button['y'], self.click_delay_ms):
             self.logger.error("Failed to open alliance screen")
             return False
@@ -1064,11 +892,7 @@ class RoKGameController:
             self.logger.error("Character is not in alliance")
             return False
 
-        technology_button = {
-            'x': 763,
-            'y': 553
-        }
-
+        technology_button = self.coords.get_nav('technology_button')
         if not self.bluestacks.click(technology_button['x'], technology_button['y'], self.click_delay_ms):
             self.logger.error("Failed to open technology screen")
             return True
