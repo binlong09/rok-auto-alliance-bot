@@ -13,12 +13,14 @@ from instance_manager import InstanceManager
 from config_manager import ConfigManager
 from bluestacks_controller import BlueStacksController
 from rok_game_controller import RoKGameController
+from daily_task_tracker import DailyTaskTracker, get_tracker_path_for_instance
 
 
 class AutomationThread(threading.Thread):
     """Thread class for running automation on a specific instance"""
 
-    def __init__(self, instance_id, instance_name, config_manager, queue, stop_event=None, exit_after_complete=True):
+    def __init__(self, instance_id, instance_name, config_manager, queue, stop_event=None,
+                 exit_after_complete=True, force_daily_tasks=False, instances_dir=None):
         super().__init__()
         self.instance_id = instance_id
         self.instance_name = instance_name
@@ -27,6 +29,8 @@ class AutomationThread(threading.Thread):
         self.stop_event = stop_event or threading.Event()
         self.daemon = True  # Thread will exit when main program exits
         self.exit_after_complete = exit_after_complete  # Whether to exit BlueStacks after completion
+        self.force_daily_tasks = force_daily_tasks  # Whether to run daily tasks even if completed today
+        self.instances_dir = instances_dir  # Directory containing instance configs
 
         # Set up logging
         self.logger = logging.getLogger(f"automation.{instance_id}")
@@ -144,8 +148,19 @@ class AutomationThread(threading.Thread):
             adb_device = f"127.0.0.1:{adb_port}"
             bluestacks_controller.set_adb_device(adb_device)
 
+            # Create daily task tracker if instances_dir is provided
+            daily_tracker = None
+            if self.instances_dir:
+                tracker_path = get_tracker_path_for_instance(self.instances_dir, self.instance_id)
+                daily_tracker = DailyTaskTracker(tracker_path)
+                self.log(f"Daily task tracking enabled (force={self.force_daily_tasks})")
+
             # Initialize RoK controller
-            rok_controller = RoKGameController(self.config_manager, bluestacks_controller)
+            rok_controller = RoKGameController(
+                self.config_manager, bluestacks_controller,
+                daily_task_tracker=daily_tracker,
+                force_daily_tasks=self.force_daily_tasks
+            )
 
             # Check if stop requested
             if self.stop_event.is_set():
@@ -313,7 +328,7 @@ class MultiInstanceLauncher:
                 # Queue.Empty exception is expected
                 pass
 
-    def launch_instance(self, instance_id):
+    def launch_instance(self, instance_id, force_daily_tasks=False):
         """Launch automation for a specific instance"""
         # Check if instance is already running
         if instance_id in self.running_threads:
@@ -342,7 +357,9 @@ class MultiInstanceLauncher:
             config_manager=config_manager,
             queue=self.message_queue,
             stop_event=stop_event,
-            exit_after_complete=self.exit_after_complete
+            exit_after_complete=self.exit_after_complete,
+            force_daily_tasks=force_daily_tasks,
+            instances_dir=self.instance_manager.instances_dir
         )
 
         # Store thread and stop event

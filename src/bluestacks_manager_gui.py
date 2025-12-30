@@ -27,6 +27,7 @@ from bluestacks_controller import BlueStacksController
 from rok_game_controller import RoKGameController
 from instance_manager import InstanceManager
 from instance_manager_gui import InstanceManagerDialog
+from daily_task_tracker import DailyTaskTracker, get_tracker_path_for_instance
 
 
 class CollapsibleFrame(ttk.Frame):
@@ -154,6 +155,9 @@ class RiseOfKingdomsManagerGUI:
             value=self.config_manager.get_bool('RiseOfKingdoms', 'perform_expedition', True)
         )
 
+        # Daily task control
+        self.force_daily_tasks = tk.BooleanVar(value=False)
+
         # Status variables
         self.status_text = tk.StringVar(value="Ready to start")
         self.status_color = "ready"  # ready, running, error, success
@@ -226,23 +230,59 @@ class RiseOfKingdomsManagerGUI:
         main = ttk.Frame(self.root, padding=15)
         main.pack(fill=tk.BOTH, expand=True)
 
+        # Create a canvas with scrollbar for scrollable content
+        self.canvas = tk.Canvas(main, bg=self.colors['bg'], highlightthickness=0)
+        self.scrollbar = ttk.Scrollbar(main, orient=tk.VERTICAL, command=self.canvas.yview)
+        self.scrollable_frame = ttk.Frame(self.canvas)
+
+        # Configure scrolling
+        self.scrollable_frame.bind(
+            "<Configure>",
+            lambda e: self.canvas.configure(scrollregion=self.canvas.bbox("all"))
+        )
+
+        self.canvas_frame = self.canvas.create_window((0, 0), window=self.scrollable_frame, anchor="nw")
+        self.canvas.configure(yscrollcommand=self.scrollbar.set)
+
+        # Make canvas expand with window
+        self.canvas.bind("<Configure>", self._on_canvas_configure)
+
+        # Enable mouse wheel scrolling (only when mouse is over the canvas)
+        self.canvas.bind("<Enter>", lambda e: self.canvas.bind_all("<MouseWheel>", self._on_mousewheel))
+        self.canvas.bind("<Leave>", lambda e: self.canvas.unbind_all("<MouseWheel>"))
+
+        # Pack canvas and scrollbar
+        self.canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        self.scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+
+        # Use scrollable_frame as parent for all content
+        content = self.scrollable_frame
+
         # === HEADER ===
-        self.create_header(main)
+        self.create_header(content)
 
         # === STATUS CARD ===
-        self.create_status_card(main)
+        self.create_status_card(content)
 
         # === ACTION BUTTONS ===
-        self.create_action_buttons(main)
+        self.create_action_buttons(content)
 
         # === SETTINGS (Collapsible) ===
-        self.create_settings_section(main)
+        self.create_settings_section(content)
 
         # === ADVANCED SETTINGS (Collapsible) ===
-        self.create_advanced_settings(main)
+        self.create_advanced_settings(content)
 
         # === LOG SECTION ===
-        self.create_log_section(main)
+        self.create_log_section(content)
+
+    def _on_canvas_configure(self, event):
+        """Resize the inner frame to match canvas width"""
+        self.canvas.itemconfig(self.canvas_frame, width=event.width)
+
+    def _on_mousewheel(self, event):
+        """Handle mouse wheel scrolling"""
+        self.canvas.yview_scroll(int(-1 * (event.delta / 120)), "units")
 
     def create_header(self, parent):
         """Create header with title and instance selector"""
@@ -333,7 +373,7 @@ class RiseOfKingdomsManagerGUI:
     def create_action_buttons(self, parent):
         """Create start/stop action buttons"""
         btn_frame = ttk.Frame(parent)
-        btn_frame.pack(fill=tk.X, pady=(0, 15))
+        btn_frame.pack(fill=tk.X, pady=(0, 10))
 
         # Start button
         self.start_btn = tk.Button(
@@ -352,6 +392,18 @@ class RiseOfKingdomsManagerGUI:
             state=tk.DISABLED, command=self.stop_automation
         )
         self.stop_btn.pack(side=tk.LEFT, fill=tk.X, expand=True, ipady=10, padx=(5, 0))
+
+        # Reset daily tasks button
+        reset_frame = ttk.Frame(parent)
+        reset_frame.pack(fill=tk.X, pady=(0, 15))
+
+        self.reset_daily_btn = tk.Button(
+            reset_frame, text="Reset Daily Tasks", font=('Segoe UI', 9),
+            bg=self.colors['warning'], fg='white', activebackground='#F57C00',
+            activeforeground='white', relief=tk.FLAT, cursor='hand2',
+            command=self.reset_daily_tasks
+        )
+        self.reset_daily_btn.pack(fill=tk.X, ipady=5)
 
     def create_settings_section(self, parent):
         """Create main settings section"""
@@ -394,6 +446,10 @@ class RiseOfKingdomsManagerGUI:
         row += 1
         ttk.Checkbutton(content, text="Enable Expedition Collection", variable=self.enable_expedition).grid(
             row=row, column=0, columnspan=2, sticky=tk.W, pady=5)
+
+        row += 1
+        ttk.Checkbutton(content, text="Force daily tasks (ignore completion)", variable=self.force_daily_tasks).grid(
+            row=row, column=0, columnspan=4, sticky=tk.W, pady=5)
 
     def create_advanced_settings(self, parent):
         """Create advanced settings section (collapsed by default)"""
@@ -580,6 +636,30 @@ class RiseOfKingdomsManagerGUI:
             self.adb_path.set(path)
             self.log(f"ADB path: {path}", "info")
 
+    # === Daily Task Management ===
+
+    def reset_daily_tasks(self):
+        """Reset daily task completion tracking for the current instance"""
+        try:
+            current_instance = self.instance_manager.get_current_instance()
+            if not current_instance:
+                messagebox.showwarning("Warning", "No instance selected")
+                return
+
+            tracker_path = get_tracker_path_for_instance(
+                self.instance_manager.instances_dir,
+                current_instance["id"]
+            )
+            tracker = DailyTaskTracker(tracker_path)
+            tracker.reset_all_tasks()
+
+            self.log("Daily tasks reset - all tasks will run on next automation", "success")
+            messagebox.showinfo("Success", "Daily task tracking has been reset.\nAll daily tasks will run on the next automation.")
+
+        except Exception as e:
+            self.logger.error(f"Error resetting daily tasks: {e}")
+            messagebox.showerror("Error", f"Failed to reset daily tasks: {e}")
+
     # === Automation Control ===
 
     def launch_everything(self):
@@ -636,7 +716,23 @@ class RiseOfKingdomsManagerGUI:
             adb_device = f"127.0.0.1:{self.adb_port.get()}"
             self.bluestacks_controller.set_adb_device(adb_device)
 
-            self.rok_controller = RoKGameController(self.config_manager, self.bluestacks_controller)
+            # Create daily task tracker for this instance
+            tracker_path = get_tracker_path_for_instance(
+                self.instance_manager.instances_dir,
+                current_instance["id"]
+            )
+            daily_tracker = DailyTaskTracker(tracker_path)
+            force_daily = self.force_daily_tasks.get()
+
+            if force_daily:
+                self.log("Force daily tasks enabled - will run all daily tasks", "info")
+
+            self.rok_controller = RoKGameController(
+                self.config_manager,
+                self.bluestacks_controller,
+                daily_task_tracker=daily_tracker,
+                force_daily_tasks=force_daily
+            )
 
             # Start BlueStacks
             self.log(f"Starting BlueStacks: {self.instance_name.get()}", "info")

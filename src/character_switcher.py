@@ -11,6 +11,7 @@ import logging
 import numpy as np
 
 from recovery_manager import RetryConfig, with_retry
+from daily_task_tracker import DailyTaskTracker
 
 
 class CharacterSwitcher:
@@ -20,7 +21,8 @@ class CharacterSwitcher:
                  expedition_automation, recovery_manager, num_of_chars=1, march_preset=1, click_delay_ms=1000,
                  character_login_loading_time=3, game_load_wait_seconds=30,
                  will_perform_build=True, will_perform_donation=True, will_perform_expedition=True,
-                 stop_check_callback=None, navigate_to_map_callback=None):
+                 stop_check_callback=None, navigate_to_map_callback=None,
+                 daily_task_tracker=None, force_daily_tasks=False):
         """
         Initialize the character switcher.
 
@@ -42,6 +44,8 @@ class CharacterSwitcher:
             will_perform_expedition: Whether to perform expedition collection
             stop_check_callback: Optional callback to check if automation should stop
             navigate_to_map_callback: Optional callback to navigate to map
+            daily_task_tracker: Optional DailyTaskTracker for tracking daily task completion
+            force_daily_tasks: If True, run daily tasks even if already completed today
         """
         self.logger = logging.getLogger(__name__)
         self.bluestacks = bluestacks
@@ -61,6 +65,11 @@ class CharacterSwitcher:
         self.will_perform_build = will_perform_build
         self.will_perform_donation = will_perform_donation
         self.will_perform_expedition = will_perform_expedition
+
+        # Daily task tracking
+        self.daily_tracker = daily_task_tracker
+        self.force_daily_tasks = force_daily_tasks
+        self.current_character_index = 0  # Track which character we're processing
 
         # Callbacks
         self.stop_check = stop_check_callback
@@ -82,6 +91,40 @@ class CharacterSwitcher:
             self.logger.info("Stop requested during character switching")
             return True
         return False
+
+    def should_run_daily_task(self, task_name):
+        """
+        Check if a daily task should run for the current character.
+
+        Args:
+            task_name: Task name (DailyTaskTracker.TASK_BUILD or TASK_EXPEDITION)
+
+        Returns:
+            bool: True if the task should run, False if it should be skipped
+        """
+        # If no tracker, always run
+        if self.daily_tracker is None:
+            return True
+
+        # If force mode is enabled, always run
+        if self.force_daily_tasks:
+            return True
+
+        # Check if task was already completed today
+        if self.daily_tracker.is_task_completed_today(self.current_character_index, task_name):
+            return False
+
+        return True
+
+    def mark_daily_task_completed(self, task_name):
+        """
+        Mark a daily task as completed for the current character.
+
+        Args:
+            task_name: Task name (DailyTaskTracker.TASK_BUILD or TASK_EXPEDITION)
+        """
+        if self.daily_tracker is not None:
+            self.daily_tracker.mark_task_completed(self.current_character_index, task_name)
 
     def close_dialogs(self):
         """Close any open dialogs using escape key."""
@@ -265,34 +308,51 @@ class CharacterSwitcher:
         """
         Perform configured actions (build, donation, expedition) for the current character.
 
+        Daily tasks (build, expedition) are skipped if already completed today (UTC),
+        unless force_daily_tasks is enabled. Tech donation runs every cycle.
+
         Returns:
             bool: True if successful, False otherwise
         """
         if self.check_stop_requested():
             return False
 
-        # Perform build automation
+        char_display = self.current_character_index + 1  # 1-based for logging
+
+        # Perform build automation (DAILY TASK)
         if self.will_perform_build:
-            self.logger.info("Performing build for this character")
-            self.build.perform_build(self.march_preset, navigate_to_map_callback=self.navigate_to_map)
+            if self.should_run_daily_task(DailyTaskTracker.TASK_BUILD):
+                self.logger.info(f"Performing build for character {char_display}")
+                if self.build.perform_build(self.march_preset, navigate_to_map_callback=self.navigate_to_map):
+                    self.mark_daily_task_completed(DailyTaskTracker.TASK_BUILD)
+            else:
+                self.logger.info(
+                    f"Skipping build for character {char_display} - already completed today (UTC)"
+                )
 
         if self.check_stop_requested():
             return False
 
-        # Perform donation automation
+        # Perform donation automation (SCHEDULED TASK - runs every cycle)
         if self.will_perform_donation:
-            self.logger.info("Performing Alliance Donation for this character")
+            self.logger.info(f"Performing Alliance Donation for character {char_display}")
             time.sleep(1)
             self.donation.perform_recommended_tech_donation()
 
         if self.check_stop_requested():
             return False
 
-        # Perform expedition reward collection
+        # Perform expedition reward collection (DAILY TASK)
         if self.will_perform_expedition:
-            self.logger.info("Collecting expedition rewards for this character")
-            time.sleep(1)
-            self.expedition.perform_expedition_collection()
+            if self.should_run_daily_task(DailyTaskTracker.TASK_EXPEDITION):
+                self.logger.info(f"Collecting expedition rewards for character {char_display}")
+                time.sleep(1)
+                if self.expedition.perform_expedition_collection():
+                    self.mark_daily_task_completed(DailyTaskTracker.TASK_EXPEDITION)
+            else:
+                self.logger.info(
+                    f"Skipping expedition for character {char_display} - already completed today (UTC)"
+                )
 
         return True
 
@@ -310,6 +370,9 @@ class CharacterSwitcher:
         Returns:
             bool: True if successful, False otherwise
         """
+        # Set current character index for daily task tracking
+        self.current_character_index = index
+
         # Open character selection screen
         if not self.open_character_selection():
             self.logger.error("Failed to open character selection screen")

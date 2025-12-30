@@ -15,6 +15,7 @@ import time
 from instance_manager import InstanceManager
 from instance_manager_gui import InstanceManagerDialog
 from multi_instance_launcher import MultiInstanceLauncher
+from daily_task_tracker import DailyTaskTracker, get_tracker_path_for_instance
 
 
 class ModernButton(tk.Canvas):
@@ -142,6 +143,7 @@ class MultiInstanceManagerGUI:
         # Track state
         self.is_closing = False
         self.auto_exit_var = tk.BooleanVar(value=True)
+        self.force_daily_tasks_var = tk.BooleanVar(value=False)
 
         # Apply styling
         self.setup_styles()
@@ -419,8 +421,26 @@ class MultiInstanceManagerGUI:
         self.edit_btn.set_disabled(True)
         self.edit_btn.command = self.edit_selected_instance
 
-        # Auto-exit checkbox (same row as action buttons)
-        ttk.Checkbutton(actions, text="Auto-exit after done",
+        # Options frame (right side of actions row)
+        options_frame = tk.Frame(actions, bg=self.colors['card'])
+        options_frame.pack(side=tk.RIGHT)
+
+        # Reset Daily Tasks button
+        self.reset_daily_btn = ModernButton(
+            options_frame, text="Reset Daily", bg="#ff9800",
+            hover_bg="#f57c00", width=100, height=32,
+            command=self.reset_daily_tasks
+        )
+        self.reset_daily_btn.pack(side=tk.RIGHT, padx=(10, 0))
+        self.reset_daily_btn.set_disabled(True)
+
+        # Force daily tasks checkbox
+        ttk.Checkbutton(options_frame, text="Force daily tasks",
+                       variable=self.force_daily_tasks_var,
+                       style='Card.TCheckbutton').pack(side=tk.RIGHT, padx=(10, 0))
+
+        # Auto-exit checkbox
+        ttk.Checkbutton(options_frame, text="Auto-exit after done",
                        variable=self.auto_exit_var, command=self.toggle_auto_exit,
                        style='Card.TCheckbutton').pack(side=tk.RIGHT)
 
@@ -586,6 +606,7 @@ class MultiInstanceManagerGUI:
             self.launch_selected_btn.set_disabled(True)
             self.stop_btn.set_disabled(True)
             self.edit_btn.set_disabled(True)
+            self.reset_daily_btn.set_disabled(True)
             self.selected_label.config(text="None")
             self.status_label.config(text="Not Running")
             self.status_dot.config(fg=self.colors['text_secondary'])
@@ -604,6 +625,7 @@ class MultiInstanceManagerGUI:
             self.launch_selected_btn.set_disabled(not can_launch)
             self.stop_btn.set_disabled(True)
             self.edit_btn.set_disabled(True)
+            self.reset_daily_btn.set_disabled(True)  # Disable for multiple selection
 
             self.log_text.delete(1.0, tk.END)
             self.log_text.insert(tk.END, f"Selected {len(selection)} instances\n\n", 'header')
@@ -632,6 +654,7 @@ class MultiInstanceManagerGUI:
         self.launch_selected_btn.set_disabled(is_running)
         self.stop_btn.set_disabled(not is_running)
         self.edit_btn.set_disabled(is_running)
+        self.reset_daily_btn.set_disabled(False)  # Enable for single selection
 
         # Show instance info in log
         self.log_text.delete(1.0, tk.END)
@@ -701,6 +724,39 @@ class MultiInstanceManagerGUI:
         """Toggle auto-exit setting"""
         self.launcher.set_exit_after_complete(self.auto_exit_var.get())
         self.logger.info(f"Auto-exit: {self.auto_exit_var.get()}")
+
+    def reset_daily_tasks(self):
+        """Reset daily task tracking for selected instance"""
+        selection = self.instances_tree.selection()
+        if not selection or len(selection) != 1:
+            messagebox.showwarning("Selection Required", "Please select a single instance to reset.")
+            return
+
+        instance_id = selection[0]
+        instance = self.instance_manager.get_instance(instance_id)
+        if not instance:
+            return
+
+        if not messagebox.askyesno("Confirm Reset",
+                                   f"Reset daily task tracking for '{instance['name']}'?\n\n"
+                                   "This will allow all daily tasks (build, expedition) to run again."):
+            return
+
+        try:
+            tracker_path = get_tracker_path_for_instance(
+                self.instance_manager.instances_dir, instance_id
+            )
+            tracker = DailyTaskTracker(tracker_path)
+            tracker.reset_all_tasks()
+
+            self.log_text.insert(tk.END, f"\n✓ Daily tasks reset for {instance['name']}\n", 'success')
+            self.log_text.see(tk.END)
+            self.logger.info(f"Reset daily tasks for instance: {instance['name']}")
+            messagebox.showinfo("Reset Complete", f"Daily tasks reset for '{instance['name']}'.")
+
+        except Exception as e:
+            self.logger.error(f"Error resetting daily tasks: {e}")
+            messagebox.showerror("Error", f"Failed to reset daily tasks: {str(e)}")
 
     # === Actions ===
 
@@ -781,6 +837,7 @@ class MultiInstanceManagerGUI:
         status_label.pack(anchor=tk.W, pady=(15, 0))
 
         def launch():
+            force_daily = self.force_daily_tasks_var.get()
             for i, instance_id in enumerate(instance_ids):
                 instance = self.instance_manager.get_instance(instance_id)
                 name = instance["name"] if instance else instance_id
@@ -788,7 +845,7 @@ class MultiInstanceManagerGUI:
                 self.root.after_idle(lambda n=name: status_var.set(f"Launching {n}..."))
                 self.root.after_idle(lambda v=i: progress.config(value=v))
 
-                success = self.launcher.launch_instance(instance_id)
+                success = self.launcher.launch_instance(instance_id, force_daily_tasks=force_daily)
                 if success:
                     self.root.after_idle(lambda id=instance_id: self.update_instance_status(id, "Starting"))
 

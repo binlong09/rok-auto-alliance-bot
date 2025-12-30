@@ -22,11 +22,23 @@ from recovery_manager import RecoveryManager
 class RoKGameController:
     """Controller for Rise of Kingdoms game operations."""
 
-    def __init__(self, config_manager, bluestacks_controller):
+    def __init__(self, config_manager, bluestacks_controller,
+                 daily_task_tracker=None, force_daily_tasks=False):
+        """
+        Initialize the RoK game controller.
+
+        Args:
+            config_manager: ConfigManager instance
+            bluestacks_controller: BlueStacksController instance
+            daily_task_tracker: Optional DailyTaskTracker for tracking daily task completion
+            force_daily_tasks: If True, run daily tasks even if already completed today
+        """
         self.logger = logging.getLogger(__name__)
         self.config = config_manager
         self.bluestacks = bluestacks_controller
         self.stop_check_callback = None
+        self.daily_task_tracker = daily_task_tracker
+        self.force_daily_tasks = force_daily_tasks
 
         # Load RoK configurations
         rok_config = config_manager.get_rok_config()
@@ -118,7 +130,9 @@ class RoKGameController:
             will_perform_donation=config_manager.get_bool('RiseOfKingdoms', 'perform_donation', True),
             will_perform_expedition=config_manager.get_bool('RiseOfKingdoms', 'perform_expedition', True),
             stop_check_callback=self.ocr.check_stop_requested,
-            navigate_to_map_callback=self.navigate_to_map
+            navigate_to_map_callback=self.navigate_to_map,
+            daily_task_tracker=self.daily_task_tracker,
+            force_daily_tasks=self.force_daily_tasks
         )
 
     def check_stop_requested(self):
