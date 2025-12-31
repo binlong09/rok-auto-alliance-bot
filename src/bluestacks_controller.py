@@ -75,8 +75,10 @@ class BlueStacksController:
     def take_screenshot(self):
         """Take a screenshot of the BlueStacks window using ADB"""
         try:
-            # Use ADB to take a screenshot
-            screenshot_path = "temp_screenshot.png"
+            # Use ADB port to create unique screenshot filename per instance
+            # This prevents conflicts when running multiple instances simultaneously
+            port = self.adb_device.split(':')[-1] if ':' in self.adb_device else 'default'
+            screenshot_path = f"temp_screenshot_{port}.png"
 
             # Remove old screenshot if exists
             if os.path.exists(screenshot_path):

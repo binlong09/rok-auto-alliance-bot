@@ -451,6 +451,16 @@ class RiseOfKingdomsManagerGUI:
         ttk.Checkbutton(content, text="Force daily tasks (ignore completion)", variable=self.force_daily_tasks).grid(
             row=row, column=0, columnspan=4, sticky=tk.W, pady=5)
 
+        row += 1
+        # Apply button to save settings without starting automation
+        self.apply_btn = tk.Button(
+            content, text="Apply Changes", font=('Segoe UI', 9),
+            bg='#4CAF50', fg='white', activebackground='#388E3C',
+            activeforeground='white', relief=tk.FLAT, cursor='hand2',
+            command=self.apply_settings
+        )
+        self.apply_btn.grid(row=row, column=0, columnspan=4, sticky=tk.EW, pady=(10, 5))
+
     def create_advanced_settings(self, parent):
         """Create advanced settings section (collapsed by default)"""
         advanced = CollapsibleFrame(parent, title="Advanced Settings", collapsed=True)
@@ -585,7 +595,7 @@ class RiseOfKingdomsManagerGUI:
 
         self.on_character_count_change()
 
-    def save_configuration(self):
+    def save_configuration(self, show_message=False):
         """Save current configuration to config.ini"""
         try:
             config = self.config_manager.config
@@ -610,9 +620,16 @@ class RiseOfKingdomsManagerGUI:
 
             self.log("Configuration saved", "success")
 
+            if show_message:
+                messagebox.showinfo("Success", "Settings applied successfully!")
+
         except Exception as e:
             self.logger.error(f"Error saving configuration: {e}")
             messagebox.showerror("Error", f"Failed to save configuration: {e}")
+
+    def apply_settings(self):
+        """Apply settings changes without starting automation"""
+        self.save_configuration(show_message=True)
 
     # === File Browsing ===
 

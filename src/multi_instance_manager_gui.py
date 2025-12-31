@@ -682,9 +682,26 @@ class MultiInstanceManagerGUI:
 
         current_values = self.instances_tree.item(instance_id, "values")
         if current_values and len(current_values) >= 3:
-            status_display = "● Running" if status == "Running" else "○ Stopped"
+            # Determine if instance is actively running based on status
+            stopped_statuses = ["Stopped", "Completed", "Partial completion"]
+            failed_statuses = ["Failed to start BlueStacks", "Failed to connect to ADB",
+                             "Failed to start RoK"]
+
+            is_stopped = status in stopped_statuses or status.startswith("Error:")
+            is_failed = status in failed_statuses
+
+            if is_stopped:
+                status_display = "○ Stopped"
+                tag = 'stopped'
+            elif is_failed:
+                status_display = "✗ Failed"
+                tag = 'stopped'
+            else:
+                # Any other status means it's running/active
+                status_display = f"● {status}"
+                tag = 'running'
+
             new_values = (current_values[0], current_values[1], f"  {status_display}")
-            tag = 'running' if status == "Running" else 'stopped'
             self.instances_tree.item(instance_id, values=new_values, tags=(tag,))
 
         # Update selected instance status

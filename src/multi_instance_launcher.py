@@ -16,11 +16,36 @@ from rok_game_controller import RoKGameController
 from daily_task_tracker import DailyTaskTracker, get_tracker_path_for_instance
 
 
+class QueueLogHandler(logging.Handler):
+    """
+    Custom logging handler that routes log messages to a queue for GUI display.
+    This allows verbose logs from all automation modules to appear in the GUI.
+    """
+
+    def __init__(self, queue, instance_id):
+        super().__init__()
+        self.queue = queue
+        self.instance_id = instance_id
+        self.setFormatter(logging.Formatter('%(name)s - %(message)s'))
+
+    def emit(self, record):
+        try:
+            msg = self.format(record)
+            self.queue.put({
+                "instance_id": self.instance_id,
+                "type": "log",
+                "message": msg
+            })
+        except Exception:
+            self.handleError(record)
+
+
 class AutomationThread(threading.Thread):
     """Thread class for running automation on a specific instance"""
 
     def __init__(self, instance_id, instance_name, config_manager, queue, stop_event=None,
-                 exit_after_complete=True, force_daily_tasks=False, instances_dir=None):
+                 exit_after_complete=True, force_daily_tasks=False, instances_dir=None,
+                 on_complete_callback=None):
         super().__init__()
         self.instance_id = instance_id
         self.instance_name = instance_name
@@ -31,6 +56,7 @@ class AutomationThread(threading.Thread):
         self.exit_after_complete = exit_after_complete  # Whether to exit BlueStacks after completion
         self.force_daily_tasks = force_daily_tasks  # Whether to run daily tasks even if completed today
         self.instances_dir = instances_dir  # Directory containing instance configs
+        self.on_complete_callback = on_complete_callback  # Callback when thread completes
 
         # Set up logging
         self.logger = logging.getLogger(f"automation.{instance_id}")
@@ -136,7 +162,31 @@ class AutomationThread(threading.Thread):
     def run(self):
         """Run the automation sequence for this instance"""
         bluestacks_controller = None
+        queue_handler = None
+
+        # List of logger names to capture for GUI display
+        automation_loggers = [
+            'recovery_manager',
+            'character_switcher',
+            'build_automation',
+            'donation_automation',
+            'expedition_automation',
+            'screen_detector',
+            'bluestacks_controller',
+            'rok_game_controller',
+            'ocr_helper',
+        ]
+
         try:
+            # Set up queue handler to route verbose logs to GUI
+            queue_handler = QueueLogHandler(self.queue, self.instance_id)
+            queue_handler.setLevel(logging.INFO)
+
+            # Attach handler to all automation-related loggers
+            for logger_name in automation_loggers:
+                logger = logging.getLogger(logger_name)
+                logger.addHandler(queue_handler)
+
             self.log(f"Starting automation for instance '{self.instance_name}'")
             self.update_status("Starting")
 
@@ -266,12 +316,22 @@ class AutomationThread(threading.Thread):
             self.log(f"Error in automation: {str(e)}")
 
         finally:
+            # Remove queue handler from all loggers to prevent memory leaks
+            if queue_handler:
+                for logger_name in automation_loggers:
+                    logger = logging.getLogger(logger_name)
+                    logger.removeHandler(queue_handler)
+
             # Close BlueStacks if configured to do so
             if self.exit_after_complete and bluestacks_controller:
                 self.log("Automation complete, closing BlueStacks instance")
                 self.close_bluestacks(bluestacks_controller)
 
             self.log("Automation thread completed")
+
+            # Notify launcher that this thread has completed
+            if self.on_complete_callback:
+                self.on_complete_callback(self.instance_id)
 
 
 class MultiInstanceLauncher:
@@ -308,6 +368,23 @@ class MultiInstanceLauncher:
     def set_exit_after_complete(self, exit_after_complete):
         """Set whether to exit BlueStacks after automation completes"""
         self.exit_after_complete = exit_after_complete
+
+        # Update all running threads with the new setting
+        for instance_id, (thread, stop_event) in self.running_threads.items():
+            if thread.is_alive():
+                thread.exit_after_complete = exit_after_complete
+                self.logger.info(f"Updated exit_after_complete={exit_after_complete} for instance {instance_id}")
+
+    def _on_thread_complete(self, instance_id):
+        """Called when an automation thread completes"""
+        # Remove from running threads
+        if instance_id in self.running_threads:
+            del self.running_threads[instance_id]
+            self.logger.info(f"Instance {instance_id} removed from running threads")
+
+        # Send a final status update to refresh the UI
+        if self.status_callback:
+            self.status_callback(instance_id, "Stopped")
 
     def _process_messages(self):
         """Process messages from automation threads"""
@@ -359,7 +436,8 @@ class MultiInstanceLauncher:
             stop_event=stop_event,
             exit_after_complete=self.exit_after_complete,
             force_daily_tasks=force_daily_tasks,
-            instances_dir=self.instance_manager.instances_dir
+            instances_dir=self.instance_manager.instances_dir,
+            on_complete_callback=self._on_thread_complete
         )
 
         # Store thread and stop event
