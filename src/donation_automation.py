@@ -88,8 +88,10 @@ class DonationAutomation:
         )
 
         if result:
-            self.logger.info(f"Found Technology via OCR at ({result['x']}, {result['y']})")
-            if not self.bluestacks.click(result['x'], result['y'], self.click_delay_ms):
+            # Click above the text (button is above the label)
+            click_y = result['y'] - 50  # Offset to click on button, not text
+            self.logger.info(f"Found Technology via OCR at ({result['x']}, {result['y']}), clicking at y={click_y}")
+            if not self.bluestacks.click(result['x'], click_y, self.click_delay_ms):
                 self.logger.error("Failed to click Technology button (OCR position)")
                 return False
             return True

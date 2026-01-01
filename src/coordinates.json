@@ -78,15 +78,16 @@
     "officer_recommendation": {"x": 133, "y": 101, "width": 1000, "height": 590},
     "kingdom_check": {"x": 264, "y": 0, "width": 154, "height": 35},
     "character_login": {"x": 247, "y": 109, "width": 780, "height": 490},
-    "bottom_bar": {"x": 677, "y": 614, "width": 500, "height": 113},
-    "alliance_check": {"x": 533, "y": 334, "width": 604, "height": 315},
+    "bottom_bar": {"x": 400, "y": 630, "width": 800, "height": 90},
+    "alliance_check": {"x": 533, "y": 334, "width": 604, "height": 400},
     "alliance_menu": {"x": 500, "y": 300, "width": 700, "height": 400},
     "star_detection": {"x": 1170, "y": 300, "width": 70, "height": 400},
     "normal_characters_text": {"x": 200, "y": 500, "width": 800, "height": 100},
     "check_mark": {"x": 720, "y": 250, "width": 100, "height": 400},
     "campaign_screen": {"x": 50, "y": 150, "width": 400, "height": 300},
     "exit_dialog": {"x": 370, "y": 175, "width": 540, "height": 250},
-    "rewards_dialog": {"x": 370, "y": 175, "width": 540, "height": 250}
+    "rewards_dialog": {"x": 370, "y": 175, "width": 540, "height": 250},
+    "loading_screen": {"x": 0, "y": 600, "width": 1280, "height": 120}
   },
 
   "scroll": {

@@ -89,11 +89,22 @@ class OCRHelper:
         if self.debug_mode:
             cv2.imwrite("ocr_contrast_enhanced.png", contrast_thresh)
 
+        # Note: Scaled version removed from preprocessing for position detection
+        # because it returns 2x coordinates that cause incorrect click positions.
+        # Keeping only for reference - if needed, coordinate scaling must be handled.
+
+        # White text on dark background (common in game UI)
+        # Threshold to isolate light pixels, then invert for black text on white
+        _, white_text = cv2.threshold(gray, 180, 255, cv2.THRESH_BINARY)
+        if self.debug_mode:
+            cv2.imwrite("ocr_white_text.png", white_text)
+
         return {
             'adaptive': adaptive_thresh,
             'otsu': otsu_thresh,
             'inverted': inverted_otsu,
             'contrast': contrast_thresh,
+            'white_text': white_text,
             'original': gray
         }
 

@@ -5,7 +5,13 @@ src/logs/
 # Local config (track config.ini.example instead)
 src/config.ini
 
-# Debug/temp images
+# Debug/temp images (root and src)
+temp_screenshot*.png
+text_region.png
+text_*.png
+ocr_*.png
+red_banner_*.png
+test_loading_*.png
 src/temp_screenshot.png
 src/text_region.png
 src/ocr_*.png

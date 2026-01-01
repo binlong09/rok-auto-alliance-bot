@@ -492,28 +492,6 @@ class RiseOfKingdomsManagerGUI:
         ttk.Spinbox(content, from_=5, to=60, increment=5, textvariable=self.start_delay, width=8).grid(
             row=row, column=1, sticky=tk.W, pady=3, padx=5)
 
-    def create_log_section(self, parent):
-        """Create log output section"""
-        log_frame = ttk.LabelFrame(parent, text="Log Output", padding=10)
-        log_frame.pack(fill=tk.BOTH, expand=True)
-
-        # Log text widget with custom styling
-        self.log_text = tk.Text(log_frame, height=8, wrap=tk.WORD,
-                                font=('Consolas', 9), bg='#1e1e1e', fg='#d4d4d4',
-                                insertbackground='white', selectbackground='#264f78')
-        self.log_text.pack(fill=tk.BOTH, expand=True, side=tk.LEFT)
-
-        # Scrollbar
-        scrollbar = ttk.Scrollbar(log_frame, command=self.log_text.yview)
-        scrollbar.pack(fill=tk.Y, side=tk.RIGHT)
-        self.log_text.config(yscrollcommand=scrollbar.set)
-
-        # Configure log colors
-        self.log_text.tag_configure('info', foreground='#d4d4d4')
-        self.log_text.tag_configure('success', foreground='#4ec9b0')
-        self.log_text.tag_configure('warning', foreground='#dcdcaa')
-        self.log_text.tag_configure('error', foreground='#f14c4c')
-
     def on_character_count_change(self):
         """Handle character count change"""
         count = self.character_count.get()
@@ -839,11 +817,8 @@ class RiseOfKingdomsManagerGUI:
         self.stop_btn.config(state=tk.DISABLED)
 
     def log(self, message, level="info"):
-        """Add message to log display with color coding"""
+        """Log message (log display was removed, only logs to console now)"""
         self.logger.info(message)
-        timestamp = time.strftime("%H:%M:%S")
-        self.log_text.insert(tk.END, f"[{timestamp}] {message}\n", level)
-        self.log_text.see(tk.END)
 
 
 if __name__ == "__main__":

@@ -46,7 +46,9 @@ class RoKGameController:
 
         # Load bluestacks configuration
         bluestacks_config = config_manager.get_bluestacks_config()
-        self.game_load_wait_seconds = int(bluestacks_config.get('wait_for_startup_seconds', 30))
+        # Use game_load_wait_seconds from RoK config (for character switch), default 30s
+        # Enforce minimum of 30s to ensure game has enough time to load
+        self.game_load_wait_seconds = max(30, int(rok_config.get('game_load_wait_seconds', 30)))
         self.debug_mode = bool(bluestacks_config.get('debug_mode', False))
 
         # Set package name based on version
@@ -223,7 +225,7 @@ class RoKGameController:
                     self.logger.error("Failed to click on map button")
                     return False
                 self.logger.info("Clicked on map button because screen was on home village")
-                time.sleep(2)
+                time.sleep(4)  # Increased wait time for map to fully load after character switch
 
             return True
 

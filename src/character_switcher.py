@@ -141,19 +141,46 @@ class CharacterSwitcher:
         return True
 
     def wait_for_game_load(self):
-        """Wait for the game to load with stop check capability."""
-        self.logger.info(f"Waiting {self.game_load_wait_seconds} seconds for game to load...")
+        """
+        Wait for the game to load by detecting when the loading screen disappears.
 
-        total_wait = self.game_load_wait_seconds
-        interval = 2
+        Polls for "Loading" text on screen. Once it disappears, waits an additional
+        3 seconds for the game to fully initialize.
+        Falls back to max wait time if loading screen detection fails.
+        """
+        self.logger.info("Waiting for game to load...")
 
-        while total_wait > 0:
+        max_wait = self.game_load_wait_seconds
+        check_interval = 2
+        elapsed = 0
+        loading_detected = False
+
+        # Poll until loading screen disappears or max time reached
+        while elapsed < max_wait:
             if self.check_stop_requested():
                 return False
 
-            time.sleep(min(interval, total_wait))
-            total_wait -= interval
+            is_loading = self.screen.is_loading_screen()
 
+            if is_loading:
+                loading_detected = True
+                self.logger.info(f"Loading screen detected, waiting... ({elapsed}s)")
+            elif loading_detected:
+                # Loading screen was visible but now it's gone - game finished loading
+                self.logger.info("Loading screen finished, waiting 3s for game to initialize...")
+                time.sleep(3)
+                return True
+            else:
+                # No loading screen detected - might already be loaded or detection failed
+                # Continue checking for a bit in case loading hasn't started yet
+                pass
+
+            time.sleep(check_interval)
+            elapsed += check_interval
+
+        # Max wait reached - proceed anyway
+        self.logger.info(f"Max wait time ({max_wait}s) reached, proceeding...")
+        time.sleep(3)  # Still wait 3s buffer
         return True
 
     def scroll_down(self):
@@ -252,7 +279,10 @@ class CharacterSwitcher:
 
         # Calculate which rotation (page) we need
         rotation = int(np.ceil((index + 1) / 6))
-        self.logger.info(f"Character index: {index}, rotation: {rotation}")
+        pos_idx = index % 6
+        pos = self.get_character_position(index)
+        self.logger.info(f"Character index: {index}, rotation: {rotation}, pos_idx: {pos_idx}")
+        self.logger.info(f"Will click at position: ({pos['x']}, {pos['y']})")
 
         # Scroll to the correct page
         for _ in range(1, rotation):
@@ -276,14 +306,19 @@ class CharacterSwitcher:
         Returns:
             bool: True if successful, False otherwise
         """
+        self.logger.info(f"Waiting {self.character_login_loading_time}s for character login screen...")
         time.sleep(self.character_login_loading_time)
 
         if self.check_stop_requested():
             return False
 
         # Check if this screen is now character login screen
-        if self.screen.is_in_character_login():
+        is_login_screen = self.screen.is_in_character_login()
+        self.logger.info(f"is_in_character_login() returned: {is_login_screen}")
+
+        if is_login_screen:
             # Click the "Yes" button to confirm character switch
+            self.logger.info(f"Character login dialog detected! Clicking Yes at ({self.yes_button['x']}, {self.yes_button['y']})")
             if not self.bluestacks.click(self.yes_button['x'], self.yes_button['y'], self.click_delay_ms):
                 self.logger.error("Failed to click Yes to character login")
                 return False
@@ -295,7 +330,12 @@ class CharacterSwitcher:
                 return False
         else:
             # Character being selected is already the current one
-            self.logger.info("Character already selected, returning to main screen")
+            # WARNING: This could mean click landed on wrong position or current character
+            self.logger.warning(
+                f"No character login dialog detected for character {self.current_character_index + 1}. "
+                f"This character may have been SKIPPED! Click might have hit current character or empty space."
+            )
+            self.logger.info("Returning to main screen with 3 escape keys...")
             for _ in range(3):
                 if self.check_stop_requested():
                     return False
@@ -392,6 +432,10 @@ class CharacterSwitcher:
         if not self.perform_character_actions():
             self.logger.error("Failed to perform character actions")
             return False
+
+        # Wait before switching to next character to ensure game is ready
+        self.logger.info("Waiting 3 seconds before next character...")
+        time.sleep(3)
 
         return True
 

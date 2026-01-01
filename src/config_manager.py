@@ -98,21 +98,39 @@ class ConfigManager:
         return config
 
     def validate_paths(self):
-        """Validate that required paths exist"""
+        """Validate that required paths exist, auto-detect if missing"""
         bs_config = self.config['BlueStacks']
 
         bluestacks_exe_path = bs_config.get('bluestacks_exe_path')
         adb_path = bs_config.get('adb_path')
 
+        # Try to auto-detect if BlueStacks path is invalid
         if not os.path.exists(bluestacks_exe_path):
-            self.logger.error(f"BlueStacks executable not found at: {bluestacks_exe_path}")
-            self.logger.info("Please update the config.ini file with the correct path")
-            sys.exit(1)
+            self.logger.warning(f"BlueStacks not found at: {bluestacks_exe_path}")
+            self.logger.info("Attempting to auto-detect BlueStacks installation...")
 
+            detected_bs, detected_adb = find_bluestacks_path()
+
+            if os.path.exists(detected_bs):
+                self.logger.info(f"Found BlueStacks at: {detected_bs}")
+                self.config['BlueStacks']['bluestacks_exe_path'] = detected_bs
+                self.config['BlueStacks']['adb_path'] = detected_adb
+                bluestacks_exe_path = detected_bs
+                adb_path = detected_adb
+
+                # Save the corrected config
+                with open(self.config_path, 'w') as configfile:
+                    self.config.write(configfile)
+                self.logger.info("Config updated with detected paths")
+            else:
+                self.logger.error("Could not auto-detect BlueStacks installation")
+                self.logger.info("Please install BlueStacks or update config.ini with correct path")
+                # Don't exit - let the UI show so user can fix it
+
+        # Validate ADB path
         if not os.path.exists(adb_path):
-            self.logger.error(f"ADB executable not found at: {adb_path}")
-            self.logger.info("Please update the config.ini file with the correct path")
-            sys.exit(1)
+            self.logger.warning(f"ADB not found at: {adb_path}")
+            # Don't exit - let the UI show so user can fix it
 
     def get_bluestacks_config(self):
         """Get BlueStacks configuration"""

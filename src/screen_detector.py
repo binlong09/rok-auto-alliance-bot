@@ -181,6 +181,9 @@ class ScreenDetector:
         Detect if the "Rewards" dialog is showing.
 
         This dialog appears after collecting expedition rewards.
+        We check for "CONFIRM" button instead of "Rewards" text because
+        the Expedition screen has "First Completion Rewards" and "Daily Rewards"
+        text that causes false positives.
 
         Returns:
             bool: True if rewards dialog is showing, False otherwise
@@ -188,15 +191,39 @@ class ScreenDetector:
         if self.check_stop_requested():
             return False
 
-        # Look for "Rewards" text in the dialog region
-        keywords = ["Rewards", "rewards", "REWARDS"]
+        # Look for "CONFIRM" button text - unique to the rewards dialog
+        keywords = ["CONFIRM", "Confirm", "confirm"]
         region = self.coords.get_region('rewards_dialog')
 
         result = self.ocr.detect_text_in_region(keywords, region)
 
         if result:
-            self.logger.info("Rewards dialog detected")
+            self.logger.info("Rewards dialog detected (CONFIRM button found)")
         else:
             self.logger.debug("Rewards dialog not present")
+
+        return result
+
+    def is_loading_screen(self):
+        """
+        Detect if the game is showing the loading screen.
+
+        The loading screen shows "Loading X%" text at the bottom center.
+
+        Returns:
+            bool: True if loading screen is showing, False otherwise
+        """
+        if self.check_stop_requested():
+            return False
+
+        keywords = ["Loading", "loading", "LOADING"]
+        region = self.coords.get_region('loading_screen')
+
+        result = self.ocr.detect_text_in_region(keywords, region)
+
+        if result:
+            self.logger.debug("Loading screen detected")
+        else:
+            self.logger.debug("Loading screen not present")
 
         return result
