@@ -261,20 +261,11 @@ class RiseOfKingdomsManagerGUI:
         # === HEADER ===
         self.create_header(content)
 
-        # === STATUS CARD ===
-        self.create_status_card(content)
-
-        # === ACTION BUTTONS ===
-        self.create_action_buttons(content)
-
         # === SETTINGS (Collapsible) ===
         self.create_settings_section(content)
 
-        # === ADVANCED SETTINGS (Collapsible) ===
-        self.create_advanced_settings(content)
-
-        # === LOG SECTION ===
-        self.create_log_section(content)
+        # === INSTANCE SETTINGS (Collapsible) ===
+        self.create_instance_settings(content)
 
     def _on_canvas_configure(self, event):
         """Resize the inner frame to match canvas width"""
@@ -437,19 +428,28 @@ class RiseOfKingdomsManagerGUI:
 
         row += 1
 
-        # Feature toggles
-        ttk.Checkbutton(content, text="Enable 1 Troop Build", variable=self.enable_troop_build).grid(
-            row=row, column=0, columnspan=2, sticky=tk.W, pady=5)
-        ttk.Checkbutton(content, text="Enable Tech Donation", variable=self.enable_tech_donation).grid(
-            row=row, column=2, columnspan=2, sticky=tk.W, pady=5)
+        # Section label for daily tasks
+        ttk.Label(content, text="Daily Tasks (once per day):", font=('Segoe UI', 9, 'bold')).grid(
+            row=row, column=0, columnspan=4, sticky=tk.W, pady=(10, 5))
 
         row += 1
-        ttk.Checkbutton(content, text="Enable Expedition Collection", variable=self.enable_expedition).grid(
-            row=row, column=0, columnspan=2, sticky=tk.W, pady=5)
+        ttk.Checkbutton(content, text="1 Troop Build", variable=self.enable_troop_build).grid(
+            row=row, column=0, columnspan=2, sticky=tk.W, pady=2)
+        ttk.Checkbutton(content, text="Expedition Collection", variable=self.enable_expedition).grid(
+            row=row, column=2, columnspan=2, sticky=tk.W, pady=2)
 
         row += 1
-        ttk.Checkbutton(content, text="Force daily tasks (ignore completion)", variable=self.force_daily_tasks).grid(
-            row=row, column=0, columnspan=4, sticky=tk.W, pady=5)
+        # Section label for recurring tasks
+        ttk.Label(content, text="Recurring Tasks (every cycle):", font=('Segoe UI', 9, 'bold')).grid(
+            row=row, column=0, columnspan=4, sticky=tk.W, pady=(10, 5))
+
+        row += 1
+        ttk.Checkbutton(content, text="Tech Donation", variable=self.enable_tech_donation).grid(
+            row=row, column=0, columnspan=2, sticky=tk.W, pady=2)
+
+        row += 1
+        ttk.Checkbutton(content, text="Force daily tasks (run even if completed today)", variable=self.force_daily_tasks).grid(
+            row=row, column=0, columnspan=4, sticky=tk.W, pady=(10, 5))
 
         row += 1
         # Apply button to save settings without starting automation
@@ -461,12 +461,12 @@ class RiseOfKingdomsManagerGUI:
         )
         self.apply_btn.grid(row=row, column=0, columnspan=4, sticky=tk.EW, pady=(10, 5))
 
-    def create_advanced_settings(self, parent):
-        """Create advanced settings section (collapsed by default)"""
-        advanced = CollapsibleFrame(parent, title="Advanced Settings", collapsed=True)
-        advanced.pack(fill=tk.X, pady=(0, 10))
+    def create_instance_settings(self, parent):
+        """Create instance settings section (collapsed by default)"""
+        instance_settings = CollapsibleFrame(parent, title="Instance Settings", collapsed=True)
+        instance_settings.pack(fill=tk.X, pady=(0, 10))
 
-        content = advanced.content
+        content = instance_settings.content
 
         # BlueStacks Path
         row = 0
@@ -480,7 +480,7 @@ class RiseOfKingdomsManagerGUI:
         ttk.Button(content, text="Browse", command=self.browse_adb, width=8).grid(row=row, column=2, pady=3)
 
         row += 1
-        ttk.Label(content, text="Instance Name:").grid(row=row, column=0, sticky=tk.W, pady=3)
+        ttk.Label(content, text="BlueStacks Instance:").grid(row=row, column=0, sticky=tk.W, pady=3)
         ttk.Entry(content, textvariable=self.instance_name, width=20).grid(row=row, column=1, sticky=tk.W, pady=3, padx=5)
 
         row += 1
@@ -491,10 +491,6 @@ class RiseOfKingdomsManagerGUI:
         ttk.Label(content, text="Startup Wait (sec):").grid(row=row, column=0, sticky=tk.W, pady=3)
         ttk.Spinbox(content, from_=5, to=60, increment=5, textvariable=self.start_delay, width=8).grid(
             row=row, column=1, sticky=tk.W, pady=3, padx=5)
-
-        row += 1
-        ttk.Button(content, text="Save Configuration", command=self.save_configuration).grid(
-            row=row, column=0, columnspan=3, pady=(10, 0))
 
     def create_log_section(self, parent):
         """Create log output section"""

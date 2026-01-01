@@ -2,6 +2,46 @@ import os
 import sys
 import logging
 import configparser
+import string
+
+
+def find_bluestacks_path():
+    """Auto-detect BlueStacks installation path across different drives."""
+    bluestacks_relative = "Program Files\\BlueStacks_nxt\\HD-Player.exe"
+    adb_relative = "Program Files\\BlueStacks_nxt\\HD-Adb.exe"
+
+    # Get all available drives on Windows
+    if sys.platform == "win32":
+        drives = [f"{d}:\\" for d in string.ascii_uppercase if os.path.exists(f"{d}:\\")]
+    else:
+        drives = ["/"]
+
+    # Check each drive for BlueStacks
+    for drive in drives:
+        bs_path = os.path.join(drive, bluestacks_relative)
+        adb_path = os.path.join(drive, adb_relative)
+        if os.path.exists(bs_path):
+            return bs_path, adb_path
+
+    # Default fallback
+    return "C:\\Program Files\\BlueStacks_nxt\\HD-Player.exe", "C:\\Program Files\\BlueStacks_nxt\\HD-Adb.exe"
+
+
+def find_tesseract_path():
+    """Auto-detect Tesseract installation path across different drives."""
+    tesseract_relative = "Program Files\\Tesseract-OCR\\tesseract.exe"
+
+    if sys.platform == "win32":
+        drives = [f"{d}:\\" for d in string.ascii_uppercase if os.path.exists(f"{d}:\\")]
+    else:
+        return "/usr/bin/tesseract"
+
+    for drive in drives:
+        tess_path = os.path.join(drive, tesseract_relative)
+        if os.path.exists(tess_path):
+            return tess_path
+
+    return "C:\\Program Files\\Tesseract-OCR\\tesseract.exe"
 
 
 class ConfigManager:
@@ -19,13 +59,17 @@ class ConfigManager:
         """Load configuration from ini file"""
         config = configparser.ConfigParser()
 
+        # Auto-detect installation paths
+        bs_path, adb_path = find_bluestacks_path()
+        tess_path = find_tesseract_path()
+
         # Default config values
         # Note: UI coordinates are now in coordinates.json
         default_config = {
             'BlueStacks': {
-                'bluestacks_exe_path': 'C:\\Program Files\\BlueStacks_nxt\\HD-Player.exe',
+                'bluestacks_exe_path': bs_path,
                 'bluestacks_instance_name': 'Nougat32',
-                'adb_path': 'C:\\Program Files\\BlueStacks_nxt\\HD-Adb.exe',
+                'adb_path': adb_path,
                 'wait_for_startup_seconds': '30'
             },
             'RiseOfKingdoms': {
@@ -34,7 +78,7 @@ class ConfigManager:
                 'game_load_wait_seconds': '30'
             },
             'OCR': {
-                'tesseract_path': 'C:\\Program Files\\Tesseract-OCR\\tesseract.exe',
+                'tesseract_path': tess_path,
                 'preprocess_image': 'True'
             },
             'Timing': {

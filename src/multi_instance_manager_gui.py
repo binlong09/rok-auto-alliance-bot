@@ -452,17 +452,19 @@ class MultiInstanceManagerGUI:
         list_frame.pack(fill=tk.BOTH, expand=True)
 
         # Treeview with custom styling
-        columns = ("name", "instance", "status")
+        columns = ("name", "instance", "daily", "status")
         self.instances_tree = ttk.Treeview(list_frame, columns=columns, show="headings",
                                            selectmode="extended", height=12, style='Custom.Treeview')
 
         self.instances_tree.heading("name", text="  Name", anchor=tk.W)
         self.instances_tree.heading("instance", text="  BlueStacks Instance", anchor=tk.W)
+        self.instances_tree.heading("daily", text="  Daily", anchor=tk.W)
         self.instances_tree.heading("status", text="  Status", anchor=tk.W)
 
-        self.instances_tree.column("name", width=150, minwidth=120)
-        self.instances_tree.column("instance", width=160, minwidth=120)
-        self.instances_tree.column("status", width=100, minwidth=80)
+        self.instances_tree.column("name", width=140, minwidth=100)
+        self.instances_tree.column("instance", width=140, minwidth=100)
+        self.instances_tree.column("daily", width=80, minwidth=60)
+        self.instances_tree.column("status", width=140, minwidth=100)
 
         # Scrollbar
         scrollbar = ttk.Scrollbar(list_frame, orient=tk.VERTICAL, command=self.instances_tree.yview)
@@ -472,6 +474,21 @@ class MultiInstanceManagerGUI:
         scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
 
         self.instances_tree.bind("<<TreeviewSelect>>", self.on_instance_select)
+        self.instances_tree.bind("<Double-1>", self.on_instance_double_click)
+
+    def on_instance_double_click(self, event):
+        """Handle double-click on instance row to open edit window"""
+        selection = self.instances_tree.selection()
+        if not selection or len(selection) != 1:
+            return
+
+        instance_id = selection[0]
+
+        # Don't allow editing while running
+        if self.launcher.is_instance_running(instance_id):
+            return
+
+        self.edit_selected_instance()
 
     def create_detail_panel(self, parent):
         """Create right panel with details and logs"""
@@ -584,7 +601,12 @@ class MultiInstanceManagerGUI:
 
         for instance in instances:
             status = "● Running" if instance["id"] in running_instances else "○ Stopped"
-            values = (f"  {instance['name']}", f"  {instance['bluestacks_instance']}", f"  {status}")
+
+            # Get daily task progress
+            daily_progress = self._get_daily_progress(instance["id"])
+
+            values = (f"  {instance['name']}", f"  {instance['bluestacks_instance']}",
+                     f"  {daily_progress}", f"  {status}")
             tag = 'running' if instance["id"] in running_instances else 'stopped'
             self.instances_tree.insert("", tk.END, instance["id"], values=values, tags=(tag,))
 
@@ -597,6 +619,42 @@ class MultiInstanceManagerGUI:
         self.total_stat.config(text=str(len(instances)))
 
         self.logger.info(f"Loaded {len(instances)} instances, {len(running_instances)} running")
+
+    def _get_daily_progress(self, instance_id):
+        """Get daily task completion progress for an instance"""
+        try:
+            # Get instance config to find number of characters
+            config_manager = self.instance_manager.get_config_manager(instance_id)
+            if not config_manager:
+                return "?"
+
+            num_characters = int(config_manager.get_config('RiseOfKingdoms', 'num_of_characters', '1'))
+
+            # Load daily task tracker
+            tracker_path = get_tracker_path_for_instance(
+                self.instance_manager.instances_dir, instance_id
+            )
+
+            if not os.path.exists(tracker_path):
+                return f"0/{num_characters}"
+
+            tracker = DailyTaskTracker(tracker_path)
+            status = tracker.get_completion_status()
+            today = status["today_utc"]
+
+            # Count characters that completed at least one task today
+            completed = 0
+            for char_idx in range(num_characters):
+                char_data = status["characters"].get(str(char_idx), {})
+                # Check if any task was completed today
+                if any(date == today for date in char_data.values()):
+                    completed += 1
+
+            return f"{completed}/{num_characters}"
+
+        except Exception as e:
+            self.logger.error(f"Error getting daily progress: {e}")
+            return "?"
 
     def on_instance_select(self, event):
         """Handle instance selection"""
@@ -681,7 +739,7 @@ class MultiInstanceManagerGUI:
             return
 
         current_values = self.instances_tree.item(instance_id, "values")
-        if current_values and len(current_values) >= 3:
+        if current_values and len(current_values) >= 4:
             # Determine if instance is actively running based on status
             stopped_statuses = ["Stopped", "Completed", "Partial completion"]
             failed_statuses = ["Failed to start BlueStacks", "Failed to connect to ADB",
@@ -693,15 +751,19 @@ class MultiInstanceManagerGUI:
             if is_stopped:
                 status_display = "○ Stopped"
                 tag = 'stopped'
+                # Refresh daily progress when stopped/completed
+                daily_progress = self._get_daily_progress(instance_id)
             elif is_failed:
                 status_display = "✗ Failed"
                 tag = 'stopped'
+                daily_progress = current_values[2]  # Keep existing
             else:
                 # Any other status means it's running/active
                 status_display = f"● {status}"
                 tag = 'running'
+                daily_progress = current_values[2]  # Keep existing while running
 
-            new_values = (current_values[0], current_values[1], f"  {status_display}")
+            new_values = (current_values[0], current_values[1], f"  {daily_progress.strip()}", f"  {status_display}")
             self.instances_tree.item(instance_id, values=new_values, tags=(tag,))
 
         # Update selected instance status
