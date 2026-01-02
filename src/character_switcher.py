@@ -215,7 +215,7 @@ class CharacterSwitcher:
             self.logger.error("Failed to click avatar icon")
             return False
 
-        time.sleep(2)
+        time.sleep(3)  # Increased wait for profile menu to appear
 
         if self.check_stop_requested():
             return False
@@ -373,16 +373,8 @@ class CharacterSwitcher:
         if self.check_stop_requested():
             return False
 
-        # Perform donation automation (SCHEDULED TASK - runs every cycle)
-        if self.will_perform_donation:
-            self.logger.info(f"Performing Alliance Donation for character {char_display}")
-            time.sleep(1)
-            self.donation.perform_recommended_tech_donation()
-
-        if self.check_stop_requested():
-            return False
-
         # Perform expedition reward collection (DAILY TASK)
+        # Done before donation so screen is in cleaner state for character switch
         if self.will_perform_expedition:
             if self.should_run_daily_task(DailyTaskTracker.TASK_EXPEDITION):
                 self.logger.info(f"Collecting expedition rewards for character {char_display}")
@@ -393,6 +385,16 @@ class CharacterSwitcher:
                 self.logger.info(
                     f"Skipping expedition for character {char_display} - already completed today (UTC)"
                 )
+
+        if self.check_stop_requested():
+            return False
+
+        # Perform donation automation (SCHEDULED TASK - runs every cycle)
+        # Done last as it leaves screen in cleanest state for character switch
+        if self.will_perform_donation:
+            self.logger.info(f"Performing Alliance Donation for character {char_display}")
+            time.sleep(1)
+            self.donation.perform_recommended_tech_donation()
 
         return True
 
