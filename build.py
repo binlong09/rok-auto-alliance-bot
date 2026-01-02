@@ -32,7 +32,7 @@ BUILD_DIR = "build"
 OUTPUT_DIR = "releases"
 
 # Default version (can be overridden via command line)
-DEFAULT_VERSION = "1.0.3"
+DEFAULT_VERSION = "1.0.4"
 
 
 class BuildError(Exception):
