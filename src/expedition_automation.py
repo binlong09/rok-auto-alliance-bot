@@ -169,9 +169,7 @@ class ExpeditionAutomation:
         """
         Click on the Campaign button to open Campaign screen.
 
-        Strategy:
-        1. Try to find "Campaign" text using OCR
-        2. Fall back to hardcoded position if OCR fails
+        Uses hardcoded position - OCR text position doesn't match button location.
 
         Returns:
             bool: True if clicked successfully, False otherwise
@@ -181,20 +179,10 @@ class ExpeditionAutomation:
 
         self.logger.info("Opening Campaign screen...")
 
-        # Try OCR first to find "Campaign" text
-        campaign_pos = self.ocr.detect_text_position(
-            ["Campaign", "campaign"],
-            self.coords.get_region('bottom_bar')  # Search in bottom bar region
-        )
-
-        if campaign_pos:
-            self.logger.info(f"Found Campaign via OCR at ({campaign_pos['x']}, {campaign_pos['y']})")
-            click_x, click_y = campaign_pos['x'], campaign_pos['y']
-        else:
-            # Fall back to hardcoded position
-            self.logger.info("Campaign not found via OCR, using fallback position")
-            click_x = self.campaign_button['x']
-            click_y = self.campaign_button['y']
+        # Use hardcoded position - OCR returns text position which doesn't align with button
+        click_x = self.campaign_button['x']
+        click_y = self.campaign_button['y']
+        self.logger.info(f"Clicking Campaign button at ({click_x}, {click_y})")
 
         if not self.bluestacks.click(click_x, click_y, self.click_delay_ms):
             self.logger.error("Failed to click Campaign button")
