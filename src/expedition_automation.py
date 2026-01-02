@@ -327,6 +327,10 @@ class ExpeditionAutomation:
                 self.logger.error("Failed to handle exit dialog")
                 return False
 
+        # Wait for screen to fully return to home before next action
+        self.logger.info("Waiting for screen to settle after expedition...")
+        time.sleep(3)
+
         return True
 
     def perform_expedition_collection(self):
