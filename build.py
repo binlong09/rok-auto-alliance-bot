@@ -97,6 +97,33 @@ def clean_build_artifacts(project_root):
         print_success(f"Cleaned {cleaned_count} directories")
 
 
+def ensure_config_ini(project_root):
+    """Ensure src/config.ini exists before PyInstaller bundles it.
+
+    config.ini is git-ignored (machine-specific), so a fresh clone won't
+    have it. If it's missing, bootstrap it from config.ini.example.
+    """
+    print_step("Checking config.ini...")
+
+    config_path = project_root / "src" / "config.ini"
+    example_path = project_root / "src" / "config.ini.example"
+
+    if config_path.exists():
+        print_success("src/config.ini found")
+        return
+
+    if example_path.exists():
+        shutil.copyfile(example_path, config_path)
+        print_success("src/config.ini not found; created from config.ini.example")
+        print_success("Review src/config.ini and adjust values for your setup")
+        return
+
+    raise BuildError(
+        "src/config.ini not found and src/config.ini.example is missing. "
+        "Create src/config.ini (see README) before building."
+    )
+
+
 def check_dependencies():
     """Check if required tools are available"""
     print_step("Checking dependencies...")
@@ -111,9 +138,9 @@ def check_dependencies():
             version = result.stdout.strip()
             print_success(f"PyInstaller {version}")
         else:
-            raise BuildError("PyInstaller not found. Install with: pip install pyinstaller")
+            raise BuildError("PyInstaller not found. Install with: pip install -r requirements-dev.txt")
     except FileNotFoundError:
-        raise BuildError("PyInstaller not found. Install with: pip install pyinstaller")
+        raise BuildError("PyInstaller not found. Install with: pip install -r requirements-dev.txt")
 
     # Check if spec file exists
     project_root = get_project_root()
@@ -246,6 +273,9 @@ def main():
         if args.clean:
             print_header("Clean completed")
             return 0
+
+        # Ensure config.ini exists (bundled by the spec file)
+        ensure_config_ini(project_root)
 
         # Check dependencies
         check_dependencies()
