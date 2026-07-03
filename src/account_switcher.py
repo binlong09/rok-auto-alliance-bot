@@ -31,10 +31,13 @@ import time
 import logging
 
 import timings
+from automation_base import StopCheckMixin
 
 
-class AccountSwitcher:
+class AccountSwitcher(StopCheckMixin):
     """Automates logging out and into a different account."""
+
+    STOP_CONTEXT = "account switching"
 
     def __init__(self, ocr_helper, screen_detector, bluestacks, coords, navigator,
                  recovery_manager, click_delay_ms=1000, game_load_wait_seconds=60,
@@ -86,13 +89,6 @@ class AccountSwitcher:
             email, password = entry.split(':', 1)
             accounts.append({'email': email.strip(), 'password': password.strip()})
         return accounts
-
-    def check_stop_requested(self):
-        """Check if automation should stop."""
-        if self.stop_check and self.stop_check():
-            self.logger.info("Stop requested during account switching")
-            return True
-        return False
 
     def open_account_screen(self):
         """

@@ -23,10 +23,13 @@ import time
 import logging
 
 import timings
+from automation_base import StopCheckMixin
 
 
-class VerifiedNavigator:
+class VerifiedNavigator(StopCheckMixin):
     """Click primitives that verify the result before moving on."""
+
+    STOP_CONTEXT = "navigation"
 
     def __init__(self, ocr_helper, screen_detector, bluestacks, coords,
                  click_delay_ms=1000, stop_check_callback=None):
@@ -46,13 +49,6 @@ class VerifiedNavigator:
         self.coords = coords
         self.click_delay_ms = click_delay_ms
         self.stop_check = stop_check_callback
-
-    def check_stop_requested(self):
-        """Check if automation should stop."""
-        if self.stop_check and self.stop_check():
-            self.logger.info("Stop requested during navigation")
-            return True
-        return False
 
     def locate(self, description, template=None, texts=None, region=None,
                fallback_point=None, offset=None, template_offset=None,

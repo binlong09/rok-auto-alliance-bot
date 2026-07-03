@@ -9,10 +9,13 @@ import time
 import logging
 
 import timings
+from automation_base import StopCheckMixin
 
 
-class ScreenDetector:
+class ScreenDetector(StopCheckMixin):
     """Detects current game screen states using OCR."""
+
+    STOP_CONTEXT = "screen detection"
 
     def __init__(self, ocr_helper, coords, stop_check_callback=None):
         """
@@ -27,13 +30,6 @@ class ScreenDetector:
         self.ocr = ocr_helper
         self.coords = coords
         self.stop_check = stop_check_callback
-
-    def check_stop_requested(self):
-        """Check if automation should stop."""
-        if self.stop_check and self.stop_check():
-            self.logger.info("Stop requested during screen detection")
-            return True
-        return False
 
     def wait_for(self, predicate, timeout=10, interval=timings.POLL_INTERVAL,
                  description="screen state"):

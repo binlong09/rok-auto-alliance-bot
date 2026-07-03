@@ -10,6 +10,7 @@ import logging
 import subprocess
 
 import timings
+from automation_base import DialogCloserMixin
 from coordinate_manager import CoordinateManager
 from ocr_helper import OCRHelper
 from screen_detector import ScreenDetector
@@ -22,8 +23,10 @@ from account_switcher import AccountSwitcher
 from recovery_manager import RecoveryManager
 
 
-class RoKGameController:
+class RoKGameController(DialogCloserMixin):
     """Controller for Rise of Kingdoms game operations."""
+
+    STOP_CONTEXT = "RoK operation"
 
     def __init__(self, config_manager, bluestacks_controller,
                  daily_task_tracker=None, force_daily_tasks=False):
@@ -170,12 +173,15 @@ class RoKGameController:
         # Accounts configured for account rotation ([Accounts] in config.ini)
         self.accounts = AccountSwitcher.parse_accounts(config_manager)
 
-    def check_stop_requested(self):
-        """Check if automation should stop."""
-        if self.stop_check_callback and self.stop_check_callback():
-            self.logger.info("Stop requested during RoK operation")
-            return True
-        return False
+    @property
+    def stop_check_callback(self):
+        """Public name for the stop callback (the GUI/launcher set this);
+        aliased to self.stop_check, which the shared mixin reads."""
+        return self.stop_check
+
+    @stop_check_callback.setter
+    def stop_check_callback(self, value):
+        self.stop_check = value
 
     def is_rok_process_running(self):
         """Check whether the RoK process is actually running on the device.
@@ -295,21 +301,6 @@ class RoKGameController:
         if not self.bluestacks.click(pos['x'], pos['y'], self.click_delay_ms):
             self.logger.error("Failed to dismiss loading screen")
             return False
-        return True
-
-    def close_dialogs(self):
-        """Close any open dialogs using escape key."""
-        if self.check_stop_requested():
-            return False
-
-        self.logger.info("Closing dialogs")
-
-        if self.bluestacks.send_escape():
-            self.logger.info("Sent escape key to close dialog")
-            time.sleep(timings.ACTION_SETTLE_WAIT)
-            return True
-
-        time.sleep(timings.ACTION_SETTLE_WAIT)
         return True
 
     def navigate_to_map(self):

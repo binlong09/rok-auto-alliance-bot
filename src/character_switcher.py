@@ -11,12 +11,15 @@ import logging
 import numpy as np
 
 import timings
+from automation_base import DialogCloserMixin
 from recovery_manager import RetryConfig, with_retry
 from daily_task_tracker import DailyTaskTracker
 
 
-class CharacterSwitcher:
+class CharacterSwitcher(DialogCloserMixin):
     """Automates character switching workflow with recovery support."""
+
+    STOP_CONTEXT = "character switching"
 
     def __init__(self, bluestacks, coords, screen_detector, build_automation, donation_automation,
                  expedition_automation, recovery_manager, navigator,
@@ -89,13 +92,6 @@ class CharacterSwitcher:
         self.character_positions_first_rotation = coords.get_character_grid('first_rotation')
         self.character_positions_after_scroll = coords.get_character_grid('after_scroll')
 
-    def check_stop_requested(self):
-        """Check if automation should stop."""
-        if self.stop_check and self.stop_check():
-            self.logger.info("Stop requested during character switching")
-            return True
-        return False
-
     def should_run_daily_task(self, task_name):
         """
         Check if a daily task should run for the current character.
@@ -129,20 +125,6 @@ class CharacterSwitcher:
         """
         if self.daily_tracker is not None:
             self.daily_tracker.mark_task_completed(self.current_character_index, task_name)
-
-    def close_dialogs(self):
-        """Close any open dialogs using escape key."""
-        if self.check_stop_requested():
-            return False
-
-        self.logger.info("Closing dialogs")
-        if self.bluestacks.send_escape():
-            self.logger.info("Sent escape key to close dialog")
-            time.sleep(timings.ACTION_SETTLE_WAIT)
-            return True
-
-        time.sleep(timings.ACTION_SETTLE_WAIT)
-        return True
 
     def wait_for_game_load(self):
         """

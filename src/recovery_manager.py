@@ -15,6 +15,7 @@ from dataclasses import dataclass
 from typing import Callable, Optional
 
 import timings
+from automation_base import StopCheckMixin
 
 
 class GameScreen(Enum):
@@ -38,8 +39,10 @@ class RetryConfig:
     delay_between_retries: float = 2.0
 
 
-class RecoveryManager:
+class RecoveryManager(StopCheckMixin):
     """Manages error recovery and screen state detection."""
+
+    STOP_CONTEXT = "recovery"
 
     def __init__(self, screen_detector, bluestacks, coords,
                  click_delay_ms=1000, stop_check_callback=None):
@@ -63,13 +66,6 @@ class RecoveryManager:
         # Navigation coordinates
         self.map_button = coords.get_nav('map_button')
         self.exit_dialog_cancel = coords.get_nav('exit_dialog_cancel')
-
-    def check_stop_requested(self):
-        """Check if automation should stop."""
-        if self.stop_check and self.stop_check():
-            self.logger.info("Stop requested during recovery")
-            return True
-        return False
 
     def get_current_screen(self) -> GameScreen:
         """

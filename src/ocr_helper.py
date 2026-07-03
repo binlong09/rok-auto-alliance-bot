@@ -14,11 +14,14 @@ import pytesseract
 from pytesseract import Output
 
 import timings
+from automation_base import StopCheckMixin
 from template_matcher import TemplateMatcher
 
 
-class OCRHelper:
+class OCRHelper(StopCheckMixin):
     """Helper class for OCR operations and text detection."""
+
+    STOP_CONTEXT = "OCR operation"
 
     def __init__(self, bluestacks, coords, config, stop_check_callback=None, debug_mode=False):
         """
@@ -49,13 +52,6 @@ class OCRHelper:
         # Used as the first detection method for icon-only buttons that OCR
         # cannot read; silently unavailable until templates are captured.
         self.templates = TemplateMatcher(debug_mode=debug_mode)
-
-    def check_stop_requested(self):
-        """Check if automation should stop."""
-        if self.stop_check and self.stop_check():
-            self.logger.info("Stop requested during OCR operation")
-            return True
-        return False
 
     def preprocess_image_for_ocr(self, image):
         """
@@ -118,6 +114,54 @@ class OCRHelper:
             'original': gray
         }
 
+    def _prepare_region_images(self, text_region, upscale=False, debug_name=None):
+        """
+        Shared pipeline for region-based OCR: take a screenshot, clamp the
+        region to the screen bounds, crop, and preprocess.
+
+        Args:
+            text_region (dict, optional): Region to use {x, y, width, height};
+                defaults to the default text region
+            upscale (bool): Upscale the crop 2x (INTER_CUBIC) before
+                preprocessing for better OCR accuracy on small UI text. Only
+                safe for callers that don't map coordinates back to the screen.
+            debug_name (str, optional): Filename to save the cropped region to
+                when debug_mode is enabled
+
+        Returns:
+            tuple: (processed_images, region_x, region_y, screenshot),
+            or None if the screenshot failed
+        """
+        if text_region is None:
+            text_region = self.default_region
+
+        screenshot = self.bluestacks.take_screenshot()
+        if screenshot is None:
+            return None
+
+        height, width = screenshot.shape[:2]
+
+        # Adjust region bounds
+        region_x = min(text_region['x'], width - 1)
+        region_y = min(text_region['y'], height - 1)
+        region_width = min(text_region['width'], width - region_x)
+        region_height = min(text_region['height'], height - region_y)
+
+        cropped = screenshot[region_y:region_y + region_height, region_x:region_x + region_width]
+        if self.debug_mode and debug_name:
+            cv2.imwrite(debug_name, cropped)
+
+        if upscale:
+            cropped = cv2.resize(cropped, None, fx=2, fy=2, interpolation=cv2.INTER_CUBIC)
+
+        # Preprocess
+        if self.config.get_bool('OCR', 'preprocess_image', True):
+            processed_images = self.preprocess_image_for_ocr(cropped)
+        else:
+            processed_images = {'original': cropped}
+
+        return processed_images, region_x, region_y, screenshot
+
     def detect_text_in_region(self, keywords, text_region=None):
         """
         Detect if any of the keywords appear in the specified text region of the screen.
@@ -133,35 +177,14 @@ class OCRHelper:
             return False
 
         try:
-            if text_region is None:
-                text_region = self.default_region
-
-            screenshot = self.bluestacks.take_screenshot()
-            if screenshot is None:
-                return False
-
-            height, width = screenshot.shape[:2]
-
-            # Adjust region bounds
-            region_x = min(text_region['x'], width - 1)
-            region_y = min(text_region['y'], height - 1)
-            region_width = min(text_region['width'], width - region_x)
-            region_height = min(text_region['height'], height - region_y)
-
-            cropped = screenshot[region_y:region_y + region_height, region_x:region_x + region_width]
-            if self.debug_mode:
-                cv2.imwrite("text_region.png", cropped)
-
             # Upscale 2x for better OCR accuracy on small UI text. This is safe here
             # because this method only checks for keyword presence (returns True/False)
             # and does not return any coordinates, unlike detect_text_position().
-            upscaled = cv2.resize(cropped, None, fx=2, fy=2, interpolation=cv2.INTER_CUBIC)
-
-            # Preprocess
-            if self.config.get_bool('OCR', 'preprocess_image', True):
-                processed_images = self.preprocess_image_for_ocr(upscaled)
-            else:
-                processed_images = {'original': upscaled}
+            prepared = self._prepare_region_images(text_region, upscale=True,
+                                                   debug_name="text_region.png")
+            if prepared is None:
+                return False
+            processed_images, _, _, _ = prepared
 
             # Try different preprocessing methods
             for method_name, processed_image in processed_images.items():
@@ -208,33 +231,12 @@ class OCRHelper:
             return False
 
         try:
-            if text_region is None:
-                text_region = self.default_region
-
-            screenshot = self.bluestacks.take_screenshot()
-            if screenshot is None:
-                return False
-
-            height, width = screenshot.shape[:2]
-
-            # Adjust region bounds
-            region_x = min(text_region['x'], width - 1)
-            region_y = min(text_region['y'], height - 1)
-            region_width = min(text_region['width'], width - region_x)
-            region_height = min(text_region['height'], height - region_y)
-
-            cropped = screenshot[region_y:region_y + region_height, region_x:region_x + region_width]
-            if self.debug_mode:
-                cv2.imwrite("text_region.png", cropped)
-
             # Upscale 2x for better OCR accuracy on small UI text.
-            upscaled = cv2.resize(cropped, None, fx=2, fy=2, interpolation=cv2.INTER_CUBIC)
-
-            # Preprocess
-            if self.config.get_bool('OCR', 'preprocess_image', True):
-                processed_images = self.preprocess_image_for_ocr(upscaled)
-            else:
-                processed_images = {'original': upscaled}
+            prepared = self._prepare_region_images(text_region, upscale=True,
+                                                   debug_name="text_region.png")
+            if prepared is None:
+                return False
+            processed_images, _, _, _ = prepared
 
             compiled_pattern = re.compile(pattern)
 
@@ -282,28 +284,12 @@ class OCRHelper:
         target_texts = target_text if isinstance(target_text, list) else [target_text]
 
         try:
-            if text_region is None:
-                text_region = self.default_region
-
-            screenshot = self.bluestacks.take_screenshot()
-            if screenshot is None:
+            # No upscale here: the detected coordinates map back to screen pixels.
+            prepared = self._prepare_region_images(text_region, upscale=False,
+                                                   debug_name="text_search_region.png")
+            if prepared is None:
                 return None
-
-            height, width = screenshot.shape[:2]
-
-            region_x = min(text_region['x'], width - 1)
-            region_y = min(text_region['y'], height - 1)
-            region_width = min(text_region['width'], width - region_x)
-            region_height = min(text_region['height'], height - region_y)
-
-            cropped = screenshot[region_y:region_y + region_height, region_x:region_x + region_width]
-            if self.debug_mode:
-                cv2.imwrite("text_search_region.png", cropped)
-
-            if self.config.get_bool('OCR', 'preprocess_image', True):
-                processed_images = self.preprocess_image_for_ocr(cropped)
-            else:
-                processed_images = {'original': cropped}
+            processed_images, region_x, region_y, screenshot = prepared
 
             for method_name, processed_image in processed_images.items():
                 if self.check_stop_requested():

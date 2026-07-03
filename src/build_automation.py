@@ -13,10 +13,13 @@ import time
 import logging
 
 import timings
+from automation_base import DialogCloserMixin
 
 
-class BuildAutomation:
+class BuildAutomation(DialogCloserMixin):
     """Automates alliance build participation workflow."""
+
+    STOP_CONTEXT = "build automation"
 
     def __init__(self, ocr_helper, screen_detector, bluestacks, coords, navigator,
                  click_delay_ms=1000, stop_check_callback=None):
@@ -40,27 +43,6 @@ class BuildAutomation:
         self.nav = navigator
         self.click_delay_ms = click_delay_ms
         self.stop_check = stop_check_callback
-
-    def check_stop_requested(self):
-        """Check if automation should stop."""
-        if self.stop_check and self.stop_check():
-            self.logger.info("Stop requested during build automation")
-            return True
-        return False
-
-    def close_dialogs(self):
-        """Close any open dialogs using escape key."""
-        if self.check_stop_requested():
-            return False
-
-        self.logger.info("Closing dialogs")
-        if self.bluestacks.send_escape():
-            self.logger.info("Sent escape key to close dialog")
-            time.sleep(timings.ACTION_SETTLE_WAIT)
-            return True
-
-        time.sleep(timings.ACTION_SETTLE_WAIT)
-        return True
 
     def navigate_to_bookmark(self):
         """Navigate to bookmark screen from map screen and verify it opened."""

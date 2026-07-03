@@ -42,9 +42,10 @@ import time
 import logging
 
 import timings
+from automation_base import StopCheckMixin
 
 
-class ExpeditionAutomation:
+class ExpeditionAutomation(StopCheckMixin):
     """
     Automates expedition reward collection workflow.
 
@@ -55,6 +56,8 @@ class ExpeditionAutomation:
     4. Click chest positions to collect rewards
     5. Navigate back to home screen
     """
+
+    STOP_CONTEXT = "expedition automation"
 
     def __init__(self, ocr_helper, screen_detector, bluestacks, coords, navigator,
                  click_delay_ms=1000, stop_check_callback=None):
@@ -91,18 +94,6 @@ class ExpeditionAutomation:
 
         # OCR regions
         self.campaign_screen_region = coords.get_region('campaign_screen')
-
-    def check_stop_requested(self):
-        """
-        Check if automation should stop.
-
-        This is called frequently to allow graceful cancellation.
-        Returns True if stop was requested.
-        """
-        if self.stop_check and self.stop_check():
-            self.logger.info("Stop requested during expedition automation")
-            return True
-        return False
 
     def close_dialog(self):
         """
