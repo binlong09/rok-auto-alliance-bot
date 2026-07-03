@@ -5,6 +5,7 @@ import time
 import logging
 import threading
 import subprocess
+import queue
 from queue import Queue
 
 from instance_manager import InstanceManager
@@ -87,9 +88,13 @@ class AutomationThread(threading.Thread):
             # First check if the instance is actually running before trying to interact with it
             is_running = False
             if sys.platform == "win32":
-                check_instance_cmd = f'wmic process where "name=\'HD-Player.exe\' and commandline like \'%{bs_instance_name}%\'" get processid'
+                check_instance_cmd = [
+                    "wmic", "process", "where",
+                    f"name='HD-Player.exe' and commandline like '%{bs_instance_name}%'",
+                    "get", "processid"
+                ]
                 try:
-                    process_info = subprocess.run(check_instance_cmd, shell=True, capture_output=True, text=True,
+                    process_info = subprocess.run(check_instance_cmd, capture_output=True, text=True,
                                                   timeout=5)
                     process_output = process_info.stdout.strip()
                     is_running = 'ProcessId' in process_output and len(process_output.split('\n')) > 1
@@ -109,9 +114,12 @@ class AutomationThread(threading.Thread):
                     package_name = self.config_manager.get_config('RiseOfKingdoms', 'package_name',
                                                                   'com.lilithgame.roc.gp')
                     adb_device = bluestacks_controller.adb_device
-                    force_stop_cmd = f'"{bluestacks_controller.adb_path}" -s {adb_device} shell am force-stop {package_name}'
+                    force_stop_cmd = [
+                        bluestacks_controller.adb_path, "-s", adb_device,
+                        "shell", "am", "force-stop", package_name
+                    ]
                     self.log(f"Stopping RoK app with command: {force_stop_cmd}")
-                    subprocess.run(force_stop_cmd, shell=True, capture_output=True, timeout=10)
+                    subprocess.run(force_stop_cmd, capture_output=True, timeout=10)
 
                     # Add a delay to ensure app is fully stopped
                     time.sleep(2)
@@ -121,9 +129,13 @@ class AutomationThread(threading.Thread):
             # Now directly kill the process for the specific instance
             if sys.platform == "win32" and is_running:
                 # Find and kill the specific BlueStacks instance process
-                check_instance_cmd = f'wmic process where "name=\'HD-Player.exe\' and commandline like \'%{bs_instance_name}%\'" get processid'
+                check_instance_cmd = [
+                    "wmic", "process", "where",
+                    f"name='HD-Player.exe' and commandline like '%{bs_instance_name}%'",
+                    "get", "processid"
+                ]
                 try:
-                    process_info = subprocess.run(check_instance_cmd, shell=True, capture_output=True, text=True,
+                    process_info = subprocess.run(check_instance_cmd, capture_output=True, text=True,
                                                   timeout=5)
                     process_output = process_info.stdout.strip()
 
@@ -135,9 +147,9 @@ class AutomationThread(threading.Thread):
                                 pid = line.strip()
                                 self.log(f"Found process ID for instance {bs_instance_name}: {pid}")
                                 # Kill this specific PID
-                                kill_cmd = f'taskkill /F /PID {pid}'
+                                kill_cmd = ["taskkill", "/F", "/PID", pid]
                                 self.log(f"Killing process with command: {kill_cmd}")
-                                subprocess.run(kill_cmd, shell=True, capture_output=True, timeout=5)
+                                subprocess.run(kill_cmd, capture_output=True, timeout=5)
                     else:
                         self.log(f"No running process found for instance {bs_instance_name}")
                 except Exception as e:
@@ -145,7 +157,7 @@ class AutomationThread(threading.Thread):
             elif not sys.platform == "win32":
                 # On Linux/Mac, try to use pkill with instance name filter
                 self.log(f"Using pkill to terminate BlueStacks instance {bs_instance_name}")
-                subprocess.run(f"pkill -f 'BlueStacks.*{bs_instance_name}'", shell=True, capture_output=True,
+                subprocess.run(["pkill", "-f", f"BlueStacks.*{bs_instance_name}"], capture_output=True,
                                timeout=10)
 
             self.log(f"BlueStacks instance {bs_instance_name} closed")
@@ -383,9 +395,9 @@ class MultiInstanceLauncher:
 
     def _on_thread_complete(self, instance_id):
         """Called when an automation thread completes"""
-        # Remove from running threads
-        if instance_id in self.running_threads:
-            del self.running_threads[instance_id]
+        # Remove from running threads (tolerant of stop_instance not deleting it,
+        # or of this being called more than once for the same instance)
+        if self.running_threads.pop(instance_id, None) is not None:
             self.logger.info(f"Instance {instance_id} removed from running threads")
 
         # Send a final status update to refresh the UI
@@ -407,9 +419,11 @@ class MultiInstanceLauncher:
 
                 self.message_queue.task_done()
 
-            except Exception:
-                # Queue.Empty exception is expected
+            except queue.Empty:
+                # Expected when no message arrives within the timeout
                 pass
+            except Exception:
+                self.logger.exception("Unexpected error processing automation message")
 
     def launch_instance(self, instance_id, force_daily_tasks=False):
         """Launch automation for a specific instance"""
@@ -470,10 +484,11 @@ class MultiInstanceLauncher:
         # Log the stop request
         self.logger.info(f"Requested stop for instance {instance_id}")
 
-        # Remove from running threads
-        # Note: We don't wait for the thread to finish
-        # It will terminate on its own when it checks the stop event
-        del self.running_threads[instance_id]
+        # Note: We intentionally do NOT remove the instance from running_threads
+        # here. The thread hasn't actually stopped yet - it will terminate on its
+        # own when it checks the stop event, at which point _on_thread_complete
+        # removes it. Until then, get_running_instances() correctly reports it
+        # as still running (i.e. "stopping").
 
         return True
 

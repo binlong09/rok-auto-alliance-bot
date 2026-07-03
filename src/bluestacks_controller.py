@@ -40,8 +40,8 @@ class BlueStacksController:
                 self.logger.error(f"BlueStacks executable not found at: {self.bluestacks_exe_path}")
                 return False
 
-            cmd = f'"{self.bluestacks_exe_path}" --instance {self.bluestacks_instance_name}'
-            subprocess.Popen(cmd, shell=True)
+            cmd = [self.bluestacks_exe_path, "--instance", self.bluestacks_instance_name]
+            subprocess.Popen(cmd)
 
             self.logger.info(f"Waiting {self.wait_for_startup_seconds} seconds for BlueStacks to initialize...")
             time.sleep(self.wait_for_startup_seconds)
@@ -59,12 +59,12 @@ class BlueStacksController:
 
         try:
             # Connect to the device
-            connect_cmd = f'"{self.adb_path}" connect {self.adb_device}'
-            result = subprocess.run(connect_cmd, shell=True, capture_output=True, text=True)
+            connect_cmd = [self.adb_path, "connect", self.adb_device]
+            result = subprocess.run(connect_cmd, capture_output=True, text=True)
 
             # Verify connection
-            verify_cmd = f'"{self.adb_path}" devices'
-            verify_result = subprocess.run(verify_cmd, shell=True, capture_output=True, text=True)
+            verify_cmd = [self.adb_path, "devices"]
+            verify_result = subprocess.run(verify_cmd, capture_output=True, text=True)
 
             if self.adb_device not in verify_result.stdout:
                 self.logger.error(f"Failed to connect to ADB on device: {self.adb_device}")
@@ -100,15 +100,15 @@ class BlueStacksController:
         Retries with a short delay first, since a freshly-connected instance can
         briefly report "closed" before its shell channel is ready.
         """
-        check_cmd = f'"{self.adb_path}" -s {self.adb_device} shell echo ok'
+        check_cmd = [self.adb_path, "-s", self.adb_device, "shell", "echo", "ok"]
 
         for attempt in range(1, retries + 1):
             try:
-                result = subprocess.run(check_cmd, shell=True, capture_output=True, text=True)
+                result = subprocess.run(check_cmd, capture_output=True, text=True)
                 if "ok" in result.stdout:
                     return True
-            except Exception:
-                pass
+            except Exception as e:
+                self.logger.debug(f"ADB shell verification attempt {attempt} failed: {e}")
 
             if attempt < retries:
                 time.sleep(delay_seconds)
@@ -128,12 +128,12 @@ class BlueStacksController:
                 os.remove(screenshot_path)
 
             # Take screenshot command
-            screenshot_cmd = f'"{self.adb_path}" -s {self.adb_device} shell screencap -p /sdcard/screenshot.png'
-            subprocess.run(screenshot_cmd, shell=True, capture_output=True)
+            screenshot_cmd = [self.adb_path, "-s", self.adb_device, "shell", "screencap", "-p", "/sdcard/screenshot.png"]
+            subprocess.run(screenshot_cmd, capture_output=True)
 
             # Pull screenshot to PC
-            pull_cmd = f'"{self.adb_path}" -s {self.adb_device} pull /sdcard/screenshot.png {screenshot_path}'
-            subprocess.run(pull_cmd, shell=True, capture_output=True)
+            pull_cmd = [self.adb_path, "-s", self.adb_device, "pull", "/sdcard/screenshot.png", screenshot_path]
+            subprocess.run(pull_cmd, capture_output=True)
 
             # Check if screenshot was saved
             if not os.path.exists(screenshot_path):
@@ -184,8 +184,8 @@ class BlueStacksController:
         """Click at specific coordinates"""
         try:
             # Use ADB to simulate tap
-            tap_cmd = f'"{self.adb_path}" -s {self.adb_device} shell input tap {x} {y}'
-            result = subprocess.run(tap_cmd, shell=True, capture_output=True)
+            tap_cmd = [self.adb_path, "-s", self.adb_device, "shell", "input", "tap", str(x), str(y)]
+            result = subprocess.run(tap_cmd, capture_output=True)
 
             # Add delay after click
             time.sleep(delay_ms / 1000)
@@ -200,8 +200,11 @@ class BlueStacksController:
         """Swipe from one point to another"""
         try:
             # Use ADB to simulate swipe
-            swipe_cmd = f'"{self.adb_path}" -s {self.adb_device} shell input swipe {start_x} {start_y} {end_x} {end_y} {duration_ms}'
-            result = subprocess.run(swipe_cmd, shell=True, capture_output=True)
+            swipe_cmd = [
+                self.adb_path, "-s", self.adb_device, "shell", "input", "swipe",
+                str(start_x), str(start_y), str(end_x), str(end_y), str(duration_ms)
+            ]
+            result = subprocess.run(swipe_cmd, capture_output=True)
 
             # Add delay after swipe
             time.sleep(0.5)
@@ -216,8 +219,8 @@ class BlueStacksController:
         """Send escape key (back button in Android)"""
         try:
             # Use ADB to send back button keyevent
-            key_cmd = f'"{self.adb_path}" -s {self.adb_device} shell input keyevent 4'
-            result = subprocess.run(key_cmd, shell=True, capture_output=True)
+            key_cmd = [self.adb_path, "-s", self.adb_device, "shell", "input", "keyevent", "4"]
+            result = subprocess.run(key_cmd, capture_output=True)
 
             # Add delay after key press
             time.sleep(0.5)

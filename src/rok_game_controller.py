@@ -152,8 +152,11 @@ class RoKGameController:
         activity itself launched successfully.
         """
         try:
-            check_cmd = f'"{self.bluestacks.adb_path}" -s {self.bluestacks.adb_device} shell pidof {self.package_name}'
-            result = subprocess.run(check_cmd, shell=True, capture_output=True, text=True)
+            check_cmd = [
+                self.bluestacks.adb_path, "-s", self.bluestacks.adb_device,
+                "shell", "pidof", self.package_name
+            ]
+            result = subprocess.run(check_cmd, capture_output=True, text=True)
             return bool(result.stdout.strip())
         except Exception:
             return False
@@ -168,11 +171,14 @@ class RoKGameController:
         self.logger.info("Starting Rise of Kingdoms...")
         self.logger.info(f"package name: {self.package_name}")
 
-        start_cmd = f'"{self.bluestacks.adb_path}" -s {self.bluestacks.adb_device} shell am start -n {self.package_name}/{self.activity_name}'
+        start_cmd = [
+            self.bluestacks.adb_path, "-s", self.bluestacks.adb_device,
+            "shell", "am", "start", "-n", f"{self.package_name}/{self.activity_name}"
+        ]
 
         for attempt in range(1, max_retries + 1):
             try:
-                result = subprocess.run(start_cmd, shell=True, capture_output=True, text=True)
+                result = subprocess.run(start_cmd, capture_output=True, text=True)
 
                 if "Error" in result.stdout or "error" in result.stderr:
                     # The "am start" response itself failed, but the activity may
