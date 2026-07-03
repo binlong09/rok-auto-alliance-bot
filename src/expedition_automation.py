@@ -56,7 +56,7 @@ class ExpeditionAutomation:
     5. Navigate back to home screen
     """
 
-    def __init__(self, ocr_helper, screen_detector, bluestacks, coords,
+    def __init__(self, ocr_helper, screen_detector, bluestacks, coords, navigator,
                  click_delay_ms=1000, stop_check_callback=None):
         """
         Initialize the expedition automation.
@@ -66,6 +66,7 @@ class ExpeditionAutomation:
             screen_detector: ScreenDetector instance for screen state detection
             bluestacks: BlueStacksController instance for input (clicks, keys)
             coords: CoordinateManager instance for coordinates
+            navigator: VerifiedNavigator instance for verified clicks
             click_delay_ms: Delay between clicks in milliseconds
             stop_check_callback: Optional callback to check if automation should stop
         """
@@ -74,6 +75,7 @@ class ExpeditionAutomation:
         self.screen = screen_detector
         self.bluestacks = bluestacks
         self.coords = coords
+        self.nav = navigator
         self.click_delay_ms = click_delay_ms
         self.stop_check = stop_check_callback
 
@@ -155,81 +157,77 @@ class ExpeditionAutomation:
             return False
 
         # Check if already expanded using screen detector
-        if not self.screen.is_bottom_bar_expanded():
-            self.logger.info("Expanding bottom bar...")
-            if not self.bluestacks.click(self.expand_button['x'],
-                                         self.expand_button['y'],
-                                         self.click_delay_ms):
-                self.logger.error("Failed to click expand button")
-                return False
-            time.sleep(timings.ACTION_SETTLE_WAIT)
+        if self.screen.is_bottom_bar_expanded():
+            self.logger.info("Bottom bar is expanded")
+            return True
 
-        self.logger.info("Bottom bar is expanded")
-        return True
+        self.logger.info("Expanding bottom bar...")
+        return self.nav.click_and_verify(
+            "expand bottom bar button",
+            template='expand_button',
+            fallback_point=self.expand_button,
+            verify=self.screen.is_bottom_bar_expanded,
+            verify_timeout=5,
+        )
 
     def click_campaign(self):
         """
-        Click on the Campaign button to open Campaign screen.
-
-        Uses hardcoded position - OCR text position doesn't match button location.
+        Click on the Campaign button to open Campaign screen, verifying
+        the campaign screen actually opened.
 
         Returns:
-            bool: True if clicked successfully, False otherwise
+            bool: True if the campaign screen opened, False otherwise
         """
         if self.check_stop_requested():
             return False
 
         self.logger.info("Opening Campaign screen...")
 
-        # Use hardcoded position - OCR returns text position which doesn't align with button
-        click_x = self.campaign_button['x']
-        click_y = self.campaign_button['y']
-        self.logger.info(f"Clicking Campaign button at ({click_x}, {click_y})")
-
-        if not self.bluestacks.click(click_x, click_y, self.click_delay_ms):
-            self.logger.error("Failed to click Campaign button")
+        # OCR text position doesn't align with the button here, so the
+        # priority is template image -> fixed coordinates, verified by the
+        # campaign screen actually appearing.
+        if not self.nav.click_and_verify(
+            "Campaign button",
+            template='campaign_icon',
+            fallback_point=self.campaign_button,
+            verify=self.screen.is_in_campaign_screen,
+            verify_timeout=8,
+            settle_wait=timings.SCREEN_TRANSITION_WAIT,
+        ):
+            self.logger.error("Campaign screen did not open")
             return False
 
-        time.sleep(timings.SCREEN_TRANSITION_WAIT)  # Wait for Campaign screen to load
         self.logger.info("Campaign screen opened")
         return True
 
     def click_expedition(self):
         """
-        Click on Expedition from the Campaign screen.
+        Click on Expedition from the Campaign screen and verify the
+        expedition screen opened.
 
-        Strategy:
-        1. Try to find "Expedition" text using OCR
-        2. Fall back to hardcoded position if OCR fails
+        Strategy: template image -> OCR "Expedition" text -> fixed position.
 
         Returns:
-            bool: True if clicked successfully, False otherwise
+            bool: True if the expedition screen opened, False otherwise
         """
         if self.check_stop_requested():
             return False
 
         self.logger.info("Opening Expedition...")
 
-        # Try OCR first to find "Expedition" text
-        expedition_pos = self.ocr.detect_text_position(
-            ["Expedition", "expedition"],
-            self.campaign_screen_region
-        )
-
-        if expedition_pos:
-            self.logger.info(f"Found Expedition via OCR at ({expedition_pos['x']}, {expedition_pos['y']})")
-            click_x, click_y = expedition_pos['x'], expedition_pos['y']
-        else:
-            # Fall back to hardcoded position
-            self.logger.info("Expedition not found via OCR, using fallback position")
-            click_x = self.expedition_button['x']
-            click_y = self.expedition_button['y']
-
-        if not self.bluestacks.click(click_x, click_y, self.click_delay_ms):
-            self.logger.error("Failed to click Expedition button")
+        if not self.nav.click_and_verify(
+            "Expedition banner",
+            template='expedition_banner',
+            texts=["Expedition", "expedition"],
+            region=self.campaign_screen_region,
+            fallback_point=self.expedition_button,
+            verify=self.screen.is_in_expedition_screen,
+            verify_timeout=8,
+            settle_wait=timings.SCREEN_TRANSITION_WAIT,
+        ):
+            self.logger.error("Expedition screen did not open")
             return False
 
-        time.sleep(timings.SCREEN_TRANSITION_WAIT)  # Wait for Expedition screen to load
         self.logger.info("Expedition screen opened")
         return True
 

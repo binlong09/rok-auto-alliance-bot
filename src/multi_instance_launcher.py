@@ -311,39 +311,27 @@ class AutomationThread(threading.Thread):
                     self.close_bluestacks(bluestacks_controller)
                 return
 
-            # Wait for game to load with periodic stop checks
+            # Wait for game to load (returns early if already loaded)
             self.log("Waiting for Rise of Kingdoms to load")
             self.update_status("Game loading")
 
-            # Wait in intervals with stop checks
-            total_wait = rok_controller.game_load_wait_seconds
-            interval = timings.POLL_INTERVAL  # Check for stop every 2 seconds
-
-            # while-loop instead of range(): interval is a float now that it
-            # comes from timings, and range() only accepts ints.
-            remaining = total_wait
-            while remaining > 0:
-                if self.stop_event.is_set():
-                    self.log("Automation stopped during game loading")
-                    self.update_status("Stopped")
-                    if self.exit_after_complete and bluestacks_controller:
-                        self.log("Closing BlueStacks instance")
-                        self.close_bluestacks(bluestacks_controller)
-                    return
-
-                time.sleep(min(interval, remaining))
-                remaining -= interval
-
-            rok_controller.wait_for_game_load()
-
-            # Set stop check callback for RoK controller
             rok_controller.stop_check_callback = lambda: self.stop_event.is_set()
+            if not rok_controller.wait_for_game_load():
+                self.log("Automation stopped during game loading")
+                self.update_status("Stopped")
+                if self.exit_after_complete and bluestacks_controller:
+                    self.log("Closing BlueStacks instance")
+                    self.close_bluestacks(bluestacks_controller)
+                return
 
-            # Start character switching automation
-            self.log("Starting character switching automation")
+            # Start the automation (rotates accounts too when [Accounts] is configured)
+            if rok_controller.accounts:
+                self.log(f"Starting automation for {len(rok_controller.accounts)} account(s)")
+            else:
+                self.log("Starting character switching automation")
             self.update_status("Running character automation")
 
-            if rok_controller.switch_character():
+            if rok_controller.run_automation():
                 self.log("Character automation completed successfully")
                 self.update_status("Completed")
             else:

@@ -4,6 +4,10 @@ Build Automation - Handles alliance build/flag joining workflow.
 
 This module automates the process of finding and joining alliance builds,
 dispatching troops to construction projects.
+
+Navigation steps verify the resulting screen state (OCR / template
+matching) and poll for expected text instead of single-shot checks after
+fixed sleeps.
 """
 import time
 import logging
@@ -14,21 +18,26 @@ import timings
 class BuildAutomation:
     """Automates alliance build participation workflow."""
 
-    def __init__(self, ocr_helper, bluestacks, coords, click_delay_ms=1000, stop_check_callback=None):
+    def __init__(self, ocr_helper, screen_detector, bluestacks, coords, navigator,
+                 click_delay_ms=1000, stop_check_callback=None):
         """
         Initialize the build automation.
 
         Args:
             ocr_helper: OCRHelper instance for text detection
+            screen_detector: ScreenDetector instance for screen state detection
             bluestacks: BlueStacksController instance for input
             coords: CoordinateManager instance for coordinates
+            navigator: VerifiedNavigator instance for verified clicks
             click_delay_ms: Delay between clicks in milliseconds
             stop_check_callback: Optional callback to check if automation should stop
         """
         self.logger = logging.getLogger(__name__)
         self.ocr = ocr_helper
+        self.screen = screen_detector
         self.bluestacks = bluestacks
         self.coords = coords
+        self.nav = navigator
         self.click_delay_ms = click_delay_ms
         self.stop_check = stop_check_callback
 
@@ -54,19 +63,20 @@ class BuildAutomation:
         return True
 
     def navigate_to_bookmark(self):
-        """Navigate to bookmark screen from map screen."""
+        """Navigate to bookmark screen from map screen and verify it opened."""
         if self.check_stop_requested():
             return False
 
         self.logger.info("Navigating to bookmark screen")
 
-        bookmark_button = self.coords.get_nav('bookmark_button')
-        if not self.bluestacks.click(bookmark_button['x'], bookmark_button['y'], self.click_delay_ms):
-            self.logger.error("Failed to click on bookmark button")
-            return False
-
-        time.sleep(timings.SCREEN_TRANSITION_WAIT)
-        return True
+        return self.nav.click_and_verify(
+            "bookmark button",
+            template='bookmark_icon',
+            fallback_point=self.coords.get_nav('bookmark_button'),
+            verify=self.screen.is_in_bookmark_screen,
+            verify_timeout=8,
+            settle_wait=timings.SCREEN_TRANSITION_WAIT,
+        )
 
     def click_mid_of_screen(self):
         """Click at center of screen to select."""
@@ -87,8 +97,9 @@ class BuildAutomation:
         if self.check_stop_requested():
             return False
 
+        # Poll: the bookmark list may still be rendering when we get here
         one_troop_region = self.coords.get_region('one_troop')
-        result = self.ocr.detect_text_position("troop", one_troop_region)
+        result = self.ocr.wait_for_text_position("troop", one_troop_region, timeout=6)
         if not result:
             self.logger.error("Could not find '1 troop' text")
             return False
@@ -116,12 +127,13 @@ class BuildAutomation:
         if self.check_stop_requested():
             return False
 
+        # Poll: the flag info panel can take a moment to appear after
+        # selecting the flag in the middle of the screen.
         build_region = self.coords.get_region('build_button')
-        result = self.ocr.detect_text_position(["remaining", "time"], build_region)
+        result = self.ocr.wait_for_text_position(["remaining", "time"], build_region, timeout=8)
         if result:
             offset_y = self.coords.get_offset('build_button_offset_y')
             build_button_y = result['y'] + offset_y
-            time.sleep(timings.SCREEN_TRANSITION_WAIT)
             if not self.bluestacks.click(result['x'], build_button_y, self.click_delay_ms):
                 self.logger.error("Failed to click on build button")
                 return False
@@ -143,8 +155,7 @@ class BuildAutomation:
             return False
 
         tap_region = self.coords.get_region('tap_to_join')
-        time.sleep(timings.ACTION_SETTLE_WAIT)
-        result = self.ocr.detect_text_position("tap", tap_region)
+        result = self.ocr.wait_for_text_position("tap", tap_region, timeout=6)
         if result:
             if not self.bluestacks.click(result['x'], result['y'], self.click_delay_ms):
                 self.logger.error("Failed to click on tap to join button")
@@ -165,8 +176,7 @@ class BuildAutomation:
             return False
 
         new_troop_region = self.coords.get_region('new_troop')
-        time.sleep(timings.ACTION_SETTLE_WAIT)
-        result = self.ocr.detect_text_position("Dispatch", new_troop_region)
+        result = self.ocr.wait_for_text_position("Dispatch", new_troop_region, timeout=6)
         if result:
             # New troop button is 90px below the Dispatch text
             new_troop_button_y = result['y'] + 90
@@ -205,8 +215,18 @@ class BuildAutomation:
         if self.check_stop_requested():
             return False
 
-        march_button = self.coords.get_nav('march_button')
-        if not self.bluestacks.click(march_button['x'], march_button['y'], self.click_delay_ms):
+        # March button: template -> OCR "March" text -> fixed coordinates
+        march_target = self.nav.locate(
+            "March button",
+            template='march_button',
+            texts=["March", "MARCH"],
+            region=self.coords.get_region('march_screen'),
+            fallback_point=self.coords.get_nav('march_button'),
+        )
+        if march_target is None:
+            return False
+
+        if not self.bluestacks.click(march_target['x'], march_target['y'], self.click_delay_ms):
             self.logger.error("Failed to click march button")
             return False
 
@@ -233,8 +253,11 @@ class BuildAutomation:
         if navigate_to_map_callback:
             navigate_to_map_callback()
 
-        # Navigate to bookmark screen
-        self.navigate_to_bookmark()
+        # Navigate to bookmark screen (verified)
+        if not self.navigate_to_bookmark():
+            self.logger.warning("Could not open bookmark screen")
+            self.close_dialogs()
+            return True
 
         # Find the word 1 troop on screen and click on Go button
         # Then click on middle to select the flag
