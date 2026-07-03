@@ -6,23 +6,30 @@ This module automates the process of switching between characters in
 Rise of Kingdoms, navigating the character selection screen.
 Includes recovery and graceful degradation for failed characters.
 """
-import time
 import logging
+import time
+
 import numpy as np
 
+import timings
+from automation_base import DialogCloserMixin
 from recovery_manager import RetryConfig, with_retry
-from daily_task_tracker import DailyTaskTracker
 
 
-class CharacterSwitcher:
+class CharacterSwitcher(DialogCloserMixin):
     """Automates character switching workflow with recovery support."""
 
+    STOP_CONTEXT = "character switching"
+
     def __init__(self, bluestacks, coords, screen_detector, build_automation, donation_automation,
-                 expedition_automation, recovery_manager, num_of_chars=1, march_preset=1, click_delay_ms=1000,
+                 expedition_automation, recovery_manager, navigator,
+                 territory_automation=None,
+                 num_of_chars=1, march_preset=1, click_delay_ms=1000,
                  character_login_loading_time=3, game_load_wait_seconds=30,
                  will_perform_build=True, will_perform_donation=True, will_perform_expedition=True,
+                 will_perform_territory_claim=True,
                  stop_check_callback=None, navigate_to_map_callback=None,
-                 daily_task_tracker=None, force_daily_tasks=False):
+                 progress=None):
         """
         Initialize the character switcher.
 
@@ -34,6 +41,8 @@ class CharacterSwitcher:
             donation_automation: DonationAutomation instance for donation workflow
             expedition_automation: ExpeditionAutomation instance for expedition rewards
             recovery_manager: RecoveryManager instance for error recovery
+            navigator: VerifiedNavigator instance for verified clicks
+            territory_automation: TerritoryAutomation instance for territory RSS claim
             num_of_chars: Number of characters to switch through
             march_preset: March preset number to use for builds
             click_delay_ms: Delay between clicks in milliseconds
@@ -42,10 +51,9 @@ class CharacterSwitcher:
             will_perform_build: Whether to perform build automation
             will_perform_donation: Whether to perform donation automation
             will_perform_expedition: Whether to perform expedition collection
+            will_perform_territory_claim: Whether to claim territory resources
             stop_check_callback: Optional callback to check if automation should stop
             navigate_to_map_callback: Optional callback to navigate to map
-            daily_task_tracker: Optional DailyTaskTracker for tracking daily task completion
-            force_daily_tasks: If True, run daily tasks even if already completed today
         """
         self.logger = logging.getLogger(__name__)
         self.bluestacks = bluestacks
@@ -55,6 +63,8 @@ class CharacterSwitcher:
         self.donation = donation_automation
         self.expedition = expedition_automation
         self.recovery = recovery_manager
+        self.nav = navigator
+        self.territory = territory_automation
 
         # Configuration
         self.num_of_chars = num_of_chars
@@ -65,15 +75,17 @@ class CharacterSwitcher:
         self.will_perform_build = will_perform_build
         self.will_perform_donation = will_perform_donation
         self.will_perform_expedition = will_perform_expedition
+        self.will_perform_territory_claim = will_perform_territory_claim
 
-        # Daily task tracking
-        self.daily_tracker = daily_task_tracker
-        self.force_daily_tasks = force_daily_tasks
-        self.current_character_index = 0  # Track which character we're processing
+        self.current_character_index = 0
+        self.account_index = 0
 
         # Callbacks
         self.stop_check = stop_check_callback
         self.navigate_to_map = navigate_to_map_callback
+
+        # Progress tracking
+        self.progress = progress
 
         # Navigation coordinates
         self.avatar_icon = coords.get_nav('avatar_icon')
@@ -85,61 +97,6 @@ class CharacterSwitcher:
         self.character_positions_first_rotation = coords.get_character_grid('first_rotation')
         self.character_positions_after_scroll = coords.get_character_grid('after_scroll')
 
-    def check_stop_requested(self):
-        """Check if automation should stop."""
-        if self.stop_check and self.stop_check():
-            self.logger.info("Stop requested during character switching")
-            return True
-        return False
-
-    def should_run_daily_task(self, task_name):
-        """
-        Check if a daily task should run for the current character.
-
-        Args:
-            task_name: Task name (DailyTaskTracker.TASK_BUILD or TASK_EXPEDITION)
-
-        Returns:
-            bool: True if the task should run, False if it should be skipped
-        """
-        # If no tracker, always run
-        if self.daily_tracker is None:
-            return True
-
-        # If force mode is enabled, always run
-        if self.force_daily_tasks:
-            return True
-
-        # Check if task was already completed today
-        if self.daily_tracker.is_task_completed_today(self.current_character_index, task_name):
-            return False
-
-        return True
-
-    def mark_daily_task_completed(self, task_name):
-        """
-        Mark a daily task as completed for the current character.
-
-        Args:
-            task_name: Task name (DailyTaskTracker.TASK_BUILD or TASK_EXPEDITION)
-        """
-        if self.daily_tracker is not None:
-            self.daily_tracker.mark_task_completed(self.current_character_index, task_name)
-
-    def close_dialogs(self):
-        """Close any open dialogs using escape key."""
-        if self.check_stop_requested():
-            return False
-
-        self.logger.info("Closing dialogs")
-        if self.bluestacks.send_escape():
-            self.logger.info("Sent escape key to close dialog")
-            time.sleep(1)
-            return True
-
-        time.sleep(1)
-        return True
-
     def wait_for_game_load(self):
         """
         Wait for the game to load by detecting when the loading screen disappears.
@@ -150,37 +107,33 @@ class CharacterSwitcher:
         """
         self.logger.info("Waiting for game to load...")
 
+        time.sleep(timings.LONG_TRANSITION_WAIT)
+
         max_wait = self.game_load_wait_seconds
-        check_interval = 2
+        check_interval = timings.POLL_INTERVAL
         elapsed = 0
         loading_detected = False
 
-        # Poll until loading screen disappears or max time reached
         while elapsed < max_wait:
             if self.check_stop_requested():
                 return False
 
-            is_loading = self.screen.is_loading_screen()
-
-            if is_loading:
+            if self.screen.is_loading_screen():
                 loading_detected = True
                 self.logger.info(f"Loading screen detected, waiting... ({elapsed}s)")
             elif loading_detected:
-                # Loading screen was visible but now it's gone - game finished loading
                 self.logger.info("Loading screen finished, waiting 3s for game to initialize...")
-                time.sleep(3)
+                time.sleep(timings.LONG_TRANSITION_WAIT)
                 return True
-            else:
-                # No loading screen detected - might already be loaded or detection failed
-                # Continue checking for a bit in case loading hasn't started yet
-                pass
+            elif self.screen.is_in_home_village() or self.screen.is_in_map_screen():
+                self.logger.info("Game loaded (home/map screen detected)")
+                return True
 
             time.sleep(check_interval)
             elapsed += check_interval
 
-        # Max wait reached - proceed anyway
         self.logger.info(f"Max wait time ({max_wait}s) reached, proceeding...")
-        time.sleep(3)  # Still wait 3s buffer
+        time.sleep(timings.LONG_TRANSITION_WAIT)
         return True
 
     def scroll_down(self):
@@ -199,45 +152,70 @@ class CharacterSwitcher:
             self.logger.error("Failed to scroll down")
             return False
 
-        time.sleep(1.5)
+        time.sleep(timings.EXTENDED_SETTLE_WAIT)
         return True
 
     def open_character_selection(self):
-        """Open the character selection screen."""
+        """
+        Open the character selection screen, verifying each intermediate
+        screen (profile menu -> settings -> character list) actually opened
+        before moving on.
+        """
         if self.check_stop_requested():
             return False
 
         self.logger.info("Opening character selection screen")
 
-        # Click avatar icon in top left
-        self.logger.info("Clicking avatar icon")
-        if not self.bluestacks.click(self.avatar_icon['x'], self.avatar_icon['y'], self.click_delay_ms):
-            self.logger.error("Failed to click avatar icon")
+        # Step 1: avatar icon (top left) -> profile menu
+        if not self.nav.click_and_verify(
+            "avatar icon",
+            template='avatar_icon',
+            fallback_point=self.avatar_icon,
+            verify=self.screen.is_in_profile_menu,
+            verify_timeout=8,
+            settle_wait=timings.LONG_TRANSITION_WAIT,
+        ):
+            self.logger.error("Profile menu did not open after clicking avatar")
             return False
-
-        time.sleep(3)  # Increased wait for profile menu to appear
 
         if self.check_stop_requested():
             return False
 
-        # Click settings icon
-        self.logger.info("Clicking settings icon")
-        if not self.bluestacks.click(self.settings_icon['x'], self.settings_icon['y'], self.click_delay_ms):
-            self.logger.error("Failed to click settings icon")
+        # Step 2: settings button -> settings screen
+        # The OCR hit is the "Settings" label below the gear icon, so click
+        # above the text; the template hit is the gear itself.
+        if not self.nav.click_and_verify(
+            "settings button",
+            template='settings_icon',
+            texts=["Settings"],
+            region=self.coords.get_region('profile_menu'),
+            offset={'x': 0, 'y': -45},
+            fallback_point=self.settings_icon,
+            verify=self.screen.is_in_settings_screen,
+            verify_timeout=8,
+            settle_wait=timings.SCREEN_TRANSITION_WAIT,
+        ):
+            self.logger.error("Settings screen did not open")
             return False
-
-        time.sleep(2)
 
         if self.check_stop_requested():
             return False
 
-        # Click characters icon
-        self.logger.info("Clicking characters icon")
-        if not self.bluestacks.click(self.characters_icon['x'], self.characters_icon['y'], self.click_delay_ms):
-            self.logger.error("Failed to click characters icon")
+        # Step 3: characters button -> character selection list
+        # Same label-below-icon layout as the settings button.
+        if not self.nav.click_and_verify(
+            "characters button",
+            template='characters_icon',
+            texts=["Characters", "Character"],
+            region=self.coords.get_region('settings_screen'),
+            offset={'x': 0, 'y': -45},
+            fallback_point=self.characters_icon,
+            verify=self.screen.is_in_character_selection,
+            verify_timeout=12,
+            settle_wait=timings.CHARACTER_SELECT_LOAD_WAIT,
+        ):
+            self.logger.error("Character selection screen did not open")
             return False
-
-        time.sleep(6)
 
         self.logger.info("Character selection screen opened")
         return True
@@ -289,7 +267,7 @@ class CharacterSwitcher:
             if self.check_stop_requested():
                 return False
             self.scroll_down()
-            time.sleep(2)
+            time.sleep(timings.SCREEN_TRANSITION_WAIT)
 
         # Get position and click
         pos = self.get_character_position(index)
@@ -306,15 +284,31 @@ class CharacterSwitcher:
         Returns:
             bool: True if successful, False otherwise
         """
-        self.logger.info(f"Waiting {self.character_login_loading_time}s for character login screen...")
-        time.sleep(self.character_login_loading_time)
+        # Poll for the character login dialog instead of a single fixed-wait check.
+        # A single check right after a fixed sleep is prone to a race condition
+        # where the dialog hasn't finished rendering yet, causing the character
+        # to be incorrectly treated as skipped.
+        max_wait = 8  # total seconds to wait
+        poll_interval = timings.CHARACTER_LOGIN_POLL_INTERVAL  # check every 1.5s
+        elapsed = 0
+        is_login_screen = False
+
+        self.logger.info(f"Polling up to {max_wait}s for character login screen...")
+        while elapsed < max_wait:
+            if self.check_stop_requested():
+                return False
+
+            time.sleep(poll_interval)
+            elapsed += poll_interval
+
+            is_login_screen = self.screen.is_in_character_login()
+            self.logger.info(f"is_in_character_login() returned: {is_login_screen} (elapsed: {elapsed}s)")
+
+            if is_login_screen:
+                break
 
         if self.check_stop_requested():
             return False
-
-        # Check if this screen is now character login screen
-        is_login_screen = self.screen.is_in_character_login()
-        self.logger.info(f"is_in_character_login() returned: {is_login_screen}")
 
         if is_login_screen:
             # Click the "Yes" button to confirm character switch
@@ -329,27 +323,44 @@ class CharacterSwitcher:
             if self.check_stop_requested():
                 return False
         else:
-            # Character being selected is already the current one
-            # WARNING: This could mean click landed on wrong position or current character
-            self.logger.warning(
-                f"No character login dialog detected for character {self.current_character_index + 1}. "
-                f"This character may have been SKIPPED! Click might have hit current character or empty space."
+            # No login dialog: the clicked character is almost always the one
+            # we're ALREADY logged in as (starred characters keep their list
+            # position, so the current character can be sitting in the slot
+            # we just clicked - e.g. slot 1 shows a green checkmark). That is
+            # a normal case, not an error: the character is loaded, so just
+            # get back in-game and run its actions.
+            #
+            # Blind escape keys are NOT safe here - one escape too many lands
+            # on the home screen and opens the "Exit the game?" dialog, which
+            # then breaks every subsequent action. Use the state-aware
+            # recovery instead: it closes the characters/settings screens and
+            # verifies the home village is actually visible.
+            self.logger.info(
+                f"No character login dialog for character {self.current_character_index + 1} - "
+                "it is already the active character. Returning to the game screen."
             )
-            self.logger.info("Returning to main screen with 3 escape keys...")
-            for _ in range(3):
-                if self.check_stop_requested():
-                    return False
-                self.close_dialogs()
-                time.sleep(1)
+            if not self.recovery.return_to_home(max_attempts=5):
+                self.logger.error(
+                    "Could not return to the game screen after selecting the current character"
+                )
+                return False
 
         return True
+
+    def _track_task(self, task_name, success):
+        """Update progress tracking after a task runs."""
+        if self.progress is None:
+            return
+        if success:
+            self.progress.mark_task_completed(
+                self.account_index, self.current_character_index, task_name)
+        else:
+            self.progress.mark_task_failed(
+                self.account_index, self.current_character_index, task_name)
 
     def perform_character_actions(self):
         """
         Perform configured actions (build, donation, expedition) for the current character.
-
-        Daily tasks (build, expedition) are skipped if already completed today (UTC),
-        unless force_daily_tasks is enabled. Tech donation runs every cycle.
 
         Returns:
             bool: True if successful, False otherwise
@@ -359,32 +370,30 @@ class CharacterSwitcher:
 
         char_display = self.current_character_index + 1  # 1-based for logging
 
-        # Perform build automation (DAILY TASK)
         if self.will_perform_build:
-            if self.should_run_daily_task(DailyTaskTracker.TASK_BUILD):
-                self.logger.info(f"Performing build for character {char_display}")
-                if self.build.perform_build(self.march_preset, navigate_to_map_callback=self.navigate_to_map):
-                    self.mark_daily_task_completed(DailyTaskTracker.TASK_BUILD)
-            else:
-                self.logger.info(
-                    f"Skipping build for character {char_display} - already completed today (UTC)"
-                )
+            self.logger.info(f"Performing build for character {char_display}")
+            ok = self.build.perform_build(self.march_preset, navigate_to_map_callback=self.navigate_to_map)
+            self._track_task("build", ok)
 
         if self.check_stop_requested():
             return False
 
-        # Perform expedition reward collection (DAILY TASK)
         # Done before donation so screen is in cleaner state for character switch
         if self.will_perform_expedition:
-            if self.should_run_daily_task(DailyTaskTracker.TASK_EXPEDITION):
-                self.logger.info(f"Collecting expedition rewards for character {char_display}")
-                time.sleep(1)
-                if self.expedition.perform_expedition_collection():
-                    self.mark_daily_task_completed(DailyTaskTracker.TASK_EXPEDITION)
-            else:
-                self.logger.info(
-                    f"Skipping expedition for character {char_display} - already completed today (UTC)"
-                )
+            self.logger.info(f"Collecting expedition rewards for character {char_display}")
+            time.sleep(timings.ACTION_SETTLE_WAIT)
+            ok = self.expedition.perform_expedition_collection()
+            self._track_task("expedition", ok)
+
+        if self.check_stop_requested():
+            return False
+
+        # Claim alliance territory resources (SCHEDULED TASK - runs every cycle)
+        if self.will_perform_territory_claim and self.territory is not None:
+            self.logger.info(f"Claiming territory resources for character {char_display}")
+            time.sleep(timings.ACTION_SETTLE_WAIT)
+            ok = self.territory.perform_territory_claim()
+            self._track_task("territory", ok)
 
         if self.check_stop_requested():
             return False
@@ -393,8 +402,9 @@ class CharacterSwitcher:
         # Done last as it leaves screen in cleanest state for character switch
         if self.will_perform_donation:
             self.logger.info(f"Performing Alliance Donation for character {char_display}")
-            time.sleep(1)
-            self.donation.perform_recommended_tech_donation()
+            time.sleep(timings.ACTION_SETTLE_WAIT)
+            ok = self.donation.perform_recommended_tech_donation()
+            self._track_task("donation", ok)
 
         return True
 
@@ -415,20 +425,28 @@ class CharacterSwitcher:
         # Set current character index for daily task tracking
         self.current_character_index = index
 
-        # Open character selection screen
-        if not self.open_character_selection():
-            self.logger.error("Failed to open character selection screen")
-            return False
+        if index == 0:
+            # The first character in the list is always the one currently
+            # logged in, so skip the entire selection flow and just run
+            # its actions directly.
+            self.logger.info(
+                "Character 1 is already active — skipping character selection"
+            )
+        else:
+            # Open character selection screen
+            if not self.open_character_selection():
+                self.logger.error("Failed to open character selection screen")
+                return False
 
-        # Navigate to and click the character
-        if not self.navigate_to_character(index):
-            self.logger.error(f"Failed to navigate to character {index}")
-            return False
+            # Navigate to and click the character
+            if not self.navigate_to_character(index):
+                self.logger.error(f"Failed to navigate to character {index}")
+                return False
 
-        # Confirm switch or handle already-selected case
-        if not self.confirm_character_switch():
-            self.logger.error("Failed to confirm character switch")
-            return False
+            # Confirm switch or handle already-selected case
+            if not self.confirm_character_switch():
+                self.logger.error("Failed to confirm character switch")
+                return False
 
         # Perform actions for this character
         if not self.perform_character_actions():
@@ -437,7 +455,7 @@ class CharacterSwitcher:
 
         # Wait before switching to next character to ensure game is ready
         self.logger.info("Waiting 3 seconds before next character...")
-        time.sleep(3)
+        time.sleep(timings.LONG_TRANSITION_WAIT)
 
         return True
 
@@ -464,7 +482,18 @@ class CharacterSwitcher:
                 self.logger.info("Automation stopped during character switching")
                 break
 
+            if (self.progress
+                    and self.progress.is_character_completed(self.account_index, i)):
+                self.logger.info(
+                    f"Character {i + 1} already completed, skipping"
+                )
+                successful_characters += 1
+                continue
+
             self.logger.info(f"Processing character {i + 1} of {self.num_of_chars}")
+
+            if self.progress:
+                self.progress.mark_character_started(self.account_index, i)
 
             try:
                 # Process this character with retry support
@@ -472,17 +501,23 @@ class CharacterSwitcher:
                     successful_characters += 1
                     pos = self.get_character_position(i)
                     self.logger.info(f"Successfully completed character {i + 1} at position {pos}")
+                    if self.progress:
+                        self.progress.mark_character_completed(self.account_index, i)
                 else:
                     failed_characters.append(i + 1)  # 1-based for logging
                     self.logger.warning(
                         f"Character {i + 1} failed after retries, attempting recovery"
                     )
+                    if self.progress:
+                        self.progress.mark_character_failed(self.account_index, i)
                     # Try to return to home before next character
                     self.recovery.return_to_home(max_attempts=3)
 
             except Exception as e:
                 failed_characters.append(i + 1)
                 self.logger.error(f"Exception processing character {i + 1}: {e}")
+                if self.progress:
+                    self.progress.mark_character_failed(self.account_index, i)
                 # Try to return to home before next character
                 self.recovery.return_to_home(max_attempts=3)
 

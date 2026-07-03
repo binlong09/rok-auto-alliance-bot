@@ -1,19 +1,16 @@
 #!/usr/bin/env python3
-import os
-import sys
-import time
 import logging
-import threading
+import queue
 import subprocess
-import tkinter as tk
-from tkinter import ttk, messagebox
+import sys
+import threading
+import time
 from queue import Queue
 
-from instance_manager import InstanceManager
-from config_manager import ConfigManager
+import timings
 from bluestacks_controller import BlueStacksController
+from progress_manager import ProgressManager
 from rok_game_controller import RoKGameController
-from daily_task_tracker import DailyTaskTracker, get_tracker_path_for_instance
 
 
 class QueueLogHandler(logging.Handler):
@@ -44,19 +41,17 @@ class AutomationThread(threading.Thread):
     """Thread class for running automation on a specific instance"""
 
     def __init__(self, instance_id, instance_name, config_manager, queue, stop_event=None,
-                 exit_after_complete=True, force_daily_tasks=False, instances_dir=None,
-                 on_complete_callback=None):
+                 exit_after_complete=True, on_complete_callback=None, resume=False):
         super().__init__()
         self.instance_id = instance_id
         self.instance_name = instance_name
         self.config_manager = config_manager
-        self.queue = queue  # Message queue for communication with main thread
+        self.queue = queue
         self.stop_event = stop_event or threading.Event()
-        self.daemon = True  # Thread will exit when main program exits
-        self.exit_after_complete = exit_after_complete  # Whether to exit BlueStacks after completion
-        self.force_daily_tasks = force_daily_tasks  # Whether to run daily tasks even if completed today
-        self.instances_dir = instances_dir  # Directory containing instance configs
-        self.on_complete_callback = on_complete_callback  # Callback when thread completes
+        self.daemon = True
+        self.exit_after_complete = exit_after_complete
+        self.on_complete_callback = on_complete_callback
+        self.resume = resume
 
         # Set up logging
         self.logger = logging.getLogger(f"automation.{instance_id}")
@@ -89,9 +84,13 @@ class AutomationThread(threading.Thread):
             # First check if the instance is actually running before trying to interact with it
             is_running = False
             if sys.platform == "win32":
-                check_instance_cmd = f'wmic process where "name=\'HD-Player.exe\' and commandline like \'%{bs_instance_name}%\'" get processid'
+                check_instance_cmd = [
+                    "wmic", "process", "where",
+                    f"name='HD-Player.exe' and commandline like '%{bs_instance_name}%'",
+                    "get", "processid"
+                ]
                 try:
-                    process_info = subprocess.run(check_instance_cmd, shell=True, capture_output=True, text=True,
+                    process_info = subprocess.run(check_instance_cmd, capture_output=True, text=True,
                                                   timeout=5)
                     process_output = process_info.stdout.strip()
                     is_running = 'ProcessId' in process_output and len(process_output.split('\n')) > 1
@@ -111,21 +110,28 @@ class AutomationThread(threading.Thread):
                     package_name = self.config_manager.get_config('RiseOfKingdoms', 'package_name',
                                                                   'com.lilithgame.roc.gp')
                     adb_device = bluestacks_controller.adb_device
-                    force_stop_cmd = f'"{bluestacks_controller.adb_path}" -s {adb_device} shell am force-stop {package_name}'
+                    force_stop_cmd = [
+                        bluestacks_controller.adb_path, "-s", adb_device,
+                        "shell", "am", "force-stop", package_name
+                    ]
                     self.log(f"Stopping RoK app with command: {force_stop_cmd}")
-                    subprocess.run(force_stop_cmd, shell=True, capture_output=True, timeout=10)
+                    subprocess.run(force_stop_cmd, capture_output=True, timeout=10)
 
                     # Add a delay to ensure app is fully stopped
-                    time.sleep(2)
+                    time.sleep(timings.APP_STOP_WAIT)
                 except Exception as e:
                     self.log(f"Error force stopping RoK app: {e}")
 
             # Now directly kill the process for the specific instance
             if sys.platform == "win32" and is_running:
                 # Find and kill the specific BlueStacks instance process
-                check_instance_cmd = f'wmic process where "name=\'HD-Player.exe\' and commandline like \'%{bs_instance_name}%\'" get processid'
+                check_instance_cmd = [
+                    "wmic", "process", "where",
+                    f"name='HD-Player.exe' and commandline like '%{bs_instance_name}%'",
+                    "get", "processid"
+                ]
                 try:
-                    process_info = subprocess.run(check_instance_cmd, shell=True, capture_output=True, text=True,
+                    process_info = subprocess.run(check_instance_cmd, capture_output=True, text=True,
                                                   timeout=5)
                     process_output = process_info.stdout.strip()
 
@@ -137,9 +143,9 @@ class AutomationThread(threading.Thread):
                                 pid = line.strip()
                                 self.log(f"Found process ID for instance {bs_instance_name}: {pid}")
                                 # Kill this specific PID
-                                kill_cmd = f'taskkill /F /PID {pid}'
+                                kill_cmd = ["taskkill", "/F", "/PID", pid]
                                 self.log(f"Killing process with command: {kill_cmd}")
-                                subprocess.run(kill_cmd, shell=True, capture_output=True, timeout=5)
+                                subprocess.run(kill_cmd, capture_output=True, timeout=5)
                     else:
                         self.log(f"No running process found for instance {bs_instance_name}")
                 except Exception as e:
@@ -147,7 +153,7 @@ class AutomationThread(threading.Thread):
             elif not sys.platform == "win32":
                 # On Linux/Mac, try to use pkill with instance name filter
                 self.log(f"Using pkill to terminate BlueStacks instance {bs_instance_name}")
-                subprocess.run(f"pkill -f 'BlueStacks.*{bs_instance_name}'", shell=True, capture_output=True,
+                subprocess.run(["pkill", "-f", f"BlueStacks.*{bs_instance_name}"], capture_output=True,
                                timeout=10)
 
             self.log(f"BlueStacks instance {bs_instance_name} closed")
@@ -163,6 +169,7 @@ class AutomationThread(threading.Thread):
         """Run the automation sequence for this instance"""
         bluestacks_controller = None
         queue_handler = None
+        progress = None
 
         # List of logger names to capture for GUI display
         automation_loggers = [
@@ -178,6 +185,10 @@ class AutomationThread(threading.Thread):
         ]
 
         try:
+            # Apply any [Timings] overrides from this instance's config.ini
+            # before any timing-dependent component is created below.
+            timings.load_overrides(self.config_manager)
+
             # Set up queue handler to route verbose logs to GUI
             queue_handler = QueueLogHandler(self.queue, self.instance_id)
             queue_handler.setLevel(logging.INFO)
@@ -198,18 +209,28 @@ class AutomationThread(threading.Thread):
             adb_device = f"127.0.0.1:{adb_port}"
             bluestacks_controller.set_adb_device(adb_device)
 
-            # Create daily task tracker if instances_dir is provided
-            daily_tracker = None
-            if self.instances_dir:
-                tracker_path = get_tracker_path_for_instance(self.instances_dir, self.instance_id)
-                daily_tracker = DailyTaskTracker(tracker_path)
-                self.log(f"Daily task tracking enabled (force={self.force_daily_tasks})")
+            # Set up progress tracking
+            progress = ProgressManager(self.instance_id)
+            if self.resume:
+                if not progress.resume_session():
+                    self.log("No resumable session found, starting fresh")
+                    self.resume = False
+            if not self.resume:
+                task_config = {
+                    "build": self.config_manager.get_bool('RiseOfKingdoms', 'perform_build', True),
+                    "expedition": self.config_manager.get_bool('RiseOfKingdoms', 'perform_expedition', True),
+                    "territory": self.config_manager.get_bool('RiseOfKingdoms', 'perform_territory_claim', True),
+                    "donation": self.config_manager.get_bool('RiseOfKingdoms', 'perform_donation', True),
+                }
+                from account_switcher import AccountSwitcher
+                accounts = AccountSwitcher.parse_accounts(self.config_manager)
+                num_chars = self.config_manager.get_int(
+                    'RiseOfKingdoms', 'num_of_characters', 10)
+                progress.start_session(accounts, num_chars, task_config)
 
             # Initialize RoK controller
             rok_controller = RoKGameController(
-                self.config_manager, bluestacks_controller,
-                daily_task_tracker=daily_tracker,
-                force_daily_tasks=self.force_daily_tasks
+                self.config_manager, bluestacks_controller, progress=progress
             )
 
             # Check if stop requested
@@ -242,8 +263,35 @@ class AutomationThread(threading.Thread):
             self.update_status("Connecting to ADB")
 
             if not bluestacks_controller.connect_adb():
-                self.log("Failed to connect to ADB")
-                self.update_status("Failed to connect to ADB")
+                if bluestacks_controller.last_connect_error == "adb_disabled":
+                    self.log(
+                        "ADB debugging is disabled inside this BlueStacks instance. "
+                        "Open the instance -> Settings -> Advanced -> enable 'Android Debug Bridge (ADB)', "
+                        "then restart the instance."
+                    )
+                    self.update_status("ADB Disabled in Instance")
+                else:
+                    self.log("Failed to connect to ADB")
+                    self.update_status("Failed to connect to ADB")
+                if self.exit_after_complete and bluestacks_controller:
+                    self.log("Closing BlueStacks instance")
+                    self.close_bluestacks(bluestacks_controller)
+                return
+
+            # Verify the emulator resolution matches what the coordinate maps
+            # expect; on mismatch this rewrites bluestacks.conf, restarts the
+            # instance and reconnects ADB automatically.
+            self.log("Checking emulator screen resolution")
+            self.update_status("Checking resolution")
+
+            if not bluestacks_controller.ensure_correct_resolution():
+                self.log(
+                    f"Screen resolution is wrong (expected "
+                    f"{bluestacks_controller.expected_width}x{bluestacks_controller.expected_height}) "
+                    "and could not be fixed automatically. Set it manually in "
+                    "BlueStacks Settings > Display, then restart the instance."
+                )
+                self.update_status("Wrong resolution")
                 if self.exit_after_complete and bluestacks_controller:
                     self.log("Closing BlueStacks instance")
                     self.close_bluestacks(bluestacks_controller)
@@ -269,51 +317,49 @@ class AutomationThread(threading.Thread):
                     self.close_bluestacks(bluestacks_controller)
                 return
 
-            # Wait for game to load with periodic stop checks
+            # Wait for game to load (returns early if already loaded)
             self.log("Waiting for Rise of Kingdoms to load")
             self.update_status("Game loading")
 
-            # Wait in intervals with stop checks
-            total_wait = rok_controller.game_load_wait_seconds
-            interval = 2  # Check for stop every 2 seconds
-
-            for _ in range(0, total_wait, interval):
-                if self.stop_event.is_set():
-                    self.log("Automation stopped during game loading")
-                    self.update_status("Stopped")
-                    if self.exit_after_complete and bluestacks_controller:
-                        self.log("Closing BlueStacks instance")
-                        self.close_bluestacks(bluestacks_controller)
-                    return
-
-                time.sleep(min(interval, total_wait))
-                total_wait -= interval
-
-            rok_controller.wait_for_game_load()
-
-            # Set stop check callback for RoK controller
             rok_controller.stop_check_callback = lambda: self.stop_event.is_set()
+            if not rok_controller.wait_for_game_load():
+                self.log("Automation stopped during game loading")
+                self.update_status("Stopped")
+                if self.exit_after_complete and bluestacks_controller:
+                    self.log("Closing BlueStacks instance")
+                    self.close_bluestacks(bluestacks_controller)
+                return
 
-            # Start character switching automation
-            self.log("Starting character switching automation")
+            # Start the automation (rotates accounts too when [Accounts] is configured)
+            if rok_controller.accounts:
+                self.log(f"Starting automation for {len(rok_controller.accounts)} account(s)")
+            else:
+                self.log("Starting character switching automation")
+            if self.resume:
+                self.log("Resuming from previous progress")
             self.update_status("Running character automation")
 
-            if rok_controller.switch_character():
+            if rok_controller.run_automation(resume=self.resume):
                 self.log("Character automation completed successfully")
                 self.update_status("Completed")
+                progress.complete_session()
             else:
                 if self.stop_event.is_set():
                     self.log("Character automation stopped by user")
                     self.update_status("Stopped")
+                    progress.mark_interrupted()
                 else:
                     self.log("Character automation encountered issues")
                     self.update_status("Partial completion")
+                    progress.complete_session()
 
         except Exception as e:
             self.logger.error(f"Error in automation thread: {e}")
             self.logger.exception("Stack trace:")
             self.update_status(f"Error: {str(e)}")
             self.log(f"Error in automation: {str(e)}")
+            if progress:
+                progress.mark_interrupted()
 
         finally:
             # Remove queue handler from all loggers to prevent memory leaks
@@ -377,9 +423,9 @@ class MultiInstanceLauncher:
 
     def _on_thread_complete(self, instance_id):
         """Called when an automation thread completes"""
-        # Remove from running threads
-        if instance_id in self.running_threads:
-            del self.running_threads[instance_id]
+        # Remove from running threads (tolerant of stop_instance not deleting it,
+        # or of this being called more than once for the same instance)
+        if self.running_threads.pop(instance_id, None) is not None:
             self.logger.info(f"Instance {instance_id} removed from running threads")
 
         # Send a final status update to refresh the UI
@@ -401,12 +447,19 @@ class MultiInstanceLauncher:
 
                 self.message_queue.task_done()
 
-            except Exception:
-                # Queue.Empty exception is expected
+            except queue.Empty:
+                # Expected when no message arrives within the timeout
                 pass
+            except Exception:
+                self.logger.exception("Unexpected error processing automation message")
 
-    def launch_instance(self, instance_id, force_daily_tasks=False):
-        """Launch automation for a specific instance"""
+    def launch_instance(self, instance_id, resume=False):
+        """Launch automation for a specific instance.
+
+        Args:
+            instance_id: ID of the instance to launch.
+            resume: If True, resume from the last interrupted progress.
+        """
         # Check if instance is already running
         if instance_id in self.running_threads:
             self.logger.warning(f"Instance {instance_id} is already running")
@@ -435,9 +488,8 @@ class MultiInstanceLauncher:
             queue=self.message_queue,
             stop_event=stop_event,
             exit_after_complete=self.exit_after_complete,
-            force_daily_tasks=force_daily_tasks,
-            instances_dir=self.instance_manager.instances_dir,
-            on_complete_callback=self._on_thread_complete
+            on_complete_callback=self._on_thread_complete,
+            resume=resume,
         )
 
         # Store thread and stop event
@@ -464,136 +516,27 @@ class MultiInstanceLauncher:
         # Log the stop request
         self.logger.info(f"Requested stop for instance {instance_id}")
 
-        # Remove from running threads
-        # Note: We don't wait for the thread to finish
-        # It will terminate on its own when it checks the stop event
-        del self.running_threads[instance_id]
+        # Note: We intentionally do NOT remove the instance from running_threads
+        # here. The thread hasn't actually stopped yet - it will terminate on its
+        # own when it checks the stop event, at which point _on_thread_complete
+        # removes it. Until then, get_running_instances() correctly reports it
+        # as still running (i.e. "stopping").
 
         return True
 
     def stop_all_instances(self):
-        """Stop all running instances with improved user feedback"""
-        running_instances = self.launcher.get_running_instances()
+        """Stop all currently running instances.
 
-        if not running_instances:
-            messagebox.showinfo("None Running", "No instances are currently running.")
-            return
+        GUI-facing concerns (confirmation dialogs, progress windows, status
+        updates) belong to the caller (MultiInstanceManagerGUI.stop_all_instances) -
+        this just signals every running instance to stop.
+        """
+        running_instances = self.get_running_instances()
 
-        # Confirm with user
-        result = messagebox.askyesno(
-            "Stop All",
-            f"Stop automation for {len(running_instances)} running instances?"
-        )
+        for instance_id in running_instances:
+            self.stop_instance(instance_id)
 
-        if not result:
-            return
-
-        # Disable Stop All button during operation
-        stop_all_button = None
-        for widget in self.root.winfo_children():
-            if isinstance(widget, ttk.Frame):
-                for child in widget.winfo_children():
-                    if isinstance(child, ttk.Frame):
-                        for button in child.winfo_children():
-                            if isinstance(button, ttk.Button) and button['text'] == "Stop All":
-                                stop_all_button = button
-                                button.config(state=tk.DISABLED)
-                                break
-
-        # Show stopping progress
-        progress_window = tk.Toplevel(self.root)
-        progress_window.title("Stopping Instances")
-        progress_window.geometry("400x200")
-        progress_window.transient(self.root)
-        progress_window.grab_set()
-
-        ttk.Label(progress_window, text=f"Stopping {len(running_instances)} instances...",
-                  font=("", 12, "bold")).pack(pady=10)
-
-        # Add progress bar
-        progress = ttk.Progressbar(progress_window, orient="horizontal", length=300, mode="determinate")
-        progress.pack(pady=10)
-        progress["maximum"] = len(running_instances)
-        progress["value"] = 0
-
-        # Status text
-        status_var = tk.StringVar(value="Initiating stop commands...")
-        ttk.Label(progress_window, textvariable=status_var).pack(pady=5)
-
-        # List of instances being stopped
-        stopping_frame = ttk.Frame(progress_window)
-        stopping_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=5)
-        stopping_list = tk.Text(stopping_frame, height=5, width=40)
-        stopping_list.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
-        scrollbar = ttk.Scrollbar(stopping_frame, orient=tk.VERTICAL, command=stopping_list.yview)
-        scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
-        stopping_list.config(yscrollcommand=scrollbar.set)
-
-        # Stop instances one by one to provide visual feedback
-        def stop_instances_with_progress():
-            try:
-                # Get instance names for nicer display
-                instance_names = {}
-                for instance_id in running_instances:
-                    instance = self.instance_manager.get_instance(instance_id)
-                    if instance:
-                        instance_names[instance_id] = instance["name"]
-                    else:
-                        instance_names[instance_id] = f"Instance {instance_id}"
-
-                # Stop each instance with feedback
-                for i, instance_id in enumerate(running_instances):
-                    instance_name = instance_names.get(instance_id, f"Instance {instance_id}")
-
-                    # Update progress window
-                    self.root.after_idle(lambda: status_var.set(f"Stopping {instance_name}..."))
-                    self.root.after_idle(lambda: stopping_list.insert(tk.END, f"Stopping {instance_name}...\n"))
-                    self.root.after_idle(lambda: stopping_list.see(tk.END))
-                    self.root.after_idle(lambda: progress.config(value=i))
-
-                    # Stop the instance
-                    self.launcher.stop_instance(instance_id)
-
-                    # Update status in the main UI
-                    self.root.after_idle(lambda id=instance_id: self.update_instance_status(id, "Stopping"))
-
-                    # Small delay for visual feedback
-                    time.sleep(0.5)
-
-                # All instances are being stopped
-                self.root.after_idle(lambda: status_var.set("All instances are stopping..."))
-                self.root.after_idle(lambda: progress.config(value=len(running_instances)))
-
-                # Wait a moment before closing the progress window
-                time.sleep(2)
-
-                # Final update to UI
-                self.root.after_idle(self.load_instances)
-                self.root.after_idle(lambda: self.on_instance_select(None))
-
-                # Re-enable the Stop All button if it exists
-                if stop_all_button:
-                    self.root.after_idle(lambda: stop_all_button.config(state=tk.NORMAL))
-
-                # Show completion message and close progress window
-                self.root.after_idle(lambda: messagebox.showinfo("Operation Complete",
-                                                                 f"Stop commands sent to {len(running_instances)} instances.\n\n"
-                                                                 "Instances will shut down shortly."))
-                self.root.after_idle(progress_window.destroy)
-
-            except Exception as e:
-                # Handle any errors
-                self.logger.error(f"Error in stop_all operation: {e}")
-                self.root.after_idle(lambda: messagebox.showerror("Error",
-                                                                  f"An error occurred while stopping instances: {str(e)}"))
-
-                # Make sure to re-enable button and close window
-                if stop_all_button:
-                    self.root.after_idle(lambda: stop_all_button.config(state=tk.NORMAL))
-                self.root.after_idle(progress_window.destroy)
-
-        # Run the stopping process in a separate thread
-        threading.Thread(target=stop_instances_with_progress, daemon=True).start()
+        self.logger.info(f"Requested stop for {len(running_instances)} instance(s)")
 
     def get_running_instances(self):
         """Get list of running instance IDs"""

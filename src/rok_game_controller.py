@@ -5,40 +5,48 @@ RoK Game Controller - Main orchestrator for Rise of Kingdoms automation.
 This is the main controller that coordinates game lifecycle and
 delegates specific automation tasks to specialized classes.
 """
-import time
 import logging
 import subprocess
+import time
 
-from coordinate_manager import CoordinateManager
-from ocr_helper import OCRHelper
-from screen_detector import ScreenDetector
+import timings
+from account_switcher import AccountSwitcher
+from automation_base import DialogCloserMixin
 from build_automation import BuildAutomation
+from character_switcher import CharacterSwitcher
+from coordinate_manager import CoordinateManager
 from donation_automation import DonationAutomation
 from expedition_automation import ExpeditionAutomation
-from character_switcher import CharacterSwitcher
+from navigation_helper import VerifiedNavigator
+from ocr_helper import OCRHelper
 from recovery_manager import RecoveryManager
+from screen_detector import ScreenDetector
+from territory_automation import TerritoryAutomation
 
 
-class RoKGameController:
+class RoKGameController(DialogCloserMixin):
     """Controller for Rise of Kingdoms game operations."""
 
-    def __init__(self, config_manager, bluestacks_controller,
-                 daily_task_tracker=None, force_daily_tasks=False):
+    STOP_CONTEXT = "RoK operation"
+
+    def __init__(self, config_manager, bluestacks_controller, progress=None):
         """
         Initialize the RoK game controller.
 
         Args:
             config_manager: ConfigManager instance
             bluestacks_controller: BlueStacksController instance
-            daily_task_tracker: Optional DailyTaskTracker for tracking daily task completion
-            force_daily_tasks: If True, run daily tasks even if already completed today
+            progress: Optional ProgressManager for tracking run progress
         """
         self.logger = logging.getLogger(__name__)
         self.config = config_manager
         self.bluestacks = bluestacks_controller
+        self.progress = progress
         self.stop_check_callback = None
-        self.daily_task_tracker = daily_task_tracker
-        self.force_daily_tasks = force_daily_tasks
+
+        # Apply any [Timings] overrides from config.ini. Safe to call more
+        # than once (e.g. also called earlier by the multi-instance launcher).
+        timings.load_overrides(config_manager)
 
         # Load RoK configurations
         rok_config = config_manager.get_rok_config()
@@ -85,10 +93,20 @@ class RoKGameController:
             self.coords,
             stop_check_callback=self.ocr.check_stop_requested
         )
-        self.build = BuildAutomation(
+        self.navigator = VerifiedNavigator(
             self.ocr,
+            self.screen,
             self.bluestacks,
             self.coords,
+            click_delay_ms=self.click_delay_ms,
+            stop_check_callback=self.ocr.check_stop_requested
+        )
+        self.build = BuildAutomation(
+            self.ocr,
+            self.screen,
+            self.bluestacks,
+            self.coords,
+            self.navigator,
             click_delay_ms=self.click_delay_ms,
             stop_check_callback=self.ocr.check_stop_requested
         )
@@ -97,6 +115,7 @@ class RoKGameController:
             self.screen,
             self.bluestacks,
             self.coords,
+            self.navigator,
             click_delay_ms=self.click_delay_ms,
             stop_check_callback=self.ocr.check_stop_requested
         )
@@ -112,6 +131,16 @@ class RoKGameController:
             self.screen,
             self.bluestacks,
             self.coords,
+            self.navigator,
+            click_delay_ms=self.click_delay_ms,
+            stop_check_callback=self.ocr.check_stop_requested
+        )
+        self.territory = TerritoryAutomation(
+            self.ocr,
+            self.screen,
+            self.bluestacks,
+            self.coords,
+            self.navigator,
             click_delay_ms=self.click_delay_ms,
             stop_check_callback=self.ocr.check_stop_requested
         )
@@ -123,6 +152,8 @@ class RoKGameController:
             self.donation,
             self.expedition,
             self.recovery,
+            self.navigator,
+            territory_automation=self.territory,
             num_of_chars=int(rok_config.get('num_of_characters', 1)),
             march_preset=int(rok_config.get('march_preset', 1)),
             click_delay_ms=self.click_delay_ms,
@@ -131,52 +162,154 @@ class RoKGameController:
             will_perform_build=config_manager.get_bool('RiseOfKingdoms', 'perform_build', True),
             will_perform_donation=config_manager.get_bool('RiseOfKingdoms', 'perform_donation', True),
             will_perform_expedition=config_manager.get_bool('RiseOfKingdoms', 'perform_expedition', True),
+            will_perform_territory_claim=config_manager.get_bool('RiseOfKingdoms', 'perform_territory_claim', True),
             stop_check_callback=self.ocr.check_stop_requested,
             navigate_to_map_callback=self.navigate_to_map,
-            daily_task_tracker=self.daily_task_tracker,
-            force_daily_tasks=self.force_daily_tasks
+            progress=self.progress,
         )
+        self.account_switcher = AccountSwitcher(
+            self.ocr,
+            self.screen,
+            self.bluestacks,
+            self.coords,
+            self.navigator,
+            self.recovery,
+            click_delay_ms=self.click_delay_ms,
+            game_load_wait_seconds=max(60, self.game_load_wait_seconds),
+            stop_check_callback=self.ocr.check_stop_requested
+        )
+        # Accounts configured for account rotation ([Accounts] in config.ini)
+        self.accounts = AccountSwitcher.parse_accounts(config_manager)
 
-    def check_stop_requested(self):
-        """Check if automation should stop."""
-        if self.stop_check_callback and self.stop_check_callback():
-            self.logger.info("Stop requested during RoK operation")
-            return True
-        return False
+    @property
+    def stop_check_callback(self):
+        """Public name for the stop callback (the GUI/launcher set this);
+        aliased to self.stop_check, which the shared mixin reads."""
+        return self.stop_check
 
-    def start_game(self):
-        """Start Rise of Kingdoms app."""
-        self.logger.info("Starting Rise of Kingdoms...")
-        self.logger.info(f"package name: {self.package_name}")
+    @stop_check_callback.setter
+    def stop_check_callback(self, value):
+        self.stop_check = value
+
+    def is_rok_process_running(self):
+        """Check whether the RoK process is actually running on the device.
+
+        Used as a fallback check because "am start" can report a transport
+        error (e.g. "error: closed") on the response channel even when the
+        activity itself launched successfully.
+        """
         try:
-            start_cmd = f'"{self.bluestacks.adb_path}" -s {self.bluestacks.adb_device} shell am start -n {self.package_name}/{self.activity_name}'
-            result = subprocess.run(start_cmd, shell=True, capture_output=True, text=True)
-
-            if "Error" in result.stdout or "error" in result.stderr:
-                self.logger.error(f"Failed to start Rise of Kingdoms: {result.stderr}")
-                return False
-
-            self.logger.info("Rise of Kingdoms started successfully")
-            return True
-
-        except Exception as e:
-            self.logger.error(f"Error starting Rise of Kingdoms: {e}")
+            check_cmd = [
+                self.bluestacks.adb_path, "-s", self.bluestacks.adb_device,
+                "shell", "pidof", self.package_name
+            ]
+            result = subprocess.run(check_cmd, capture_output=True, text=True,
+                                    timeout=15)
+            return bool(result.stdout.strip())
+        except subprocess.TimeoutExpired:
+            self.logger.error("ADB pidof check timed out")
+            return False
+        except Exception:
             return False
 
+    def start_game(self, max_retries=3, retry_delay_seconds=timings.ADB_RETRY_DELAY):
+        """Start Rise of Kingdoms app.
+
+        Retries on transient ADB transport errors (e.g. "error: closed"), which
+        happen when the ADB bridge reports the device as connected slightly
+        before it is actually ready to accept shell commands.
+        """
+        self.logger.info("Starting Rise of Kingdoms...")
+        self.logger.info(f"package name: {self.package_name}")
+
+        start_cmd = [
+            self.bluestacks.adb_path, "-s", self.bluestacks.adb_device,
+            "shell", "am", "start", "-n", f"{self.package_name}/{self.activity_name}"
+        ]
+
+        for attempt in range(1, max_retries + 1):
+            try:
+                result = subprocess.run(start_cmd, capture_output=True, text=True,
+                                        timeout=15)
+
+                if "Error" in result.stdout or "error" in result.stderr:
+                    # The "am start" response itself failed, but the activity may
+                    # have launched anyway before the ADB transport dropped the
+                    # connection. Verify actual process state before giving up.
+                    time.sleep(timings.EXTENDED_SETTLE_WAIT)
+                    if self.is_rok_process_running():
+                        self.logger.info(
+                            f"Rise of Kingdoms is running despite reported ADB error: {result.stderr.strip()}"
+                        )
+                        return True
+
+                    self.logger.error(f"Failed to start Rise of Kingdoms (attempt {attempt}/{max_retries}): {result.stderr}")
+                    if attempt < max_retries:
+                        time.sleep(retry_delay_seconds)
+                        continue
+                    return False
+
+                self.logger.info("Rise of Kingdoms started successfully")
+                return True
+
+            except Exception as e:
+                self.logger.error(f"Error starting Rise of Kingdoms (attempt {attempt}/{max_retries}): {e}")
+                if attempt < max_retries:
+                    time.sleep(retry_delay_seconds)
+                    continue
+                return False
+
+        return False
+
     def wait_for_game_load(self):
-        """Wait for the game to load with stop check capability."""
-        self.logger.info(f"Waiting {self.game_load_wait_seconds} seconds for game to load...")
+        """Wait for the game to load, returning early once the loading screen
+        disappears or the home/map screen is detected."""
+        self.logger.info(f"Waiting for game to load (max {self.game_load_wait_seconds}s)...")
 
-        total_wait = self.game_load_wait_seconds
-        interval = 2
+        grace = timings.GAME_STARTUP_GRACE
+        self.logger.info(f"Waiting {grace:.0f}s for game to initialize before polling...")
+        grace_step = 1.0
+        grace_elapsed = 0.0
+        while grace_elapsed < grace:
+            if self.check_stop_requested():
+                return False
+            time.sleep(min(grace_step, grace - grace_elapsed))
+            grace_elapsed += grace_step
 
-        while total_wait > 0:
+        max_wait = self.game_load_wait_seconds
+        interval = timings.POLL_INTERVAL
+        elapsed = 0
+        loading_detected = False
+        game_screen_detected = False
+
+        while elapsed < max_wait:
             if self.check_stop_requested():
                 return False
 
-            time.sleep(min(interval, total_wait))
-            total_wait -= interval
+            if self.screen.is_loading_screen():
+                loading_detected = True
+                self.logger.info(f"Loading screen detected ({elapsed:.0f}s)")
+            elif loading_detected:
+                self.logger.info("Loading finished, waiting 3s for game to initialize...")
+                time.sleep(timings.LONG_TRANSITION_WAIT)
+                return True
+            elif self.screen.is_in_home_village() or self.screen.is_in_map_screen():
+                self.logger.info("Game already loaded (home/map screen detected)")
+                game_screen_detected = True
+                return True
 
+            time.sleep(min(interval, max_wait - elapsed))
+            elapsed += interval
+
+        if loading_detected or game_screen_detected:
+            self.logger.info(f"Max wait ({max_wait}s) reached, proceeding...")
+            time.sleep(timings.LONG_TRANSITION_WAIT)
+            return True
+
+        self.logger.warning(
+            f"Max wait ({max_wait}s) reached without detecting loading or game screen"
+        )
+        time.sleep(timings.LONG_TRANSITION_WAIT)
         return True
 
     def click_mid_of_screen(self):
@@ -197,21 +330,6 @@ class RoKGameController:
             return False
         return True
 
-    def close_dialogs(self):
-        """Close any open dialogs using escape key."""
-        if self.check_stop_requested():
-            return False
-
-        self.logger.info("Closing dialogs")
-
-        if self.bluestacks.send_escape():
-            self.logger.info("Sent escape key to close dialog")
-            time.sleep(1)
-            return True
-
-        time.sleep(1)
-        return True
-
     def navigate_to_map(self):
         """Click on map button and check if we're on the map view now."""
         if self.check_stop_requested():
@@ -225,7 +343,7 @@ class RoKGameController:
                     self.logger.error("Failed to click on map button")
                     return False
                 self.logger.info("Clicked on map button because screen was on home village")
-                time.sleep(4)  # Increased wait time for map to fully load after character switch
+                time.sleep(timings.MAP_LOAD_WAIT)  # Increased wait time for map to fully load after character switch
 
             return True
 
@@ -245,3 +363,90 @@ class RoKGameController:
             bool: True if completed successfully, False otherwise
         """
         return self.character_switcher.switch_all_characters(start_from)
+
+    def switch_account(self, email, password):
+        """
+        Log out of the current account and log in as the given account.
+
+        Args:
+            email: Account email address
+            password: Account password
+
+        Returns:
+            bool: True if the switch succeeded
+        """
+        return self.account_switcher.switch_to_account(email, password)
+
+    def run_automation(self, resume=False):
+        """
+        Run the full automation cycle.
+
+        With an [Accounts] section configured, rotates through every account
+        (switching login between them) and runs the character automation for
+        each. Without one, behaves exactly like the old flow: character
+        automation on the currently logged-in account only.
+
+        Args:
+            resume: If True and a ProgressManager is attached, skip
+                accounts/characters already marked as completed.
+
+        Returns:
+            bool: True if every account/character completed successfully
+        """
+        if not self.accounts:
+            start_char = 0
+            self.character_switcher.account_index = 0
+            if resume and self.progress:
+                start_char = self.progress.get_resume_character_index(0) or 0
+                if start_char > 0:
+                    self.logger.info(f"Resuming from character {start_char + 1}")
+            if self.progress:
+                self.progress.mark_account_started(0)
+            result = self.switch_character(start_from=start_char)
+            if self.progress:
+                self.progress.mark_account_completed(0)
+            return result
+
+        self.logger.info(f"Account rotation enabled: {len(self.accounts)} account(s) configured")
+        all_success = True
+
+        start_account = 0
+        if resume and self.progress:
+            start_account = self.progress.get_resume_account_index() or 0
+            if start_account > 0:
+                self.logger.info(
+                    f"Resuming from account {start_account + 1}/{len(self.accounts)}"
+                )
+
+        for idx in range(start_account, len(self.accounts)):
+            if self.check_stop_requested():
+                break
+
+            account = self.accounts[idx]
+            email = account['email']
+            self.logger.info(f"Processing account {idx + 1}/{len(self.accounts)}: {email}")
+
+            if self.progress:
+                self.progress.mark_account_started(idx)
+
+            self.character_switcher.account_index = idx
+            start_char = 0
+            if resume and self.progress:
+                start_char = self.progress.get_resume_character_index(idx) or 0
+
+            if not self.switch_account(email, account['password']):
+                self.logger.error(f"Failed to switch to account {email}, skipping it")
+                all_success = False
+                if self.progress:
+                    self.progress.mark_account_skipped(idx)
+                self.recovery.return_to_home(max_attempts=5)
+                continue
+
+            if not self.switch_character(start_from=start_char):
+                self.logger.warning(f"Character automation reported failures for {email}")
+                all_success = False
+
+            if self.progress:
+                self.progress.mark_account_completed(idx)
+
+        return all_success

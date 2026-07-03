@@ -5,9 +5,9 @@ Coordinate Manager - Centralized management of all UI coordinates.
 This module loads coordinates from coordinates.json and provides
 typed access methods for points, regions, and other coordinate data.
 """
-import os
 import json
 import logging
+import os
 
 
 class CoordinateManager:
@@ -40,7 +40,7 @@ class CoordinateManager:
                 self.logger.error(f"Coordinates file not found: {self.config_path}")
                 raise FileNotFoundError(f"Coordinates file not found: {self.config_path}")
 
-            with open(self.config_path, 'r') as f:
+            with open(self.config_path) as f:
                 self.data = json.load(f)
 
             self.logger.info(f"Loaded coordinates for resolution: {self.data.get('resolution', 'unknown')}")

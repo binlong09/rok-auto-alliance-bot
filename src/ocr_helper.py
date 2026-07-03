@@ -6,14 +6,26 @@ This module handles all OCR-related operations including image preprocessing,
 text detection, and text position finding.
 """
 import logging
+import os
+import re
+import time
+
 import cv2
 import numpy as np
 import pytesseract
 from pytesseract import Output
 
+import timings
+from automation_base import StopCheckMixin
+from template_matcher import TemplateMatcher
 
-class OCRHelper:
+_DEBUG_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "debug_output")
+
+
+class OCRHelper(StopCheckMixin):
     """Helper class for OCR operations and text detection."""
+
+    STOP_CONTEXT = "OCR operation"
 
     def __init__(self, bluestacks, coords, config, stop_check_callback=None, debug_mode=False):
         """
@@ -40,12 +52,10 @@ class OCRHelper:
         ocr_config = config.get_ocr_config()
         pytesseract.pytesseract.tesseract_cmd = ocr_config.get('tesseract_path')
 
-    def check_stop_requested(self):
-        """Check if automation should stop."""
-        if self.stop_check and self.stop_check():
-            self.logger.info("Stop requested during OCR operation")
-            return True
-        return False
+        # Image template matching (optional - see template_matcher.py).
+        # Used as the first detection method for icon-only buttons that OCR
+        # cannot read; silently unavailable until templates are captured.
+        self.templates = TemplateMatcher(debug_mode=debug_mode)
 
     def preprocess_image_for_ocr(self, image):
         """
@@ -69,25 +79,26 @@ class OCRHelper:
             cv2.THRESH_BINARY, 11, 2
         )
         if self.debug_mode:
-            cv2.imwrite("ocr_adaptive_thresh.png", adaptive_thresh)
+            os.makedirs(_DEBUG_DIR, exist_ok=True)
+            cv2.imwrite(os.path.join(_DEBUG_DIR, "ocr_adaptive_thresh.png"), adaptive_thresh)
 
         # Otsu's thresholding
         _, otsu_thresh = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
         if self.debug_mode:
-            cv2.imwrite("ocr_otsu_thresh.png", otsu_thresh)
+            cv2.imwrite(os.path.join(_DEBUG_DIR, "ocr_otsu_thresh.png"), otsu_thresh)
 
         # Inverted Otsu's
         inverted = cv2.bitwise_not(gray)
         _, inverted_otsu = cv2.threshold(inverted, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
         if self.debug_mode:
-            cv2.imwrite("ocr_inverted_otsu.png", inverted_otsu)
+            cv2.imwrite(os.path.join(_DEBUG_DIR, "ocr_inverted_otsu.png"), inverted_otsu)
 
         # CLAHE (Contrast Limited Adaptive Histogram Equalization)
         clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8, 8))
         contrast_enhanced = clahe.apply(gray)
         _, contrast_thresh = cv2.threshold(contrast_enhanced, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
         if self.debug_mode:
-            cv2.imwrite("ocr_contrast_enhanced.png", contrast_thresh)
+            cv2.imwrite(os.path.join(_DEBUG_DIR, "ocr_contrast_enhanced.png"), contrast_thresh)
 
         # Note: Scaled version removed from preprocessing for position detection
         # because it returns 2x coordinates that cause incorrect click positions.
@@ -97,7 +108,7 @@ class OCRHelper:
         # Threshold to isolate light pixels, then invert for black text on white
         _, white_text = cv2.threshold(gray, 180, 255, cv2.THRESH_BINARY)
         if self.debug_mode:
-            cv2.imwrite("ocr_white_text.png", white_text)
+            cv2.imwrite(os.path.join(_DEBUG_DIR, "ocr_white_text.png"), white_text)
 
         return {
             'adaptive': adaptive_thresh,
@@ -108,7 +119,60 @@ class OCRHelper:
             'original': gray
         }
 
-    def detect_text_in_region(self, keywords, text_region=None):
+    def _prepare_region_images(self, text_region, upscale=False, debug_name=None,
+                               screenshot=None):
+        """
+        Shared pipeline for region-based OCR: take a screenshot, clamp the
+        region to the screen bounds, crop, and preprocess.
+
+        Args:
+            text_region (dict, optional): Region to use {x, y, width, height};
+                defaults to the default text region
+            upscale (bool): Upscale the crop 2x (INTER_CUBIC) before
+                preprocessing for better OCR accuracy on small UI text. Only
+                safe for callers that don't map coordinates back to the screen.
+            debug_name (str, optional): Filename to save the cropped region to
+                when debug_mode is enabled
+            screenshot (numpy array, optional): Pre-captured screenshot to
+                reuse. When None a fresh ADB screenshot is taken.
+
+        Returns:
+            tuple: (processed_images, region_x, region_y, screenshot),
+            or None if the screenshot failed
+        """
+        if text_region is None:
+            text_region = self.default_region
+
+        if screenshot is None:
+            screenshot = self.bluestacks.take_screenshot()
+        if screenshot is None:
+            return None
+
+        height, width = screenshot.shape[:2]
+
+        # Adjust region bounds
+        region_x = min(text_region['x'], width - 1)
+        region_y = min(text_region['y'], height - 1)
+        region_width = min(text_region['width'], width - region_x)
+        region_height = min(text_region['height'], height - region_y)
+
+        cropped = screenshot[region_y:region_y + region_height, region_x:region_x + region_width]
+        if self.debug_mode and debug_name:
+            os.makedirs(_DEBUG_DIR, exist_ok=True)
+            cv2.imwrite(os.path.join(_DEBUG_DIR, debug_name), cropped)
+
+        if upscale:
+            cropped = cv2.resize(cropped, None, fx=2, fy=2, interpolation=cv2.INTER_CUBIC)
+
+        # Preprocess
+        if self.config.get_bool('OCR', 'preprocess_image', True):
+            processed_images = self.preprocess_image_for_ocr(cropped)
+        else:
+            processed_images = {'original': cropped}
+
+        return processed_images, region_x, region_y, screenshot
+
+    def detect_text_in_region(self, keywords, text_region=None, screenshot=None):
         """
         Detect if any of the keywords appear in the specified text region of the screen.
 
@@ -123,29 +187,15 @@ class OCRHelper:
             return False
 
         try:
-            if text_region is None:
-                text_region = self.default_region
-
-            screenshot = self.bluestacks.take_screenshot()
-            if screenshot is None:
+            # Upscale 2x for better OCR accuracy on small UI text. This is safe here
+            # because this method only checks for keyword presence (returns True/False)
+            # and does not return any coordinates, unlike detect_text_position().
+            prepared = self._prepare_region_images(text_region, upscale=True,
+                                                   debug_name="text_region.png",
+                                                   screenshot=screenshot)
+            if prepared is None:
                 return False
-
-            height, width = screenshot.shape[:2]
-
-            # Adjust region bounds
-            region_x = min(text_region['x'], width - 1)
-            region_y = min(text_region['y'], height - 1)
-            region_width = min(text_region['width'], width - region_x)
-            region_height = min(text_region['height'], height - region_y)
-
-            cropped = screenshot[region_y:region_y + region_height, region_x:region_x + region_width]
-            cv2.imwrite("text_region.png", cropped)
-
-            # Preprocess
-            if self.config.get_bool('OCR', 'preprocess_image', True):
-                processed_images = self.preprocess_image_for_ocr(cropped)
-            else:
-                processed_images = {'original': cropped}
+            processed_images, _, _, _ = prepared
 
             # Try different preprocessing methods
             for method_name, processed_image in processed_images.items():
@@ -156,7 +206,7 @@ class OCRHelper:
                 ocr_result = pytesseract.image_to_string(processed_image, config=custom_config, output_type=Output.DICT)
 
                 detected_text = ocr_result['text'].lower() if 'text' in ocr_result else ""
-                self.logger.info(f"OCR detected text ({method_name}): {detected_text}")
+                self.logger.debug(f"OCR detected text ({method_name}): {detected_text}")
 
                 for keyword in keywords:
                     if keyword.lower() in detected_text:
@@ -168,6 +218,64 @@ class OCRHelper:
 
         except Exception as e:
             self.logger.error(f"Error detecting text in region: {e}")
+            self.logger.exception("Stack trace:")
+            return False
+
+    def detect_pattern_in_region(self, pattern, text_region=None, min_matches=1,
+                                screenshot=None):
+        """
+        Detect if a regex pattern matches enough times in the specified text region.
+
+        Unlike detect_text_in_region (which does substring matching against a
+        fixed keyword list), this runs a regular expression against the raw
+        OCR output. Useful for detecting content that varies (e.g. numbers)
+        rather than fixed text.
+
+        Args:
+            pattern (str): Regex pattern to search for (compiled with re.findall)
+            text_region (dict, optional): Region to search in {x, y, width, height}
+            min_matches (int): Minimum number of matches required for a hit
+
+        Returns:
+            bool: True if the pattern matches at least min_matches times, False otherwise
+        """
+        if self.check_stop_requested():
+            return False
+
+        try:
+            # Upscale 2x for better OCR accuracy on small UI text.
+            prepared = self._prepare_region_images(text_region, upscale=True,
+                                                   debug_name="text_region.png",
+                                                   screenshot=screenshot)
+            if prepared is None:
+                return False
+            processed_images, _, _, _ = prepared
+
+            compiled_pattern = re.compile(pattern)
+
+            # Try different preprocessing methods
+            for method_name, processed_image in processed_images.items():
+                if self.check_stop_requested():
+                    return False
+
+                custom_config = '--oem 3 --psm 6'
+                ocr_result = pytesseract.image_to_string(processed_image, config=custom_config, output_type=Output.DICT)
+
+                detected_text = ocr_result['text'] if 'text' in ocr_result else ""
+                self.logger.debug(f"OCR detected text ({method_name}): {detected_text}")
+
+                matches = compiled_pattern.findall(detected_text)
+                if len(matches) >= min_matches:
+                    self.logger.info(
+                        f"Pattern '{pattern}' matched {len(matches)} time(s) with method {method_name}: {matches}"
+                    )
+                    return True
+
+            self.logger.info(f"Pattern '{pattern}' did not match at least {min_matches} time(s) in any preprocessing method")
+            return False
+
+        except Exception as e:
+            self.logger.error(f"Error detecting pattern in region: {e}")
             self.logger.exception("Stack trace:")
             return False
 
@@ -189,28 +297,12 @@ class OCRHelper:
         target_texts = target_text if isinstance(target_text, list) else [target_text]
 
         try:
-            if text_region is None:
-                text_region = self.default_region
-
-            screenshot = self.bluestacks.take_screenshot()
-            if screenshot is None:
+            # No upscale here: the detected coordinates map back to screen pixels.
+            prepared = self._prepare_region_images(text_region, upscale=False,
+                                                   debug_name="text_search_region.png")
+            if prepared is None:
                 return None
-
-            height, width = screenshot.shape[:2]
-
-            region_x = min(text_region['x'], width - 1)
-            region_y = min(text_region['y'], height - 1)
-            region_width = min(text_region['width'], width - region_x)
-            region_height = min(text_region['height'], height - region_y)
-
-            cropped = screenshot[region_y:region_y + region_height, region_x:region_x + region_width]
-            if self.debug_mode:
-                cv2.imwrite("text_search_region.png", cropped)
-
-            if self.config.get_bool('OCR', 'preprocess_image', True):
-                processed_images = self.preprocess_image_for_ocr(cropped)
-            else:
-                processed_images = {'original': cropped}
+            processed_images, region_x, region_y, screenshot = prepared
 
             for method_name, processed_image in processed_images.items():
                 if self.check_stop_requested():
@@ -227,7 +319,7 @@ class OCRHelper:
                         filtered_texts.append(text.lower())
                         filtered_indices.append(i)
 
-                self.logger.info(f"OCR detected texts ({method_name}): {filtered_texts}")
+                self.logger.debug(f"OCR detected texts ({method_name}): {filtered_texts}")
 
                 if not filtered_texts:
                     continue
@@ -266,7 +358,7 @@ class OCRHelper:
                                 if self.debug_mode:
                                     debug_img = screenshot.copy()
                                     cv2.circle(debug_img, (text_x, text_y), 10, (0, 255, 0), -1)
-                                    cv2.imwrite("text_position_debug.png", debug_img)
+                                    cv2.imwrite(os.path.join(_DEBUG_DIR, "text_position_debug.png"), debug_img)
 
                                 return {'x': text_x, 'y': text_y}
 
@@ -290,7 +382,7 @@ class OCRHelper:
                                 if self.debug_mode:
                                     debug_img = screenshot.copy()
                                     cv2.circle(debug_img, (text_x, text_y), 10, (0, 0, 255), -1)
-                                    cv2.imwrite("text_position_fallback.png", debug_img)
+                                    cv2.imwrite(os.path.join(_DEBUG_DIR, "text_position_fallback.png"), debug_img)
 
                                 return {'x': text_x, 'y': text_y}
 
@@ -302,6 +394,99 @@ class OCRHelper:
             self.logger.error(f"Error detecting text position: {e}")
             self.logger.exception("Stack trace:")
             return None
+
+    def find_template(self, name, region=None, threshold=None, screenshot=None):
+        """
+        Find a UI element by image template matching.
+
+        Args:
+            name: Template name (src/templates/<name>.png)
+            region (dict, optional): Region to search in {x, y, width, height}
+            threshold (float, optional): Minimum match confidence (0-1)
+            screenshot (numpy array, optional): Pre-captured screenshot to
+                reuse. When None a fresh ADB screenshot is taken.
+
+        Returns:
+            dict: Center position {x, y, confidence} if found, None otherwise
+            (also None when the template image doesn't exist).
+        """
+        if self.check_stop_requested():
+            return None
+
+        if screenshot is None:
+            screenshot = self.bluestacks.take_screenshot()
+        if screenshot is None:
+            return None
+
+        return self.templates.find(screenshot, name, region=region, threshold=threshold)
+
+    def wait_for_text(self, keywords, text_region=None, timeout=10,
+                      interval=timings.POLL_INTERVAL, description=None):
+        """
+        Poll until any keyword appears in a region, or timeout.
+
+        Replaces "click then sleep a fixed time and hope" with an actual
+        check that the expected screen/dialog is now visible.
+
+        Args:
+            keywords (list): Keywords to search for
+            text_region (dict, optional): Region to search in
+            timeout (float): Max seconds to wait
+            interval (float): Seconds between checks
+            description (str, optional): What we're waiting for (log message)
+
+        Returns:
+            bool: True if a keyword appeared within the timeout
+        """
+        what = description or f"text {keywords}"
+        deadline = time.time() + timeout
+
+        while True:
+            if self.check_stop_requested():
+                return False
+
+            if self.detect_text_in_region(keywords, text_region):
+                self.logger.info(f"Wait satisfied: {what}")
+                return True
+
+            if time.time() >= deadline:
+                self.logger.warning(f"Timed out after {timeout}s waiting for {what}")
+                return False
+
+            time.sleep(interval)
+
+    def wait_for_text_position(self, target_text, text_region=None, timeout=10,
+                               interval=timings.POLL_INTERVAL, exact_match=False):
+        """
+        Poll until specific text is found in a region, returning its position.
+
+        Args:
+            target_text (str or list): Text(s) to search for
+            text_region (dict, optional): Region to search in
+            timeout (float): Max seconds to wait
+            interval (float): Seconds between checks
+            exact_match (bool): Whether to only accept exact matches
+
+        Returns:
+            dict: Position {x, y} if found within timeout, None otherwise
+        """
+        deadline = time.time() + timeout
+
+        while True:
+            if self.check_stop_requested():
+                return None
+
+            result = self.detect_text_position(target_text, text_region, exact_match)
+            if result:
+                return result
+
+            if time.time() >= deadline:
+                self.logger.warning(
+                    f"Timed out after {timeout}s waiting for text position of {target_text}"
+                )
+                return None
+
+            time.sleep(interval)
 
     @staticmethod
     def find_closest_value(x, array):
@@ -353,7 +538,8 @@ class OCRHelper:
             cropped = screenshot[region_y:region_y + region_height, region_x:region_x + region_width]
 
             if self.debug_mode:
-                cv2.imwrite("red_banner_search_region.png", cropped)
+                os.makedirs(_DEBUG_DIR, exist_ok=True)
+                cv2.imwrite(os.path.join(_DEBUG_DIR, "red_banner_search_region.png"), cropped)
 
             # Convert to HSV
             hsv = cv2.cvtColor(cropped, cv2.COLOR_BGR2HSV)
@@ -374,7 +560,7 @@ class OCRHelper:
             mask = cv2.bitwise_or(mask1, mask2)
 
             if self.debug_mode:
-                cv2.imwrite("red_banner_mask.png", mask)
+                cv2.imwrite(os.path.join(_DEBUG_DIR, "red_banner_mask.png"), mask)
 
             # Find contours
             contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
@@ -411,7 +597,7 @@ class OCRHelper:
                               (region_x + x + w, region_y + y + h),
                               (0, 255, 0), 2)
                 cv2.circle(debug_img, (center_x, center_y), 5, (0, 0, 255), -1)
-                cv2.imwrite("red_banner_detected.png", debug_img)
+                cv2.imwrite(os.path.join(_DEBUG_DIR, "red_banner_detected.png"), debug_img)
 
             return {'x': center_x, 'y': center_y, 'width': w, 'height': h}
 

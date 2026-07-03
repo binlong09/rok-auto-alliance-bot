@@ -5,10 +5,10 @@ Schedule Manager - Manages scheduled automation runs per instance.
 This module tracks when each instance should run its next scheduled automation,
 based on configurable intervals (e.g., every 12 hours from last run).
 """
-import os
 import json
 import logging
-from datetime import datetime, timezone, timedelta
+import os
+from datetime import datetime, timedelta, timezone
 
 
 class ScheduleManager:
@@ -53,7 +53,7 @@ class ScheduleManager:
 
         if os.path.exists(schedule_path):
             try:
-                with open(schedule_path, 'r') as f:
+                with open(schedule_path) as f:
                     data = json.load(f)
                 # Ensure all required fields exist
                 default = self._get_default_schedule()
@@ -61,7 +61,7 @@ class ScheduleManager:
                     if key not in data:
                         data[key] = default[key]
                 return data
-            except (json.JSONDecodeError, IOError) as e:
+            except (OSError, json.JSONDecodeError) as e:
                 self.logger.warning(f"Error loading schedule for {instance_id}, using defaults: {e}")
 
         return self._get_default_schedule()
@@ -81,7 +81,7 @@ class ScheduleManager:
             with open(schedule_path, 'w') as f:
                 json.dump(schedule, f, indent=2)
             self.logger.debug(f"Saved schedule for instance {instance_id}")
-        except IOError as e:
+        except OSError as e:
             self.logger.error(f"Error saving schedule for {instance_id}: {e}")
 
     def is_enabled(self, instance_id):

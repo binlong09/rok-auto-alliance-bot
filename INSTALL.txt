@@ -36,6 +36,33 @@
 
 3. Use Step 1 and 3 to create new bluestack and bot instances. Once you have multiple bots, you can multi-select them with Shift + Click and then click on Launch Selected to Launch multiple at once. Do not run too many instances at once if your pc is not good enough
 
+=== ACCOUNT ROTATION (OPTIONAL) ===
+The bot can log out and log back in with several game accounts on one
+BlueStacks instance. Add an [Accounts] section to the instance's config.ini:
+
+    [Accounts]
+    accounts = myfarm1@example.com:password1, myfarm2@example.com:password2
+
+Each entry is email:password, separated by commas. When configured, the bot
+switches to each account in turn and runs the full character automation for
+every one of them. Leave the value empty to keep the old single-account
+behavior.
+
+=== IMAGE TEMPLATES (OPTIONAL, IMPROVES ACCURACY) ===
+Icon-only buttons (avatar, settings, bookmark, campaign...) are located by
+image matching when a template PNG exists in src/templates/. The bot works
+without templates (it falls back to OCR text and then to fixed coordinates),
+but adding templates makes it much more robust against UI shifts.
+
+To capture a template while the game is open on the right screen:
+
+    python src/template_matcher.py capture <name> <x> <y> <width> <height>
+
+Recognized names: avatar_icon, settings_icon, characters_icon, bookmark_icon,
+alliance_icon, technology_icon, donate_button, campaign_icon,
+expedition_banner, march_button, expand_button, account_button,
+switch_account_button
+
 === HOW TO UPGRADE TO NEW VERSION ===
 1. Download and extract zip file to new location
 2. Copy the Instances folder from the old version and paste it to new location.

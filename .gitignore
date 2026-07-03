@@ -5,20 +5,16 @@ src/logs/
 # Local config (track config.ini.example instead)
 src/config.ini
 
-# Debug/temp images (root and src)
+# Debug/temp images (all written to src/debug_output/ by code)
+src/debug_output/
+src/ocr_debug_output/
+# Legacy patterns for files generated before the debug_output refactor
+template_match_*.png
 temp_screenshot*.png
 text_region.png
 text_*.png
 ocr_*.png
 red_banner_*.png
-test_loading_*.png
-src/temp_screenshot.png
-src/text_region.png
-src/ocr_*.png
-src/star_mask.png
-src/check_mark_*.png
-src/normal_characters_region.png
-src/ocr_debug_output/
 
 # Tesseract OCR (bundled separately)
 src/Tesseract-OCR/

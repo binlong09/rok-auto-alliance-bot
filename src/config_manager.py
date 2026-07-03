@@ -1,8 +1,8 @@
-import os
-import sys
-import logging
 import configparser
+import logging
+import os
 import string
+import sys
 
 
 def find_bluestacks_path():
@@ -28,20 +28,127 @@ def find_bluestacks_path():
 
 
 def find_tesseract_path():
-    """Auto-detect Tesseract installation path across different drives."""
-    tesseract_relative = "Program Files\\Tesseract-OCR\\tesseract.exe"
+    """Auto-detect Tesseract installation path.
 
-    if sys.platform == "win32":
-        drives = [f"{d}:\\" for d in string.ascii_uppercase if os.path.exists(f"{d}:\\")]
-    else:
+    Search order:
+    1. Bundled alongside the executable (PyInstaller dist or dev src/)
+    2. System-installed Tesseract across all drives (Windows)
+    3. Hardcoded fallback
+    """
+    if sys.platform != "win32":
         return "/usr/bin/tesseract"
 
+    # Bundled Tesseract: check relative to the running executable (frozen)
+    # or relative to this source file (dev mode).
+    if getattr(sys, 'frozen', False):
+        base = os.path.dirname(sys.executable)
+    else:
+        base = os.path.dirname(os.path.abspath(__file__))
+
+    bundled = os.path.join(base, "Tesseract-OCR", "tesseract.exe")
+    if os.path.exists(bundled):
+        return bundled
+
+    # System-installed Tesseract
+    tesseract_relative = "Program Files\\Tesseract-OCR\\tesseract.exe"
+    drives = [f"{d}:\\" for d in string.ascii_uppercase if os.path.exists(f"{d}:\\")]
     for drive in drives:
         tess_path = os.path.join(drive, tesseract_relative)
         if os.path.exists(tess_path):
             return tess_path
 
     return "C:\\Program Files\\Tesseract-OCR\\tesseract.exe"
+
+
+_SCAN_SKIP_DIRS = {
+    "windows", "$recycle.bin", "system volume information",
+    "programdata", "recovery", "config.msi", "msocache",
+}
+
+
+def _scan_search_roots():
+    """Directories to search, most likely locations first."""
+    if sys.platform != "win32":
+        return ["/"]
+
+    drives = [f"{d}:\\" for d in string.ascii_uppercase if os.path.exists(f"{d}:\\")]
+    roots = []
+
+    for drive in drives:
+        for sub in ("Program Files", "Program Files (x86)"):
+            path = os.path.join(drive, sub)
+            if os.path.exists(path):
+                roots.append(path)
+
+    roots.extend(drives)
+    return roots
+
+
+def scan_for_files(filenames, max_depth=4, roots=None):
+    """Walk the filesystem looking for any of the given filenames (case-insensitive).
+
+    Returns full paths found (no duplicates), searched in order of most-likely-first roots.
+    """
+    targets = {name.lower() for name in filenames}
+    found = []
+    seen = set()
+    walked = set()
+
+    for root in roots if roots is not None else _scan_search_roots():
+        root = os.path.normpath(root)
+        base_depth = root.rstrip("\\/").count(os.sep)
+
+        for dirpath, dirnames, files in os.walk(root):
+            if dirpath in walked:
+                dirnames[:] = []
+                continue
+            walked.add(dirpath)
+
+            depth = dirpath.rstrip("\\/").count(os.sep) - base_depth
+            if depth >= max_depth:
+                dirnames[:] = []
+                continue
+
+            dirnames[:] = [d for d in dirnames if d.lower() not in _SCAN_SKIP_DIRS]
+            if depth == 0:
+                dirnames[:] = [d for d in dirnames if d.lower() not in ("program files", "program files (x86)")]
+
+            for f in files:
+                if f.lower() in targets:
+                    full_path = os.path.join(dirpath, f)
+                    if full_path not in seen:
+                        seen.add(full_path)
+                        found.append(full_path)
+
+    return found
+
+
+def scan_for_bluestacks_installations():
+    """Scan the machine for BlueStacks player executables and their matching adb.
+
+    Returns a list of (player_exe_path, adb_exe_path) tuples. adb_exe_path is
+    None if no adb executable was found next to that particular installation.
+    """
+    player_names = ["HD-Player.exe", "Bluestacks.exe", "BlueStacks.exe"]
+    adb_names = ["HD-Adb.exe", "adb.exe"]
+
+    results = []
+    for player_path in scan_for_files(player_names):
+        install_dir = os.path.dirname(player_path)
+        adb_path = None
+        for name in adb_names:
+            candidate = os.path.join(install_dir, name)
+            if os.path.exists(candidate):
+                adb_path = candidate
+                break
+        results.append((player_path, adb_path))
+
+    return results
+
+
+def scan_for_adb_executables():
+    """Scan the machine for adb executables (HD-Adb.exe or plain adb.exe)."""
+    return scan_for_files(["HD-Adb.exe", "adb.exe"])
 
 
 class ConfigManager:
@@ -70,7 +177,17 @@ class ConfigManager:
                 'bluestacks_exe_path': bs_path,
                 'bluestacks_instance_name': 'Nougat32',
                 'adb_path': adb_path,
-                'wait_for_startup_seconds': '30'
+                'wait_for_startup_seconds': '30',
+                # Resolution the coordinate maps expect. When the instance
+                # runs at anything else, the bot rewrites bluestacks.conf and
+                # restarts the instance (set auto_fix_resolution = False to
+                # only warn instead). bluestacks_conf_path may be left empty
+                # to use the default %ProgramData%\BlueStacks_nxt location.
+                'expected_resolution_width': '1280',
+                'expected_resolution_height': '720',
+                'expected_dpi': '240',
+                'auto_fix_resolution': 'True',
+                'bluestacks_conf_path': ''
             },
             'RiseOfKingdoms': {
                 'package_name': 'com.lilithgame.roc.gp',
@@ -83,6 +200,12 @@ class ConfigManager:
             },
             'Timing': {
                 'click_delay_ms': '1000'
+            },
+            # Optional account rotation: comma-separated email:password pairs.
+            # When set, the automation logs into each account in turn and runs
+            # the character automation for every one of them.
+            'Accounts': {
+                'accounts': ''
             }
         }
 

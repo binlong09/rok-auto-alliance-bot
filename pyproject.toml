@@ -1,0 +1,36 @@
+[project]
+name = "rok-auto-alliance-bot"
+version = "0.1.0"
+description = "Automation bot for Rise of Kingdoms alliance tasks (BlueStacks/ADB driven)"
+requires-python = ">=3.10"
+dependencies = [
+    "numpy>=1.19.0",
+    "opencv-python>=4.5.3",
+    "Pillow>=8.2.0",
+    "pytesseract>=0.3.8",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.ruff]
+target-version = "py310"
+line-length = 100
+include = ["src/**/*.py", "tests/**/*.py"]
+
+[tool.ruff.lint]
+select = ["E", "W", "F", "I", "B", "UP"]
+ignore = [
+    # ~99 pre-existing lines are between 100 and ~120 chars; fixing them all
+    # would be mass churn with no behavior benefit.
+    "E501",
+    # Fixing B007 renames loop variables; deliberately no renames in this pass.
+    "B007",
+]
+
+[tool.ruff.lint.per-file-ignores]
+# sys.path is set up before local imports in this standalone debug script.
+"src/ocr_debug_tool.py" = ["E402"]
+# E701: a few intentional one-line `if cond: stmt` guards in layout code;
+# E741: pre-existing short variable name `l`; no renames/reformatting in this pass.
+"src/unified_gui.py" = ["E701", "E741"]

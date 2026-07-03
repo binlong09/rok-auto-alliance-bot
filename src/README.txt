@@ -90,6 +90,9 @@ Solution:
 Problem: Automation clicks wrong locations
 Solution:
   - Ensure BlueStacks resolution is 1280x720
+  - The bot checks this automatically at startup and, if the resolution is
+    wrong, fixes bluestacks.conf and restarts the instance on its own
+    (disable with auto_fix_resolution = False in config.ini [BlueStacks])
   - Don't move or resize the BlueStacks window during automation
 
 Problem: Bot gets stuck

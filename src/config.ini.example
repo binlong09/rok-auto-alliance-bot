@@ -1,0 +1,42 @@
+# Example configuration for RoK Automation Bot.
+# Copy this file to config.ini (in the same folder) and adjust the values
+# for your own BlueStacks/game setup. config.ini is git-ignored so your
+# local settings are never committed.
+
+[BlueStacks]
+bluestacks_exe_path = C:\Program Files\BlueStacks_nxt\HD-Player.exe
+bluestacks_instance_name = Nougat64
+adb_path = C:\Program Files\BlueStacks_nxt\HD-Adb.exe
+wait_for_startup_seconds = 20
+adb_port = 5555
+debug_mode = False
+
+[RiseOfKingdoms]
+rok_version = global
+activity_name = com.harry.engine.MainActivity
+game_load_wait_seconds = 12
+num_of_characters = 1
+march_preset = 1
+character_login_screen_loading_time = 3
+perform_build = True
+perform_donation = True
+perform_expedition = True
+package_name = com.lilithgame.roc.gp
+
+[OCR]
+tesseract_path = C:\Program Files\Tesseract-OCR\tesseract.exe
+preprocess_image = True
+
+[Timing]
+click_delay_ms = 1000
+
+# Optional overrides for the named waits in src/timings.py. Uncomment and
+# adjust any of these if the defaults are too fast/slow for your setup.
+# Values are seconds (floats allowed). Any key left out keeps its built-in
+# default, and invalid values are ignored with a warning (safe to leave
+# typos in place).
+# [Timings]
+# character_select_load_wait = 6
+# screen_transition_wait = 2
+# action_settle_wait = 1
+# map_load_wait = 4

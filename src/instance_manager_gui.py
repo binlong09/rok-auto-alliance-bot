@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-import os
-import tkinter as tk
-from tkinter import ttk, messagebox
 import logging
+import tkinter as tk
+from tkinter import messagebox, ttk
+
 from instance_manager import InstanceManager
 
 

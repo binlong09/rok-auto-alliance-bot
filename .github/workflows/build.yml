@@ -1,0 +1,92 @@
+name: Build
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+    outputs:
+      version: ${{ steps.version.outputs.VERSION }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install Python dependencies
+        run: |
+          pip install -r requirements-dev.txt
+          pip install opencv-python-headless numpy pytesseract Pillow
+
+      - name: Install Tesseract OCR
+        run: |
+          choco install tesseract --no-progress -y
+          & "C:\Program Files\Tesseract-OCR\tesseract.exe" --version
+
+      - name: Build executable
+        run: python build.py --no-zip
+
+      - name: Bundle Tesseract into dist
+        run: |
+          Copy-Item "C:\Program Files\Tesseract-OCR" `
+            -Destination "dist\RoK Automation\Tesseract-OCR" `
+            -Recurse
+
+      - name: Verify build
+        run: |
+          Test-Path "dist\RoK Automation\RoK Automation.exe"
+          Test-Path "dist\RoK Automation\Tesseract-OCR\tesseract.exe"
+          Get-ChildItem "dist\RoK Automation" | Format-Table Name, Length
+
+      - name: Determine version
+        id: version
+        run: |
+          if ("${{ github.ref }}" -match "^refs/tags/v(.+)$") {
+            $ver = $Matches[1]
+          } else {
+            $sha = "${{ github.sha }}"
+            $ver = "dev-" + $sha.Substring(0, 7)
+          }
+          echo "VERSION=$ver" >> $env:GITHUB_OUTPUT
+
+      - name: Create ZIP
+        run: |
+          Compress-Archive -Path "dist\RoK Automation\*" `
+            -DestinationPath "RoK_Automation_${{ steps.version.outputs.VERSION }}.zip"
+
+      - name: Upload ZIP
+        uses: actions/upload-artifact@v4
+        with:
+          name: RoK-Automation-${{ steps.version.outputs.VERSION }}
+          path: RoK_Automation_${{ steps.version.outputs.VERSION }}.zip
+          retention-days: 30
+
+  release:
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Download artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: RoK-Automation-${{ needs.build.outputs.version }}
+          path: ./
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: "*.zip"
+          generate_release_notes: true

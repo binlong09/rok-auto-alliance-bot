@@ -14,14 +14,15 @@ Usage:
     python ocr_debug_tool.py --interactive      # Interactive mode with GUI
 """
 
+import argparse
+import logging
 import os
 import sys
+from datetime import datetime
+
 import cv2
 import pytesseract
 from pytesseract import Output
-import argparse
-import logging
-from datetime import datetime
 
 # =============================================================================
 # CONFIGURATION - Edit these values to match your BlueStacks instance
@@ -74,7 +75,7 @@ class OCRDebugTool:
         print(f"Using BlueStacks: {BLUESTACKS_INSTANCE} (Port: {ADB_PORT})")
 
         # Connect to ADB
-        print(f"Connecting to ADB...")
+        print("Connecting to ADB...")
         if self._connect_adb():
             print("ADB connected successfully!")
         else:
@@ -85,8 +86,8 @@ class OCRDebugTool:
         import subprocess
         try:
             # Connect to the device
-            connect_cmd = f'"{ADB_PATH}" connect 127.0.0.1:{ADB_PORT}'
-            result = subprocess.run(connect_cmd, shell=True, capture_output=True, text=True)
+            connect_cmd = [ADB_PATH, "connect", f"127.0.0.1:{ADB_PORT}"]
+            result = subprocess.run(connect_cmd, capture_output=True, text=True)
             print(f"ADB connect output: {result.stdout.strip()}")
             if result.stderr:
                 print(f"ADB stderr: {result.stderr.strip()}")
@@ -161,7 +162,6 @@ class OCRDebugTool:
             w = result['width']
             h = result['height']
             text = result['text']
-            conf = result['confidence']
 
             # Draw bounding box
             cv2.rectangle(annotated, (x, y), (x + w, y + h), self.colors['box'], 2)
@@ -342,7 +342,7 @@ class OCRDebugTool:
                         region = self.coords.get_region(name)
                         print(f"Using region '{name}': {region}")
                         self.analyze_screen(region=region)
-                    except Exception as e:
+                    except Exception:
                         print(f"Error: Region '{name}' not found. Use 'list' to see available regions.")
                 elif cmd == 'list':
                     print("\nPredefined regions from coordinates.json:")
@@ -350,7 +350,7 @@ class OCRDebugTool:
                     try:
                         import json
                         coords_path = os.path.join(os.path.dirname(__file__), 'coordinates.json')
-                        with open(coords_path, 'r') as f:
+                        with open(coords_path) as f:
                             coords = json.load(f)
                         if 'regions' in coords:
                             for name, region in coords['regions'].items():
