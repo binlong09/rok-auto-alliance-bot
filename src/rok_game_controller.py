@@ -189,8 +189,12 @@ class RoKGameController:
                 self.bluestacks.adb_path, "-s", self.bluestacks.adb_device,
                 "shell", "pidof", self.package_name
             ]
-            result = subprocess.run(check_cmd, capture_output=True, text=True)
+            result = subprocess.run(check_cmd, capture_output=True, text=True,
+                                    timeout=15)
             return bool(result.stdout.strip())
+        except subprocess.TimeoutExpired:
+            self.logger.error("ADB pidof check timed out")
+            return False
         except Exception:
             return False
 
@@ -211,7 +215,8 @@ class RoKGameController:
 
         for attempt in range(1, max_retries + 1):
             try:
-                result = subprocess.run(start_cmd, capture_output=True, text=True)
+                result = subprocess.run(start_cmd, capture_output=True, text=True,
+                                        timeout=15)
 
                 if "Error" in result.stdout or "error" in result.stderr:
                     # The "am start" response itself failed, but the activity may

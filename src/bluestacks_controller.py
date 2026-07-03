@@ -133,11 +133,13 @@ class BlueStacksController:
         try:
             # Connect to the device
             connect_cmd = [self.adb_path, "connect", self.adb_device]
-            result = subprocess.run(connect_cmd, capture_output=True, text=True)
+            result = subprocess.run(connect_cmd, capture_output=True, text=True,
+                                    timeout=15)
 
             # Verify connection
             verify_cmd = [self.adb_path, "devices"]
-            verify_result = subprocess.run(verify_cmd, capture_output=True, text=True)
+            verify_result = subprocess.run(verify_cmd, capture_output=True, text=True,
+                                           timeout=15)
 
             if self.adb_device not in verify_result.stdout:
                 self.logger.error(f"Failed to connect to ADB on device: {self.adb_device}")
@@ -177,7 +179,8 @@ class BlueStacksController:
 
         for attempt in range(1, retries + 1):
             try:
-                result = subprocess.run(check_cmd, capture_output=True, text=True)
+                result = subprocess.run(check_cmd, capture_output=True, text=True,
+                                        timeout=15)
                 if "ok" in result.stdout:
                     return True
             except Exception as e:
@@ -412,11 +415,11 @@ class BlueStacksController:
 
             # Take screenshot command
             screenshot_cmd = [self.adb_path, "-s", self.adb_device, "shell", "screencap", "-p", "/sdcard/screenshot.png"]
-            subprocess.run(screenshot_cmd, capture_output=True)
+            subprocess.run(screenshot_cmd, capture_output=True, timeout=30)
 
             # Pull screenshot to PC
             pull_cmd = [self.adb_path, "-s", self.adb_device, "pull", "/sdcard/screenshot.png", screenshot_path]
-            subprocess.run(pull_cmd, capture_output=True)
+            subprocess.run(pull_cmd, capture_output=True, timeout=30)
 
             # Check if screenshot was saved
             if not os.path.exists(screenshot_path):
@@ -468,13 +471,21 @@ class BlueStacksController:
         try:
             # Use ADB to simulate tap
             tap_cmd = [self.adb_path, "-s", self.adb_device, "shell", "input", "tap", str(x), str(y)]
-            result = subprocess.run(tap_cmd, capture_output=True)
+            result = subprocess.run(tap_cmd, capture_output=True, text=True, timeout=15)
+
+            if result.returncode != 0:
+                self.logger.error(
+                    f"ADB tap at ({x}, {y}) failed (exit {result.returncode}): {result.stderr.strip()}")
+                return False
 
             # Add delay after click
             time.sleep(delay_ms / 1000)
 
             return True
 
+        except subprocess.TimeoutExpired:
+            self.logger.error(f"ADB tap at ({x}, {y}) timed out")
+            return False
         except Exception as e:
             self.logger.error(f"Error clicking at ({x}, {y}): {e}")
             return False
@@ -487,13 +498,23 @@ class BlueStacksController:
                 self.adb_path, "-s", self.adb_device, "shell", "input", "swipe",
                 str(start_x), str(start_y), str(end_x), str(end_y), str(duration_ms)
             ]
-            result = subprocess.run(swipe_cmd, capture_output=True)
+            result = subprocess.run(swipe_cmd, capture_output=True, text=True, timeout=15)
+
+            if result.returncode != 0:
+                self.logger.error(
+                    f"ADB swipe from ({start_x}, {start_y}) to ({end_x}, {end_y}) "
+                    f"failed (exit {result.returncode}): {result.stderr.strip()}")
+                return False
 
             # Add delay after swipe
             time.sleep(timings.MICRO_DELAY)
 
             return True
 
+        except subprocess.TimeoutExpired:
+            self.logger.error(
+                f"ADB swipe from ({start_x}, {start_y}) to ({end_x}, {end_y}) timed out")
+            return False
         except Exception as e:
             self.logger.error(f"Error swiping from ({start_x}, {start_y}) to ({end_x}, {end_y}): {e}")
             return False
@@ -512,11 +533,19 @@ class BlueStacksController:
             escaped = escaped.replace(" ", "%s")
 
             text_cmd = [self.adb_path, "-s", self.adb_device, "shell", "input", "text", escaped]
-            subprocess.run(text_cmd, capture_output=True)
+            result = subprocess.run(text_cmd, capture_output=True, text=True, timeout=15)
+
+            if result.returncode != 0:
+                self.logger.error(
+                    f"ADB text input failed (exit {result.returncode}): {result.stderr.strip()}")
+                return False
 
             time.sleep(timings.MICRO_DELAY)
             return True
 
+        except subprocess.TimeoutExpired:
+            self.logger.error("ADB text input timed out")
+            return False
         except Exception as e:
             self.logger.error(f"Error typing text: {e}")
             return False
@@ -526,13 +555,21 @@ class BlueStacksController:
         try:
             # Use ADB to send back button keyevent
             key_cmd = [self.adb_path, "-s", self.adb_device, "shell", "input", "keyevent", "4"]
-            result = subprocess.run(key_cmd, capture_output=True)
+            result = subprocess.run(key_cmd, capture_output=True, text=True, timeout=15)
+
+            if result.returncode != 0:
+                self.logger.error(
+                    f"ADB escape keyevent failed (exit {result.returncode}): {result.stderr.strip()}")
+                return False
 
             # Add delay after key press
             time.sleep(timings.MICRO_DELAY)
 
             return True
 
+        except subprocess.TimeoutExpired:
+            self.logger.error("ADB escape keyevent timed out")
+            return False
         except Exception as e:
             self.logger.error(f"Error sending escape key: {e}")
             return False
