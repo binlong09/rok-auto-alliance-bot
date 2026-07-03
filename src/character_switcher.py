@@ -19,7 +19,8 @@ class CharacterSwitcher:
     """Automates character switching workflow with recovery support."""
 
     def __init__(self, bluestacks, coords, screen_detector, build_automation, donation_automation,
-                 expedition_automation, recovery_manager, num_of_chars=1, march_preset=1, click_delay_ms=1000,
+                 expedition_automation, recovery_manager, navigator,
+                 num_of_chars=1, march_preset=1, click_delay_ms=1000,
                  character_login_loading_time=3, game_load_wait_seconds=30,
                  will_perform_build=True, will_perform_donation=True, will_perform_expedition=True,
                  stop_check_callback=None, navigate_to_map_callback=None,
@@ -35,6 +36,7 @@ class CharacterSwitcher:
             donation_automation: DonationAutomation instance for donation workflow
             expedition_automation: ExpeditionAutomation instance for expedition rewards
             recovery_manager: RecoveryManager instance for error recovery
+            navigator: VerifiedNavigator instance for verified clicks
             num_of_chars: Number of characters to switch through
             march_preset: March preset number to use for builds
             click_delay_ms: Delay between clicks in milliseconds
@@ -56,6 +58,7 @@ class CharacterSwitcher:
         self.donation = donation_automation
         self.expedition = expedition_automation
         self.recovery = recovery_manager
+        self.nav = navigator
 
         # Configuration
         self.num_of_chars = num_of_chars
@@ -204,41 +207,66 @@ class CharacterSwitcher:
         return True
 
     def open_character_selection(self):
-        """Open the character selection screen."""
+        """
+        Open the character selection screen, verifying each intermediate
+        screen (profile menu -> settings -> character list) actually opened
+        before moving on.
+        """
         if self.check_stop_requested():
             return False
 
         self.logger.info("Opening character selection screen")
 
-        # Click avatar icon in top left
-        self.logger.info("Clicking avatar icon")
-        if not self.bluestacks.click(self.avatar_icon['x'], self.avatar_icon['y'], self.click_delay_ms):
-            self.logger.error("Failed to click avatar icon")
+        # Step 1: avatar icon (top left) -> profile menu
+        if not self.nav.click_and_verify(
+            "avatar icon",
+            template='avatar_icon',
+            fallback_point=self.avatar_icon,
+            verify=self.screen.is_in_profile_menu,
+            verify_timeout=8,
+            settle_wait=timings.LONG_TRANSITION_WAIT,
+        ):
+            self.logger.error("Profile menu did not open after clicking avatar")
             return False
-
-        time.sleep(timings.LONG_TRANSITION_WAIT)  # Increased wait for profile menu to appear
 
         if self.check_stop_requested():
             return False
 
-        # Click settings icon
-        self.logger.info("Clicking settings icon")
-        if not self.bluestacks.click(self.settings_icon['x'], self.settings_icon['y'], self.click_delay_ms):
-            self.logger.error("Failed to click settings icon")
+        # Step 2: settings button -> settings screen
+        # The OCR hit is the "Settings" label below the gear icon, so click
+        # above the text; the template hit is the gear itself.
+        if not self.nav.click_and_verify(
+            "settings button",
+            template='settings_icon',
+            texts=["Settings"],
+            region=self.coords.get_region('profile_menu'),
+            offset={'x': 0, 'y': -45},
+            fallback_point=self.settings_icon,
+            verify=self.screen.is_in_settings_screen,
+            verify_timeout=8,
+            settle_wait=timings.SCREEN_TRANSITION_WAIT,
+        ):
+            self.logger.error("Settings screen did not open")
             return False
-
-        time.sleep(timings.SCREEN_TRANSITION_WAIT)
 
         if self.check_stop_requested():
             return False
 
-        # Click characters icon
-        self.logger.info("Clicking characters icon")
-        if not self.bluestacks.click(self.characters_icon['x'], self.characters_icon['y'], self.click_delay_ms):
-            self.logger.error("Failed to click characters icon")
+        # Step 3: characters button -> character selection list
+        # Same label-below-icon layout as the settings button.
+        if not self.nav.click_and_verify(
+            "characters button",
+            template='characters_icon',
+            texts=["Characters", "Character"],
+            region=self.coords.get_region('settings_screen'),
+            offset={'x': 0, 'y': -45},
+            fallback_point=self.characters_icon,
+            verify=self.screen.is_in_character_selection,
+            verify_timeout=12,
+            settle_wait=timings.CHARACTER_SELECT_LOAD_WAIT,
+        ):
+            self.logger.error("Character selection screen did not open")
             return False
-
-        time.sleep(timings.CHARACTER_SELECT_LOAD_WAIT)
 
         self.logger.info("Character selection screen opened")
         return True

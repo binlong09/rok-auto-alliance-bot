@@ -184,6 +184,12 @@ class ConfigManager:
             },
             'Timing': {
                 'click_delay_ms': '1000'
+            },
+            # Optional account rotation: comma-separated email:password pairs.
+            # When set, the automation logs into each account in turn and runs
+            # the character automation for every one of them.
+            'Accounts': {
+                'accounts': ''
             }
         }
 

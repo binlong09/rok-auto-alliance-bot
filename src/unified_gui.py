@@ -561,6 +561,34 @@ class UnifiedGUI:
         self._opt_field(opts, "Game Version", self.version_var, 2,
                         combo=['Global', 'Gamota', 'KR'], save_cb=self._autosave_tasks)
 
+        # separator
+        tk.Frame(card_inner, bg='#f1f5f9', height=1).pack(fill='x', pady=self.PAD_SM)
+
+        # account rotation
+        tk.Label(card_inner, text="ACCOUNT ROTATION (OPTIONAL)", font=self.FONT_SECTION,
+                 bg='white', fg=self.TEXT2).pack(anchor='w', pady=(0, self.PAD_XS))
+
+        tk.Label(card_inner,
+                 text="One account per line as email:password. The bot logs into each account in\n"
+                      "turn and runs all tasks for every one. Leave empty to use the current login only.",
+                 font=self.FONT_LABEL, bg='white', fg=self.TEXT2, justify='left'
+                 ).pack(anchor='w', pady=(0, self.PAD_XS))
+
+        accounts_wrap = tk.Frame(card_inner, bg='white', highlightbackground='#e2e8f0',
+                                 highlightthickness=1)
+        accounts_wrap.pack(fill='x', pady=(0, self.PAD_XS))
+
+        self.accounts_text = tk.Text(accounts_wrap, height=4, font=self.FONT_MONO,
+                                     relief='flat', bd=0, padx=self.PAD_SM, pady=self.PAD_XS,
+                                     bg='#f8fafc', fg=self.TEXT, insertbackground=self.TEXT,
+                                     wrap='none', undo=True)
+        self.accounts_text.pack(fill='x')
+        self.accounts_text.bind('<FocusOut>', lambda e: self._autosave_tasks())
+
+        self._accounts_status = tk.Label(card_inner, text="Account rotation disabled",
+                                         font=self.FONT_LABEL, bg='white', fg=self.TEXT2)
+        self._accounts_status.pack(anchor='w')
+
     def _task_row(self, parent, title, desc, var, command=None):
         row = tk.Frame(parent, bg='#f8fafc', highlightbackground='#e2e8f0', highlightthickness=1)
         row.pack(fill='x', pady=(0, self.PAD_XS))
@@ -964,6 +992,13 @@ class UnifiedGUI:
         self.version_var.set(
             cm.get_config('RiseOfKingdoms', 'rok_version', 'global').capitalize())
 
+        accounts_raw = cm.get_config('Accounts', 'accounts', '') or ''
+        self.accounts_text.delete('1.0', 'end')
+        if accounts_raw.strip():
+            lines = [e.strip() for e in accounts_raw.split(',') if e.strip()]
+            self.accounts_text.insert('1.0', '\n'.join(lines))
+        self._update_accounts_status()
+
         self.bs_path_var.set(cm.get_config('BlueStacks', 'bluestacks_exe_path', ''))
         self.adb_path_var.set(cm.get_config('BlueStacks', 'adb_path', ''))
         self.bs_instance_var.set(cm.get_config('BlueStacks', 'bluestacks_instance_name', ''))
@@ -1226,6 +1261,10 @@ class UnifiedGUI:
         ver = self.version_var.get()
         c['RiseOfKingdoms']['rok_version'] = ver.lower()
         c['RiseOfKingdoms']['package_name'] = self.ROK_PACKAGES.get(ver, self.ROK_PACKAGES['Global'])
+        if 'Accounts' not in c:
+            c['Accounts'] = {}
+        c['Accounts']['accounts'] = ', '.join(self._get_account_lines())
+        self._update_accounts_status()
         with open(cm.config_path, 'w') as f:
             c.write(f)
         self._update_task_status(iid)
@@ -1256,6 +1295,35 @@ class UnifiedGUI:
         self._load_sidebar()
         if not silent:
             messagebox.showinfo("Saved", "Configuration saved.")
+
+    # ── account rotation helpers ────────────────────────────────
+
+    def _get_account_lines(self):
+        """Read the accounts Text widget as a cleaned list of non-empty lines."""
+        if not hasattr(self, 'accounts_text'):
+            return []
+        raw = self.accounts_text.get('1.0', 'end')
+        return [line.strip() for line in raw.splitlines() if line.strip()]
+
+    def _update_accounts_status(self):
+        """Reflect how many valid/invalid account entries are configured."""
+        if not hasattr(self, '_accounts_status'):
+            return
+        lines = self._get_account_lines()
+        valid = [l for l in lines if ':' in l and l.split(':', 1)[0].strip()
+                 and l.split(':', 1)[1].strip()]
+        invalid = len(lines) - len(valid)
+        if not lines:
+            self._accounts_status.config(text="Account rotation disabled", fg=self.TEXT2)
+        elif invalid:
+            self._accounts_status.config(
+                text=f"{len(valid)} account(s) configured · {invalid} invalid line(s) "
+                     "(expected email:password)",
+                fg=self.STATUS_ERROR)
+        else:
+            self._accounts_status.config(
+                text=f"Account rotation enabled: {len(valid)} account(s)",
+                fg=self.STATUS_RUNNING)
 
     # ── browse / scan ───────────────────────────────────────────
 

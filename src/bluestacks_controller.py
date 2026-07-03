@@ -498,6 +498,29 @@ class BlueStacksController:
             self.logger.error(f"Error swiping from ({start_x}, {start_y}) to ({end_x}, {end_y}): {e}")
             return False
 
+    def type_text(self, text):
+        """Type text into the currently focused input field via ADB.
+
+        `adb shell input text` requires spaces encoded as %s and treats
+        several shell metacharacters specially, so they are escaped here.
+        Used by the account switcher to enter email/password.
+        """
+        try:
+            escaped = text.replace("\\", "\\\\")
+            for ch in "()<>|;&*~\"'$`":
+                escaped = escaped.replace(ch, "\\" + ch)
+            escaped = escaped.replace(" ", "%s")
+
+            text_cmd = [self.adb_path, "-s", self.adb_device, "shell", "input", "text", escaped]
+            subprocess.run(text_cmd, capture_output=True)
+
+            time.sleep(timings.MICRO_DELAY)
+            return True
+
+        except Exception as e:
+            self.logger.error(f"Error typing text: {e}")
+            return False
+
     def send_escape(self):
         """Send escape key (back button in Android)"""
         try:

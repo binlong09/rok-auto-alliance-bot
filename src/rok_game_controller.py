@@ -13,10 +13,12 @@ import timings
 from coordinate_manager import CoordinateManager
 from ocr_helper import OCRHelper
 from screen_detector import ScreenDetector
+from navigation_helper import VerifiedNavigator
 from build_automation import BuildAutomation
 from donation_automation import DonationAutomation
 from expedition_automation import ExpeditionAutomation
 from character_switcher import CharacterSwitcher
+from account_switcher import AccountSwitcher
 from recovery_manager import RecoveryManager
 
 
@@ -90,10 +92,20 @@ class RoKGameController:
             self.coords,
             stop_check_callback=self.ocr.check_stop_requested
         )
-        self.build = BuildAutomation(
+        self.navigator = VerifiedNavigator(
             self.ocr,
+            self.screen,
             self.bluestacks,
             self.coords,
+            click_delay_ms=self.click_delay_ms,
+            stop_check_callback=self.ocr.check_stop_requested
+        )
+        self.build = BuildAutomation(
+            self.ocr,
+            self.screen,
+            self.bluestacks,
+            self.coords,
+            self.navigator,
             click_delay_ms=self.click_delay_ms,
             stop_check_callback=self.ocr.check_stop_requested
         )
@@ -102,6 +114,7 @@ class RoKGameController:
             self.screen,
             self.bluestacks,
             self.coords,
+            self.navigator,
             click_delay_ms=self.click_delay_ms,
             stop_check_callback=self.ocr.check_stop_requested
         )
@@ -117,6 +130,7 @@ class RoKGameController:
             self.screen,
             self.bluestacks,
             self.coords,
+            self.navigator,
             click_delay_ms=self.click_delay_ms,
             stop_check_callback=self.ocr.check_stop_requested
         )
@@ -128,6 +142,7 @@ class RoKGameController:
             self.donation,
             self.expedition,
             self.recovery,
+            self.navigator,
             num_of_chars=int(rok_config.get('num_of_characters', 1)),
             march_preset=int(rok_config.get('march_preset', 1)),
             click_delay_ms=self.click_delay_ms,
@@ -141,6 +156,19 @@ class RoKGameController:
             daily_task_tracker=self.daily_task_tracker,
             force_daily_tasks=self.force_daily_tasks
         )
+        self.account_switcher = AccountSwitcher(
+            self.ocr,
+            self.screen,
+            self.bluestacks,
+            self.coords,
+            self.navigator,
+            self.recovery,
+            click_delay_ms=self.click_delay_ms,
+            game_load_wait_seconds=max(60, self.game_load_wait_seconds),
+            stop_check_callback=self.ocr.check_stop_requested
+        )
+        # Accounts configured for account rotation ([Accounts] in config.ini)
+        self.accounts = AccountSwitcher.parse_accounts(config_manager)
 
     def check_stop_requested(self):
         """Check if automation should stop."""
@@ -215,19 +243,35 @@ class RoKGameController:
         return False
 
     def wait_for_game_load(self):
-        """Wait for the game to load with stop check capability."""
-        self.logger.info(f"Waiting {self.game_load_wait_seconds} seconds for game to load...")
+        """Wait for the game to load, returning early once the loading screen
+        disappears or the home/map screen is detected."""
+        self.logger.info(f"Waiting for game to load (max {self.game_load_wait_seconds}s)...")
 
-        total_wait = self.game_load_wait_seconds
+        max_wait = self.game_load_wait_seconds
         interval = timings.POLL_INTERVAL
+        elapsed = 0
+        loading_detected = False
 
-        while total_wait > 0:
+        while elapsed < max_wait:
             if self.check_stop_requested():
                 return False
 
-            time.sleep(min(interval, total_wait))
-            total_wait -= interval
+            if self.screen.is_loading_screen():
+                loading_detected = True
+                self.logger.info(f"Loading screen detected ({elapsed:.0f}s)")
+            elif loading_detected:
+                self.logger.info("Loading finished, waiting 3s for game to initialize...")
+                time.sleep(timings.LONG_TRANSITION_WAIT)
+                return True
+            elif self.screen.is_in_home_village() or self.screen.is_in_map_screen():
+                self.logger.info("Game already loaded (home/map screen detected)")
+                return True
 
+            time.sleep(min(interval, max_wait - elapsed))
+            elapsed += interval
+
+        self.logger.info(f"Max wait ({max_wait}s) reached, proceeding...")
+        time.sleep(timings.LONG_TRANSITION_WAIT)
         return True
 
     def click_mid_of_screen(self):
@@ -296,3 +340,54 @@ class RoKGameController:
             bool: True if completed successfully, False otherwise
         """
         return self.character_switcher.switch_all_characters(start_from)
+
+    def switch_account(self, email, password):
+        """
+        Log out of the current account and log in as the given account.
+
+        Args:
+            email: Account email address
+            password: Account password
+
+        Returns:
+            bool: True if the switch succeeded
+        """
+        return self.account_switcher.switch_to_account(email, password)
+
+    def run_automation(self):
+        """
+        Run the full automation cycle.
+
+        With an [Accounts] section configured, rotates through every account
+        (switching login between them) and runs the character automation for
+        each. Without one, behaves exactly like the old flow: character
+        automation on the currently logged-in account only.
+
+        Returns:
+            bool: True if every account/character completed successfully
+        """
+        if not self.accounts:
+            return self.switch_character()
+
+        self.logger.info(f"Account rotation enabled: {len(self.accounts)} account(s) configured")
+        all_success = True
+
+        for idx, account in enumerate(self.accounts, start=1):
+            if self.check_stop_requested():
+                break
+
+            email = account['email']
+            self.logger.info(f"Processing account {idx}/{len(self.accounts)}: {email}")
+
+            if not self.switch_account(email, account['password']):
+                self.logger.error(f"Failed to switch to account {email}, skipping it")
+                all_success = False
+                # Try to get back to a workable state for the next account
+                self.recovery.return_to_home(max_attempts=5)
+                continue
+
+            if not self.switch_character():
+                self.logger.warning(f"Character automation reported failures for {email}")
+                all_success = False
+
+        return all_success
