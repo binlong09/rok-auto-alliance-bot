@@ -5,12 +5,16 @@ OCR Helper - Centralized text detection and image processing for OCR.
 This module handles all OCR-related operations including image preprocessing,
 text detection, and text position finding.
 """
+import time
 import logging
 import re
 import cv2
 import numpy as np
 import pytesseract
 from pytesseract import Output
+
+import timings
+from template_matcher import TemplateMatcher
 
 
 class OCRHelper:
@@ -40,6 +44,11 @@ class OCRHelper:
         # Configure tesseract path
         ocr_config = config.get_ocr_config()
         pytesseract.pytesseract.tesseract_cmd = ocr_config.get('tesseract_path')
+
+        # Image template matching (optional - see template_matcher.py).
+        # Used as the first detection method for icon-only buttons that OCR
+        # cannot read; silently unavailable until templates are captured.
+        self.templates = TemplateMatcher(debug_mode=debug_mode)
 
     def check_stop_requested(self):
         """Check if automation should stop."""
@@ -386,6 +395,96 @@ class OCRHelper:
             self.logger.error(f"Error detecting text position: {e}")
             self.logger.exception("Stack trace:")
             return None
+
+    def find_template(self, name, region=None, threshold=None):
+        """
+        Find a UI element by image template matching.
+
+        Args:
+            name: Template name (src/templates/<name>.png)
+            region (dict, optional): Region to search in {x, y, width, height}
+            threshold (float, optional): Minimum match confidence (0-1)
+
+        Returns:
+            dict: Center position {x, y, confidence} if found, None otherwise
+            (also None when the template image doesn't exist).
+        """
+        if self.check_stop_requested():
+            return None
+
+        screenshot = self.bluestacks.take_screenshot()
+        if screenshot is None:
+            return None
+
+        return self.templates.find(screenshot, name, region=region, threshold=threshold)
+
+    def wait_for_text(self, keywords, text_region=None, timeout=10,
+                      interval=timings.POLL_INTERVAL, description=None):
+        """
+        Poll until any keyword appears in a region, or timeout.
+
+        Replaces "click then sleep a fixed time and hope" with an actual
+        check that the expected screen/dialog is now visible.
+
+        Args:
+            keywords (list): Keywords to search for
+            text_region (dict, optional): Region to search in
+            timeout (float): Max seconds to wait
+            interval (float): Seconds between checks
+            description (str, optional): What we're waiting for (log message)
+
+        Returns:
+            bool: True if a keyword appeared within the timeout
+        """
+        what = description or f"text {keywords}"
+        deadline = time.time() + timeout
+
+        while True:
+            if self.check_stop_requested():
+                return False
+
+            if self.detect_text_in_region(keywords, text_region):
+                self.logger.info(f"Wait satisfied: {what}")
+                return True
+
+            if time.time() >= deadline:
+                self.logger.warning(f"Timed out after {timeout}s waiting for {what}")
+                return False
+
+            time.sleep(interval)
+
+    def wait_for_text_position(self, target_text, text_region=None, timeout=10,
+                               interval=timings.POLL_INTERVAL, exact_match=False):
+        """
+        Poll until specific text is found in a region, returning its position.
+
+        Args:
+            target_text (str or list): Text(s) to search for
+            text_region (dict, optional): Region to search in
+            timeout (float): Max seconds to wait
+            interval (float): Seconds between checks
+            exact_match (bool): Whether to only accept exact matches
+
+        Returns:
+            dict: Position {x, y} if found within timeout, None otherwise
+        """
+        deadline = time.time() + timeout
+
+        while True:
+            if self.check_stop_requested():
+                return None
+
+            result = self.detect_text_position(target_text, text_region, exact_match)
+            if result:
+                return result
+
+            if time.time() >= deadline:
+                self.logger.warning(
+                    f"Timed out after {timeout}s waiting for text position of {target_text}"
+                )
+                return None
+
+            time.sleep(interval)
 
     @staticmethod
     def find_closest_value(x, array):

@@ -144,13 +144,15 @@ class RecoveryManager:
 
             # Apply recovery action based on current screen
             if current_screen == GameScreen.EXIT_GAME_DIALOG:
-                # Click cancel to dismiss exit dialog
+                # Dismiss the exit dialog: locate Cancel via OCR (button
+                # position varies), fall back to the fixed coordinate.
+                # NEVER click anywhere near Confirm - that exits the game.
                 self.logger.info("Exit dialog showing, clicking Cancel")
-                self.bluestacks.click(
-                    self.exit_dialog_cancel['x'],
-                    self.exit_dialog_cancel['y'],
-                    self.click_delay_ms
-                )
+                cancel = self.screen.ocr.detect_text_position(
+                    ["CANCEL", "Cancel"],
+                    self.coords.get_region('exit_dialog')
+                ) or self.exit_dialog_cancel
+                self.bluestacks.click(cancel['x'], cancel['y'], self.click_delay_ms)
                 time.sleep(timings.ACTION_SETTLE_WAIT)
 
             elif current_screen == GameScreen.MAP_SCREEN:

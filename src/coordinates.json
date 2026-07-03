@@ -4,7 +4,7 @@
 
   "navigation": {
     "avatar_icon": {"x": 50, "y": 50},
-    "settings_icon": {"x": 1109, "y": 581},
+    "settings_icon": {"x": 1068, "y": 595},
     "characters_icon": {"x": 350, "y": 370},
     "map_button": {"x": 65, "y": 650},
     "yes_button": {"x": 815, "y": 515},
@@ -20,7 +20,7 @@
     "expedition_chest_1": {"x": 125, "y": 125},
     "expedition_chest_2": {"x": 988, "y": 277},
     "expedition_collect": {"x": 124, "y": 223},
-    "exit_dialog_cancel": {"x": 887, "y": 545},
+    "exit_dialog_cancel": {"x": 771, "y": 476},
     "rewards_dialog_confirm": {"x": 640, "y": 545}
   },
 
@@ -87,7 +87,20 @@
     "campaign_screen": {"x": 50, "y": 150, "width": 400, "height": 300},
     "exit_dialog": {"x": 370, "y": 175, "width": 540, "height": 250},
     "rewards_dialog": {"x": 370, "y": 175, "width": 540, "height": 250},
-    "loading_screen": {"x": 0, "y": 600, "width": 1280, "height": 120}
+    "loading_screen": {"x": 0, "y": 600, "width": 1280, "height": 120},
+    "profile_menu": {"x": 850, "y": 450, "width": 430, "height": 250},
+    "settings_screen": {"x": 150, "y": 150, "width": 1000, "height": 450},
+    "character_selection": {"x": 150, "y": 100, "width": 1000, "height": 550},
+    "donate_dialog": {"x": 650, "y": 350, "width": 600, "height": 320},
+    "expedition_screen": {"x": 50, "y": 50, "width": 1180, "height": 450},
+    "bookmark_screen": {"x": 150, "y": 0, "width": 950, "height": 700},
+    "account_screen": {"x": 20, "y": 0, "width": 1240, "height": 650},
+    "accounts_page": {"x": 40, "y": 50, "width": 1200, "height": 620},
+    "switch_accounts_dialog": {"x": 380, "y": 140, "width": 520, "height": 440},
+    "login_screen": {"x": 100, "y": 100, "width": 1080, "height": 550},
+    "march_screen": {"x": 600, "y": 570, "width": 560, "height": 140},
+    "nav_anchor": {"x": 10, "y": 600, "width": 140, "height": 120},
+    "age_text": {"x": 230, "y": 5, "width": 260, "height": 45}
   },
 
   "scroll": {
