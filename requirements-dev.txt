@@ -1,3 +1,4 @@
-# Build-only dependencies (not needed to run the bot, only to package it).
+# Development dependencies (not needed to run the bot: packaging + tests).
 # Install with: pip install -r requirements-dev.txt
 pyinstaller>=6.0
+pytest>=8.0
