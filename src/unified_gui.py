@@ -387,6 +387,12 @@ class UnifiedGUI:
         status_wrap = tk.Frame(toolbar, bg='white')
         status_wrap.grid(row=0, column=1, padx=(self.PAD_SM, 0), sticky='w')
 
+        # emulator (BlueStacks instance) name + ADB port of the selected
+        # profile, same format as the sidebar rows.
+        self._tb_sub = tk.Label(status_wrap, text="", font=self.FONT_BODY,
+                                 bg='white', fg=self.TEXT2)
+        self._tb_sub.pack(side='left', padx=(0, self.PAD_SM))
+
         # status badge: colored dot + label, replaces the old dim "· Idle"
         # text so running/error/scheduled states are readable at a glance.
         self._tb_badge_dot = tk.Label(status_wrap, text="●", font=self.FONT_DOT,
@@ -931,6 +937,8 @@ class UnifiedGUI:
         status = self.instance_statuses.get(instance_id, '')
 
         self._tb_title.config(text=inst['name'])
+        self._tb_sub.config(
+            text=f"{inst.get('bluestacks_instance', '')} · :{inst.get('adb_port', '')}")
         color, text = self._status_badge_for(instance_id, is_running, status)
         self._set_status_badge(color, text)
         self._update_toolbar_buttons(is_running)
@@ -1242,6 +1250,8 @@ class UnifiedGUI:
         self.instance_manager.update_instance(iid,
             bluestacks_instance=self.bs_instance_var.get(),
             adb_port=self.adb_port_var.get())
+        self._tb_sub.config(
+            text=f"{self.bs_instance_var.get()} · :{self.adb_port_var.get()}")
         self._save_tasks(silent=True)
         self._load_sidebar()
         if not silent:
