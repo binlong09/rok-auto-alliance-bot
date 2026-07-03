@@ -14,6 +14,8 @@ from functools import wraps
 from dataclasses import dataclass
 from typing import Callable, Optional
 
+import timings
+
 
 class GameScreen(Enum):
     """Possible game screens the bot can detect."""
@@ -149,7 +151,7 @@ class RecoveryManager:
                     self.exit_dialog_cancel['y'],
                     self.click_delay_ms
                 )
-                time.sleep(1)
+                time.sleep(timings.ACTION_SETTLE_WAIT)
 
             elif current_screen == GameScreen.MAP_SCREEN:
                 # Click map button to toggle back to home
@@ -159,34 +161,34 @@ class RecoveryManager:
                     self.map_button['y'],
                     self.click_delay_ms
                 )
-                time.sleep(2)
+                time.sleep(timings.SCREEN_TRANSITION_WAIT)
 
             elif current_screen == GameScreen.CHARACTER_LOGIN:
                 # Multiple escapes needed to exit character selection
                 self.logger.info("On character login, sending 3 escape keys")
                 for _ in range(3):
                     self.bluestacks.send_escape()
-                    time.sleep(1)
-                time.sleep(1)
+                    time.sleep(timings.ACTION_SETTLE_WAIT)
+                time.sleep(timings.ACTION_SETTLE_WAIT)
 
             elif current_screen == GameScreen.ALLIANCE_MENU:
                 # Two escapes to close alliance menu
                 self.logger.info("On alliance menu, sending 2 escape keys")
                 for _ in range(2):
                     self.bluestacks.send_escape()
-                    time.sleep(1)
+                    time.sleep(timings.ACTION_SETTLE_WAIT)
 
             elif current_screen == GameScreen.DIALOG_OPEN:
                 # Single escape for general dialogs
                 self.logger.info("Dialog open, sending escape key")
                 self.bluestacks.send_escape()
-                time.sleep(1)
+                time.sleep(timings.ACTION_SETTLE_WAIT)
 
             else:  # UNKNOWN
                 # Blind escape attempt
                 self.logger.info("Unknown screen, sending escape key")
                 self.bluestacks.send_escape()
-                time.sleep(1.5)
+                time.sleep(timings.EXTENDED_SETTLE_WAIT)
 
         self.logger.error(f"Failed to return to home after {max_attempts} attempts")
         return False

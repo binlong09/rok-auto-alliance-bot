@@ -5,6 +5,8 @@ import logging
 import cv2
 import numpy as np
 
+import timings
+
 
 class BlueStacksController:
     """Controller for BlueStacks operations and interactions"""
@@ -94,7 +96,7 @@ class BlueStacksController:
             self.last_connect_error = "exception"
             return False
 
-    def _verify_adb_shell(self, retries=3, delay_seconds=2):
+    def _verify_adb_shell(self, retries=3, delay_seconds=timings.ADB_RETRY_DELAY):
         """Verify the ADB shell/data channel actually works, not just the transport.
 
         Retries with a short delay first, since a freshly-connected instance can
@@ -207,7 +209,7 @@ class BlueStacksController:
             result = subprocess.run(swipe_cmd, capture_output=True)
 
             # Add delay after swipe
-            time.sleep(0.5)
+            time.sleep(timings.MICRO_DELAY)
 
             return True
 
@@ -223,7 +225,7 @@ class BlueStacksController:
             result = subprocess.run(key_cmd, capture_output=True)
 
             # Add delay after key press
-            time.sleep(0.5)
+            time.sleep(timings.MICRO_DELAY)
 
             return True
 

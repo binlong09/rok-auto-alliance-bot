@@ -29,3 +29,14 @@ preprocess_image = True
 
 [Timing]
 click_delay_ms = 1000
+
+# Optional overrides for the named waits in src/timings.py. Uncomment and
+# adjust any of these if the defaults are too fast/slow for your setup.
+# Values are seconds (floats allowed). Any key left out keeps its built-in
+# default, and invalid values are ignored with a warning (safe to leave
+# typos in place).
+# [Timings]
+# character_select_load_wait = 6
+# screen_transition_wait = 2
+# action_settle_wait = 1
+# map_load_wait = 4

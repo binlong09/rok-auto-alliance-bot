@@ -8,6 +8,7 @@ import subprocess
 import queue
 from queue import Queue
 
+import timings
 from instance_manager import InstanceManager
 from config_manager import ConfigManager
 from bluestacks_controller import BlueStacksController
@@ -122,7 +123,7 @@ class AutomationThread(threading.Thread):
                     subprocess.run(force_stop_cmd, capture_output=True, timeout=10)
 
                     # Add a delay to ensure app is fully stopped
-                    time.sleep(2)
+                    time.sleep(timings.APP_STOP_WAIT)
                 except Exception as e:
                     self.log(f"Error force stopping RoK app: {e}")
 
@@ -188,6 +189,10 @@ class AutomationThread(threading.Thread):
         ]
 
         try:
+            # Apply any [Timings] overrides from this instance's config.ini
+            # before any timing-dependent component is created below.
+            timings.load_overrides(self.config_manager)
+
             # Set up queue handler to route verbose logs to GUI
             queue_handler = QueueLogHandler(self.queue, self.instance_id)
             queue_handler.setLevel(logging.INFO)
@@ -293,7 +298,7 @@ class AutomationThread(threading.Thread):
 
             # Wait in intervals with stop checks
             total_wait = rok_controller.game_load_wait_seconds
-            interval = 2  # Check for stop every 2 seconds
+            interval = timings.POLL_INTERVAL  # Check for stop every 2 seconds
 
             for _ in range(0, total_wait, interval):
                 if self.stop_event.is_set():

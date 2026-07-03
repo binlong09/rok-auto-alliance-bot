@@ -41,6 +41,8 @@ HOW TO CREATE NEW AUTOMATION FEATURES - DOCUMENTATION
 import time
 import logging
 
+import timings
+
 
 class ExpeditionAutomation:
     """
@@ -112,7 +114,7 @@ class ExpeditionAutomation:
 
         self.logger.info("Pressing Escape to close dialog")
         if self.bluestacks.send_escape():
-            time.sleep(1)
+            time.sleep(timings.ACTION_SETTLE_WAIT)
             return True
         return False
 
@@ -135,7 +137,7 @@ class ExpeditionAutomation:
                                          self.click_delay_ms):
                 self.logger.error("Failed to click Cancel on exit dialog")
                 return False
-            time.sleep(1)
+            time.sleep(timings.ACTION_SETTLE_WAIT)
             return True
 
         return True  # No dialog present is also success
@@ -160,7 +162,7 @@ class ExpeditionAutomation:
                                          self.click_delay_ms):
                 self.logger.error("Failed to click expand button")
                 return False
-            time.sleep(1)
+            time.sleep(timings.ACTION_SETTLE_WAIT)
 
         self.logger.info("Bottom bar is expanded")
         return True
@@ -188,7 +190,7 @@ class ExpeditionAutomation:
             self.logger.error("Failed to click Campaign button")
             return False
 
-        time.sleep(2)  # Wait for Campaign screen to load
+        time.sleep(timings.SCREEN_TRANSITION_WAIT)  # Wait for Campaign screen to load
         self.logger.info("Campaign screen opened")
         return True
 
@@ -227,7 +229,7 @@ class ExpeditionAutomation:
             self.logger.error("Failed to click Expedition button")
             return False
 
-        time.sleep(2)  # Wait for Expedition screen to load
+        time.sleep(timings.SCREEN_TRANSITION_WAIT)  # Wait for Expedition screen to load
         self.logger.info("Expedition screen opened")
         return True
 
@@ -255,7 +257,7 @@ class ExpeditionAutomation:
                                      self.click_delay_ms):
             self.logger.error("Failed to click chest 1")
             return False
-        time.sleep(1)
+        time.sleep(timings.ACTION_SETTLE_WAIT)
 
         # Click second chest position 3 times
         for i in range(3):
@@ -268,7 +270,7 @@ class ExpeditionAutomation:
                                          self.click_delay_ms):
                 self.logger.error(f"Failed to click chest 2 (attempt {i+1})")
                 return False
-            time.sleep(0.5)
+            time.sleep(timings.MICRO_DELAY)
 
         # Press Escape to go back to Expedition screen
         self.logger.info("Going back to Expedition screen")
@@ -302,7 +304,7 @@ class ExpeditionAutomation:
                                      self.click_delay_ms):
             self.logger.error("Failed to click collect")
             return False
-        time.sleep(1.5)
+        time.sleep(timings.EXTENDED_SETTLE_WAIT)
 
         # Check if rewards dialog appeared
         rewards_dialog_appeared = self.screen.is_rewards_dialog()
@@ -329,7 +331,7 @@ class ExpeditionAutomation:
 
         # Wait for screen to fully return to home before next action
         self.logger.info("Waiting for screen to settle after expedition...")
-        time.sleep(3)
+        time.sleep(timings.LONG_TRANSITION_WAIT)
 
         return True
 

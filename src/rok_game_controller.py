@@ -9,6 +9,7 @@ import time
 import logging
 import subprocess
 
+import timings
 from coordinate_manager import CoordinateManager
 from ocr_helper import OCRHelper
 from screen_detector import ScreenDetector
@@ -39,6 +40,10 @@ class RoKGameController:
         self.stop_check_callback = None
         self.daily_task_tracker = daily_task_tracker
         self.force_daily_tasks = force_daily_tasks
+
+        # Apply any [Timings] overrides from config.ini. Safe to call more
+        # than once (e.g. also called earlier by the multi-instance launcher).
+        timings.load_overrides(config_manager)
 
         # Load RoK configurations
         rok_config = config_manager.get_rok_config()
@@ -161,7 +166,7 @@ class RoKGameController:
         except Exception:
             return False
 
-    def start_game(self, max_retries=3, retry_delay_seconds=2):
+    def start_game(self, max_retries=3, retry_delay_seconds=timings.ADB_RETRY_DELAY):
         """Start Rise of Kingdoms app.
 
         Retries on transient ADB transport errors (e.g. "error: closed"), which
@@ -184,7 +189,7 @@ class RoKGameController:
                     # The "am start" response itself failed, but the activity may
                     # have launched anyway before the ADB transport dropped the
                     # connection. Verify actual process state before giving up.
-                    time.sleep(1.5)
+                    time.sleep(timings.EXTENDED_SETTLE_WAIT)
                     if self.is_rok_process_running():
                         self.logger.info(
                             f"Rise of Kingdoms is running despite reported ADB error: {result.stderr.strip()}"
@@ -214,7 +219,7 @@ class RoKGameController:
         self.logger.info(f"Waiting {self.game_load_wait_seconds} seconds for game to load...")
 
         total_wait = self.game_load_wait_seconds
-        interval = 2
+        interval = timings.POLL_INTERVAL
 
         while total_wait > 0:
             if self.check_stop_requested():
@@ -252,10 +257,10 @@ class RoKGameController:
 
         if self.bluestacks.send_escape():
             self.logger.info("Sent escape key to close dialog")
-            time.sleep(1)
+            time.sleep(timings.ACTION_SETTLE_WAIT)
             return True
 
-        time.sleep(1)
+        time.sleep(timings.ACTION_SETTLE_WAIT)
         return True
 
     def navigate_to_map(self):
@@ -271,7 +276,7 @@ class RoKGameController:
                     self.logger.error("Failed to click on map button")
                     return False
                 self.logger.info("Clicked on map button because screen was on home village")
-                time.sleep(4)  # Increased wait time for map to fully load after character switch
+                time.sleep(timings.MAP_LOAD_WAIT)  # Increased wait time for map to fully load after character switch
 
             return True
 

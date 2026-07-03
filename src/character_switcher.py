@@ -10,6 +10,7 @@ import time
 import logging
 import numpy as np
 
+import timings
 from recovery_manager import RetryConfig, with_retry
 from daily_task_tracker import DailyTaskTracker
 
@@ -134,10 +135,10 @@ class CharacterSwitcher:
         self.logger.info("Closing dialogs")
         if self.bluestacks.send_escape():
             self.logger.info("Sent escape key to close dialog")
-            time.sleep(1)
+            time.sleep(timings.ACTION_SETTLE_WAIT)
             return True
 
-        time.sleep(1)
+        time.sleep(timings.ACTION_SETTLE_WAIT)
         return True
 
     def wait_for_game_load(self):
@@ -151,7 +152,7 @@ class CharacterSwitcher:
         self.logger.info("Waiting for game to load...")
 
         max_wait = self.game_load_wait_seconds
-        check_interval = 2
+        check_interval = timings.POLL_INTERVAL
         elapsed = 0
         loading_detected = False
 
@@ -168,7 +169,7 @@ class CharacterSwitcher:
             elif loading_detected:
                 # Loading screen was visible but now it's gone - game finished loading
                 self.logger.info("Loading screen finished, waiting 3s for game to initialize...")
-                time.sleep(3)
+                time.sleep(timings.LONG_TRANSITION_WAIT)
                 return True
             else:
                 # No loading screen detected - might already be loaded or detection failed
@@ -180,7 +181,7 @@ class CharacterSwitcher:
 
         # Max wait reached - proceed anyway
         self.logger.info(f"Max wait time ({max_wait}s) reached, proceeding...")
-        time.sleep(3)  # Still wait 3s buffer
+        time.sleep(timings.LONG_TRANSITION_WAIT)  # Still wait 3s buffer
         return True
 
     def scroll_down(self):
@@ -199,7 +200,7 @@ class CharacterSwitcher:
             self.logger.error("Failed to scroll down")
             return False
 
-        time.sleep(1.5)
+        time.sleep(timings.EXTENDED_SETTLE_WAIT)
         return True
 
     def open_character_selection(self):
@@ -215,7 +216,7 @@ class CharacterSwitcher:
             self.logger.error("Failed to click avatar icon")
             return False
 
-        time.sleep(3)  # Increased wait for profile menu to appear
+        time.sleep(timings.LONG_TRANSITION_WAIT)  # Increased wait for profile menu to appear
 
         if self.check_stop_requested():
             return False
@@ -226,7 +227,7 @@ class CharacterSwitcher:
             self.logger.error("Failed to click settings icon")
             return False
 
-        time.sleep(2)
+        time.sleep(timings.SCREEN_TRANSITION_WAIT)
 
         if self.check_stop_requested():
             return False
@@ -237,7 +238,7 @@ class CharacterSwitcher:
             self.logger.error("Failed to click characters icon")
             return False
 
-        time.sleep(6)
+        time.sleep(timings.CHARACTER_SELECT_LOAD_WAIT)
 
         self.logger.info("Character selection screen opened")
         return True
@@ -289,7 +290,7 @@ class CharacterSwitcher:
             if self.check_stop_requested():
                 return False
             self.scroll_down()
-            time.sleep(2)
+            time.sleep(timings.SCREEN_TRANSITION_WAIT)
 
         # Get position and click
         pos = self.get_character_position(index)
@@ -311,7 +312,7 @@ class CharacterSwitcher:
         # where the dialog hasn't finished rendering yet, causing the character
         # to be incorrectly treated as skipped.
         max_wait = 8  # total seconds to wait
-        poll_interval = 1.5  # check every 1.5s
+        poll_interval = timings.CHARACTER_LOGIN_POLL_INTERVAL  # check every 1.5s
         elapsed = 0
         is_login_screen = False
 
@@ -356,7 +357,7 @@ class CharacterSwitcher:
                 if self.check_stop_requested():
                     return False
                 self.close_dialogs()
-                time.sleep(1)
+                time.sleep(timings.ACTION_SETTLE_WAIT)
 
         return True
 
@@ -394,7 +395,7 @@ class CharacterSwitcher:
         if self.will_perform_expedition:
             if self.should_run_daily_task(DailyTaskTracker.TASK_EXPEDITION):
                 self.logger.info(f"Collecting expedition rewards for character {char_display}")
-                time.sleep(1)
+                time.sleep(timings.ACTION_SETTLE_WAIT)
                 if self.expedition.perform_expedition_collection():
                     self.mark_daily_task_completed(DailyTaskTracker.TASK_EXPEDITION)
             else:
@@ -409,7 +410,7 @@ class CharacterSwitcher:
         # Done last as it leaves screen in cleanest state for character switch
         if self.will_perform_donation:
             self.logger.info(f"Performing Alliance Donation for character {char_display}")
-            time.sleep(1)
+            time.sleep(timings.ACTION_SETTLE_WAIT)
             self.donation.perform_recommended_tech_donation()
 
         return True
@@ -453,7 +454,7 @@ class CharacterSwitcher:
 
         # Wait before switching to next character to ensure game is ready
         self.logger.info("Waiting 3 seconds before next character...")
-        time.sleep(3)
+        time.sleep(timings.LONG_TRANSITION_WAIT)
 
         return True
 

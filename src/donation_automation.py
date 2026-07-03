@@ -8,6 +8,8 @@ specifically finding and donating to officer-recommended technologies.
 import time
 import logging
 
+import timings
+
 
 class DonationAutomation:
     """Automates alliance technology donation workflow."""
@@ -47,10 +49,10 @@ class DonationAutomation:
         self.logger.info("Closing dialogs")
         if self.bluestacks.send_escape():
             self.logger.info("Sent escape key to close dialog")
-            time.sleep(1)
+            time.sleep(timings.ACTION_SETTLE_WAIT)
             return True
 
-        time.sleep(1)
+        time.sleep(timings.ACTION_SETTLE_WAIT)
         return True
 
     def expand_bottom_bar(self):
@@ -62,7 +64,7 @@ class DonationAutomation:
                 return False
 
         self.logger.info("Bottom bar is expanded")
-        time.sleep(1)
+        time.sleep(timings.ACTION_SETTLE_WAIT)
         return True
 
     def click_technology_button(self):
@@ -182,7 +184,7 @@ class DonationAutomation:
             return False
 
         self.logger.info("Alliance screen opened")
-        time.sleep(2)
+        time.sleep(timings.SCREEN_TRANSITION_WAIT)
 
         if not self.screen.is_char_in_alliance():
             self.close_dialogs()
@@ -195,12 +197,12 @@ class DonationAutomation:
             return True
 
         self.logger.info("Tech screen opened")
-        time.sleep(6)
+        time.sleep(timings.CHARACTER_SELECT_LOAD_WAIT)
 
         if not self.find_and_donate_recommended_technology():
             self.logger.error("Failed to find and donate recommended technology")
             return False
 
         self.logger.info("Donate recommended technology completed")
-        time.sleep(1)
+        time.sleep(timings.ACTION_SETTLE_WAIT)
         return True

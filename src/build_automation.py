@@ -8,6 +8,8 @@ dispatching troops to construction projects.
 import time
 import logging
 
+import timings
+
 
 class BuildAutomation:
     """Automates alliance build participation workflow."""
@@ -45,10 +47,10 @@ class BuildAutomation:
         self.logger.info("Closing dialogs")
         if self.bluestacks.send_escape():
             self.logger.info("Sent escape key to close dialog")
-            time.sleep(1)
+            time.sleep(timings.ACTION_SETTLE_WAIT)
             return True
 
-        time.sleep(1)
+        time.sleep(timings.ACTION_SETTLE_WAIT)
         return True
 
     def navigate_to_bookmark(self):
@@ -63,7 +65,7 @@ class BuildAutomation:
             self.logger.error("Failed to click on bookmark button")
             return False
 
-        time.sleep(2)
+        time.sleep(timings.SCREEN_TRANSITION_WAIT)
         return True
 
     def click_mid_of_screen(self):
@@ -99,9 +101,9 @@ class BuildAutomation:
             self.logger.error("Failed to click on one troop button")
             return False
 
-        time.sleep(3)
+        time.sleep(timings.LONG_TRANSITION_WAIT)
         self.click_mid_of_screen()
-        time.sleep(1)
+        time.sleep(timings.ACTION_SETTLE_WAIT)
         return True
 
     def find_and_click_build_button(self):
@@ -119,12 +121,12 @@ class BuildAutomation:
         if result:
             offset_y = self.coords.get_offset('build_button_offset_y')
             build_button_y = result['y'] + offset_y
-            time.sleep(2)
+            time.sleep(timings.SCREEN_TRANSITION_WAIT)
             if not self.bluestacks.click(result['x'], build_button_y, self.click_delay_ms):
                 self.logger.error("Failed to click on build button")
                 return False
             self.logger.info("Clicking build button")
-            time.sleep(2)
+            time.sleep(timings.SCREEN_TRANSITION_WAIT)
             return True
         else:
             self.logger.error("Build button not found")
@@ -141,7 +143,7 @@ class BuildAutomation:
             return False
 
         tap_region = self.coords.get_region('tap_to_join')
-        time.sleep(1)
+        time.sleep(timings.ACTION_SETTLE_WAIT)
         result = self.ocr.detect_text_position("tap", tap_region)
         if result:
             if not self.bluestacks.click(result['x'], result['y'], self.click_delay_ms):
@@ -163,7 +165,7 @@ class BuildAutomation:
             return False
 
         new_troop_region = self.coords.get_region('new_troop')
-        time.sleep(1)
+        time.sleep(timings.ACTION_SETTLE_WAIT)
         result = self.ocr.detect_text_position("Dispatch", new_troop_region)
         if result:
             # New troop button is 90px below the Dispatch text
@@ -198,7 +200,7 @@ class BuildAutomation:
             self.logger.error(f"Failed to click on preset {march_preset} button")
             return False
 
-        time.sleep(2)
+        time.sleep(timings.SCREEN_TRANSITION_WAIT)
 
         if self.check_stop_requested():
             return False
@@ -208,7 +210,7 @@ class BuildAutomation:
             self.logger.error("Failed to click march button")
             return False
 
-        time.sleep(2)
+        time.sleep(timings.SCREEN_TRANSITION_WAIT)
         return True
 
     def perform_build(self, march_preset, navigate_to_map_callback=None):
