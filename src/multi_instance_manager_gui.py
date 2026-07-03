@@ -780,24 +780,40 @@ class MultiInstanceManagerGUI:
     # === Callbacks ===
 
     def on_instance_log(self, instance_id, message):
-        """Handle log messages from automation"""
-        selection = self.instances_tree.selection()
-        if selection and len(selection) == 1 and selection[0] == instance_id:
-            timestamp = time.strftime("%H:%M:%S")
-            self.log_text.insert(tk.END, f"[{timestamp}] ", 'timestamp')
-            self.log_text.insert(tk.END, f"{message}\n", 'info')
-            self.log_text.see(tk.END)
+        """Handle log messages from automation (called from background thread)"""
+        timestamp = time.strftime("%H:%M:%S")
+        self.root.after(0, self._apply_instance_log, instance_id, timestamp, message)
+
+    def _apply_instance_log(self, instance_id, timestamp, message):
+        if self.is_closing:
+            return
+        try:
+            selection = self.instances_tree.selection()
+            if selection and len(selection) == 1 and selection[0] == instance_id:
+                self.log_text.insert(tk.END, f"[{timestamp}] ", 'timestamp')
+                self.log_text.insert(tk.END, f"{message}\n", 'info')
+                self.log_text.see(tk.END)
+        except tk.TclError:
+            pass
 
     def on_instance_status_update(self, instance_id, status):
-        """Handle status updates from automation"""
-        self.update_instance_status(instance_id, status)
+        """Handle status updates from automation (called from background thread)"""
+        self.root.after(0, self._apply_instance_status_update, instance_id, status)
 
-        selection = self.instances_tree.selection()
-        if selection and len(selection) == 1 and selection[0] == instance_id:
-            is_running = self.launcher.is_instance_running(instance_id)
-            self.launch_selected_btn.set_disabled(is_running)
-            self.stop_btn.set_disabled(not is_running)
-            self.edit_btn.set_disabled(is_running)
+    def _apply_instance_status_update(self, instance_id, status):
+        if self.is_closing:
+            return
+        try:
+            self.update_instance_status(instance_id, status)
+
+            selection = self.instances_tree.selection()
+            if selection and len(selection) == 1 and selection[0] == instance_id:
+                is_running = self.launcher.is_instance_running(instance_id)
+                self.launch_selected_btn.set_disabled(is_running)
+                self.stop_btn.set_disabled(not is_running)
+                self.edit_btn.set_disabled(is_running)
+        except tk.TclError:
+            pass
 
     def toggle_auto_exit(self):
         """Toggle auto-exit setting"""
@@ -1029,9 +1045,14 @@ class MultiInstanceManagerGUI:
                                        f"{len(running)} instance(s) running.\nStop all and exit?"):
                 return
             self.launcher.stop_all_instances()
-            time.sleep(0.5)
+            self.is_closing = True
+            self.root.after(500, self._finish_closing)
+            return
 
         self.is_closing = True
+        self._finish_closing()
+
+    def _finish_closing(self):
         self.launcher.shutdown()
         self.root.destroy()
 

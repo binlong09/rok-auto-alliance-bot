@@ -55,7 +55,7 @@ def main():
 
         try:
             root.iconbitmap("assets/rok_icon.ico")
-        except:
+        except Exception:
             logger.warning("Could not load application icon")
 
         root.mainloop()

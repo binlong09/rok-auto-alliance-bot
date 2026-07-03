@@ -246,11 +246,11 @@ class UnifiedGUI:
             def enter(e, f=frame, inn=inner, inf=info):
                 for w in [f, inn, inf] + list(inn.winfo_children()) + list(inf.winfo_children()):
                     try: w.configure(bg=self.SIDEBAR_HOVER)
-                    except: pass
+                    except tk.TclError: pass
             def leave(e, f=frame, inn=inner, inf=info):
                 for w in [f, inn, inf] + list(inn.winfo_children()) + list(inf.winfo_children()):
                     try: w.configure(bg=self.SIDEBAR_BG)
-                    except: pass
+                    except tk.TclError: pass
             frame.bind('<Enter>', enter)
             frame.bind('<Leave>', leave)
 
@@ -928,9 +928,21 @@ class UnifiedGUI:
             self.log_buffers[instance_id] = buf[-1500:]
 
         if self.selected_instance_id == instance_id and self._current_tab == 'logs':
+            self.root.after(0, self._append_log_line, instance_id, ts, message, tag)
+
+    def _append_log_line(self, instance_id, ts, message, tag):
+        # Guard against the callback firing after the window/widget is gone,
+        # or after the selection/tab changed while this was queued.
+        if self.is_closing:
+            return
+        if self.selected_instance_id != instance_id or self._current_tab != 'logs':
+            return
+        try:
             self._log_text.insert('end', f"[{ts}] ", 'ts')
             self._log_text.insert('end', f"{message}\n", tag)
             self._log_text.see('end')
+        except tk.TclError:
+            pass
 
     def _on_instance_status(self, instance_id, status):
         self.instance_statuses[instance_id] = status
@@ -952,7 +964,7 @@ class UnifiedGUI:
             try:
                 self.root.after(0, self._load_sidebar)
             except Exception:
-                pass
+                self.logger.exception("Status poll failed")
             time.sleep(3)
 
     # ── helpers ──────────────────────────────────────────────────
@@ -982,8 +994,13 @@ class UnifiedGUI:
                 f"{len(running)} instance(s) running.\nStop all and exit?"):
                 return
             self.launcher.stop_all_instances()
-            time.sleep(0.5)
+            self.is_closing = True
+            self.root.after(500, self._finish_closing)
+            return
         self.is_closing = True
+        self._finish_closing()
+
+    def _finish_closing(self):
         self.launcher.shutdown()
         self.root.destroy()
 

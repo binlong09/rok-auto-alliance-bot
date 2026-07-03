@@ -76,6 +76,7 @@ class RiseOfKingdomsManagerGUI:
         self.root.geometry("550x750")
         self.root.resizable(True, True)
         self.root.minsize(450, 600)
+        self.root.protocol("WM_DELETE_WINDOW", self.on_closing)
 
         # Set up logging
         self.setup_logging()
@@ -508,24 +509,36 @@ class RiseOfKingdomsManagerGUI:
         self.progress_text.config(text=f"0 / {count} characters")
 
     def update_status(self, status, color="ready"):
-        """Update status display"""
-        self.status_text.set(status)
+        """Update status display (thread-safe: may be called from the
+        automation worker thread, so the actual widget mutation is
+        dispatched onto the main thread)."""
+        def apply():
+            try:
+                self.status_text.set(status)
 
-        colors_map = {
-            "ready": self.colors['success'],
-            "running": self.colors['primary'],
-            "error": self.colors['error'],
-            "warning": self.colors['warning']
-        }
-        self.status_dot.config(fg=colors_map.get(color, self.colors['success']))
+                colors_map = {
+                    "ready": self.colors['success'],
+                    "running": self.colors['primary'],
+                    "error": self.colors['error'],
+                    "warning": self.colors['warning']
+                }
+                self.status_dot.config(fg=colors_map.get(color, self.colors['success']))
+            except tk.TclError:
+                pass
+        self.root.after(0, apply)
 
     def update_progress(self, current, total=None):
-        """Update progress bar and text"""
-        if total:
-            self.progress_bar['maximum'] = total
-        self.progress_bar['value'] = current
-        total_val = total or self.character_count.get()
-        self.progress_text.config(text=f"{current} / {total_val} characters")
+        """Update progress bar and text (thread-safe, see update_status)."""
+        def apply():
+            try:
+                if total:
+                    self.progress_bar['maximum'] = total
+                self.progress_bar['value'] = current
+                total_val = total or self.character_count.get()
+                self.progress_text.config(text=f"{current} / {total_val} characters")
+            except tk.TclError:
+                pass
+        self.root.after(0, apply)
 
     def initialize_defaults(self):
         """Load default values and check environment"""
@@ -870,7 +883,9 @@ class RiseOfKingdomsManagerGUI:
             self.logger.exception("Stack trace:")
             self.log(f"Error: {str(e)}", "error")
             self.update_status("Error occurred", "error")
-            messagebox.showerror("Error", f"An error occurred: {str(e)}")
+            err_msg = str(e)
+            self.root.after(0, lambda msg=err_msg: messagebox.showerror(
+                "Error", f"An error occurred: {msg}"))
 
         finally:
             self.is_running = False
@@ -890,6 +905,26 @@ class RiseOfKingdomsManagerGUI:
     def log(self, message, level="info"):
         """Log message (log display was removed, only logs to console now)"""
         self.logger.info(message)
+
+    # === Window lifecycle ===
+
+    def on_closing(self):
+        """Handle window close (WM_DELETE_WINDOW)."""
+        if self.is_running:
+            if not messagebox.askokcancel(
+                "Confirm Exit",
+                "Automation is running.\nStop automation and exit?"
+            ):
+                return
+            # Reuse the same stop mechanism as the Stop button instead of
+            # blocking the main thread waiting for the worker to notice.
+            self.stop_requested = True
+            self.root.after(500, self._finish_closing)
+            return
+        self._finish_closing()
+
+    def _finish_closing(self):
+        self.root.destroy()
 
 
 if __name__ == "__main__":
