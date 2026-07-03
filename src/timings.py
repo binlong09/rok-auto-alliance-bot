@@ -79,6 +79,11 @@ ADB_RETRY_DELAY = 2.0
 # before the BlueStacks instance itself is torn down.
 APP_STOP_WAIT = 2.0
 
+# Grace period after firing `am start` before polling for the loading screen.
+# The game needs several seconds to get past its splash screen and start
+# rendering the "Loading X%" progress bar.
+GAME_STARTUP_GRACE = 8.0
+
 # Pause between launching successive BlueStacks instances in a
 # multi-instance run. Not currently consumed by any sleep in this module's
 # owning files, but reserved here so the multi-instance orchestration UI
@@ -102,6 +107,7 @@ _ALL_CONSTANTS = [
     "CHARACTER_LOGIN_POLL_INTERVAL",
     "ADB_RETRY_DELAY",
     "APP_STOP_WAIT",
+    "GAME_STARTUP_GRACE",
     "LAUNCH_STAGGER_WAIT",
 ]
 

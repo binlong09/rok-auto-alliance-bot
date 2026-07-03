@@ -21,6 +21,7 @@ from navigation_helper import VerifiedNavigator
 from ocr_helper import OCRHelper
 from recovery_manager import RecoveryManager
 from screen_detector import ScreenDetector
+from territory_automation import TerritoryAutomation
 
 
 class RoKGameController(DialogCloserMixin):
@@ -28,23 +29,20 @@ class RoKGameController(DialogCloserMixin):
 
     STOP_CONTEXT = "RoK operation"
 
-    def __init__(self, config_manager, bluestacks_controller,
-                 daily_task_tracker=None, force_daily_tasks=False):
+    def __init__(self, config_manager, bluestacks_controller, progress=None):
         """
         Initialize the RoK game controller.
 
         Args:
             config_manager: ConfigManager instance
             bluestacks_controller: BlueStacksController instance
-            daily_task_tracker: Optional DailyTaskTracker for tracking daily task completion
-            force_daily_tasks: If True, run daily tasks even if already completed today
+            progress: Optional ProgressManager for tracking run progress
         """
         self.logger = logging.getLogger(__name__)
         self.config = config_manager
         self.bluestacks = bluestacks_controller
+        self.progress = progress
         self.stop_check_callback = None
-        self.daily_task_tracker = daily_task_tracker
-        self.force_daily_tasks = force_daily_tasks
 
         # Apply any [Timings] overrides from config.ini. Safe to call more
         # than once (e.g. also called earlier by the multi-instance launcher).
@@ -137,6 +135,15 @@ class RoKGameController(DialogCloserMixin):
             click_delay_ms=self.click_delay_ms,
             stop_check_callback=self.ocr.check_stop_requested
         )
+        self.territory = TerritoryAutomation(
+            self.ocr,
+            self.screen,
+            self.bluestacks,
+            self.coords,
+            self.navigator,
+            click_delay_ms=self.click_delay_ms,
+            stop_check_callback=self.ocr.check_stop_requested
+        )
         self.character_switcher = CharacterSwitcher(
             self.bluestacks,
             self.coords,
@@ -146,6 +153,7 @@ class RoKGameController(DialogCloserMixin):
             self.expedition,
             self.recovery,
             self.navigator,
+            territory_automation=self.territory,
             num_of_chars=int(rok_config.get('num_of_characters', 1)),
             march_preset=int(rok_config.get('march_preset', 1)),
             click_delay_ms=self.click_delay_ms,
@@ -154,10 +162,10 @@ class RoKGameController(DialogCloserMixin):
             will_perform_build=config_manager.get_bool('RiseOfKingdoms', 'perform_build', True),
             will_perform_donation=config_manager.get_bool('RiseOfKingdoms', 'perform_donation', True),
             will_perform_expedition=config_manager.get_bool('RiseOfKingdoms', 'perform_expedition', True),
+            will_perform_territory_claim=config_manager.get_bool('RiseOfKingdoms', 'perform_territory_claim', True),
             stop_check_callback=self.ocr.check_stop_requested,
             navigate_to_map_callback=self.navigate_to_map,
-            daily_task_tracker=self.daily_task_tracker,
-            force_daily_tasks=self.force_daily_tasks
+            progress=self.progress,
         )
         self.account_switcher = AccountSwitcher(
             self.ocr,
@@ -258,10 +266,21 @@ class RoKGameController(DialogCloserMixin):
         disappears or the home/map screen is detected."""
         self.logger.info(f"Waiting for game to load (max {self.game_load_wait_seconds}s)...")
 
+        grace = timings.GAME_STARTUP_GRACE
+        self.logger.info(f"Waiting {grace:.0f}s for game to initialize before polling...")
+        grace_step = 1.0
+        grace_elapsed = 0.0
+        while grace_elapsed < grace:
+            if self.check_stop_requested():
+                return False
+            time.sleep(min(grace_step, grace - grace_elapsed))
+            grace_elapsed += grace_step
+
         max_wait = self.game_load_wait_seconds
         interval = timings.POLL_INTERVAL
         elapsed = 0
         loading_detected = False
+        game_screen_detected = False
 
         while elapsed < max_wait:
             if self.check_stop_requested():
@@ -276,12 +295,20 @@ class RoKGameController(DialogCloserMixin):
                 return True
             elif self.screen.is_in_home_village() or self.screen.is_in_map_screen():
                 self.logger.info("Game already loaded (home/map screen detected)")
+                game_screen_detected = True
                 return True
 
             time.sleep(min(interval, max_wait - elapsed))
             elapsed += interval
 
-        self.logger.info(f"Max wait ({max_wait}s) reached, proceeding...")
+        if loading_detected or game_screen_detected:
+            self.logger.info(f"Max wait ({max_wait}s) reached, proceeding...")
+            time.sleep(timings.LONG_TRANSITION_WAIT)
+            return True
+
+        self.logger.warning(
+            f"Max wait ({max_wait}s) reached without detecting loading or game screen"
+        )
         time.sleep(timings.LONG_TRANSITION_WAIT)
         return True
 
@@ -350,7 +377,7 @@ class RoKGameController(DialogCloserMixin):
         """
         return self.account_switcher.switch_to_account(email, password)
 
-    def run_automation(self):
+    def run_automation(self, resume=False):
         """
         Run the full automation cycle.
 
@@ -359,31 +386,67 @@ class RoKGameController(DialogCloserMixin):
         each. Without one, behaves exactly like the old flow: character
         automation on the currently logged-in account only.
 
+        Args:
+            resume: If True and a ProgressManager is attached, skip
+                accounts/characters already marked as completed.
+
         Returns:
             bool: True if every account/character completed successfully
         """
         if not self.accounts:
-            return self.switch_character()
+            start_char = 0
+            self.character_switcher.account_index = 0
+            if resume and self.progress:
+                start_char = self.progress.get_resume_character_index(0) or 0
+                if start_char > 0:
+                    self.logger.info(f"Resuming from character {start_char + 1}")
+            if self.progress:
+                self.progress.mark_account_started(0)
+            result = self.switch_character(start_from=start_char)
+            if self.progress:
+                self.progress.mark_account_completed(0)
+            return result
 
         self.logger.info(f"Account rotation enabled: {len(self.accounts)} account(s) configured")
         all_success = True
 
-        for idx, account in enumerate(self.accounts, start=1):
+        start_account = 0
+        if resume and self.progress:
+            start_account = self.progress.get_resume_account_index() or 0
+            if start_account > 0:
+                self.logger.info(
+                    f"Resuming from account {start_account + 1}/{len(self.accounts)}"
+                )
+
+        for idx in range(start_account, len(self.accounts)):
             if self.check_stop_requested():
                 break
 
+            account = self.accounts[idx]
             email = account['email']
-            self.logger.info(f"Processing account {idx}/{len(self.accounts)}: {email}")
+            self.logger.info(f"Processing account {idx + 1}/{len(self.accounts)}: {email}")
+
+            if self.progress:
+                self.progress.mark_account_started(idx)
+
+            self.character_switcher.account_index = idx
+            start_char = 0
+            if resume and self.progress:
+                start_char = self.progress.get_resume_character_index(idx) or 0
 
             if not self.switch_account(email, account['password']):
                 self.logger.error(f"Failed to switch to account {email}, skipping it")
                 all_success = False
-                # Try to get back to a workable state for the next account
+                if self.progress:
+                    self.progress.mark_account_skipped(idx)
                 self.recovery.return_to_home(max_attempts=5)
                 continue
 
-            if not self.switch_character():
+            if not self.switch_character(start_from=start_char):
                 self.logger.warning(f"Character automation reported failures for {email}")
                 all_success = False
+
+            if self.progress:
+                self.progress.mark_account_completed(idx)
 
         return all_success

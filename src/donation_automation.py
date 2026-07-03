@@ -12,10 +12,10 @@ import logging
 import time
 
 import timings
-from automation_base import DialogCloserMixin
+from automation_base import AllianceScreenMixin
 
 
-class DonationAutomation(DialogCloserMixin):
+class DonationAutomation(AllianceScreenMixin):
     """Automates alliance technology donation workflow."""
 
     STOP_CONTEXT = "donation automation"
@@ -42,59 +42,6 @@ class DonationAutomation(DialogCloserMixin):
         self.nav = navigator
         self.click_delay_ms = click_delay_ms
         self.stop_check = stop_check_callback
-
-    def expand_bottom_bar(self):
-        """Expand bottom bar if it's not expanded yet, and verify it expanded."""
-        if self.screen.is_bottom_bar_expanded():
-            self.logger.info("Bottom bar is expanded")
-            return True
-
-        return self.nav.click_and_verify(
-            "expand bottom bar button",
-            template='expand_button',
-            fallback_point=self.coords.get_nav('expand_button'),
-            verify=self.screen.is_bottom_bar_expanded,
-            verify_timeout=5,
-        )
-
-    def open_alliance_screen(self):
-        """
-        Open the alliance screen from the bottom bar and verify it opened.
-
-        The bottom bar can collapse again between steps, so each attempt
-        re-expands it before clicking the Alliance icon - otherwise the
-        click lands on the game world and the character is wrongly reported
-        as not being in an alliance.
-
-        Returns:
-            bool: True if the alliance screen is open, False otherwise
-        """
-        for attempt in range(1, 3):
-            if self.check_stop_requested():
-                return False
-
-            if not self.expand_bottom_bar():
-                self.logger.warning(
-                    f"Could not expand bottom bar (attempt {attempt}/2)")
-                continue
-
-            if self.nav.click_and_verify(
-                "Alliance button",
-                template='alliance_icon',
-                region=self.coords.get_region('bottom_bar'),
-                fallback_point=self.coords.get_nav('alliance_button'),
-                verify=self.screen.is_char_in_alliance,
-                verify_timeout=8,
-                attempts=1,
-                settle_wait=timings.SCREEN_TRANSITION_WAIT,
-            ):
-                return True
-
-            self.logger.warning(
-                f"Alliance screen did not open (attempt {attempt}/2), retrying "
-                "with a fresh bottom-bar expansion")
-
-        return False
 
     def click_technology_button(self):
         """
@@ -179,12 +126,11 @@ class DonationAutomation(DialogCloserMixin):
                 self.close_dialogs()
             return False
 
-        # Locate the Donate button (template -> OCR -> fixed coords)
+        # Locate the RSS Donate button (blue, right side) — skip gem button on left
         donate_target = self.nav.locate(
-            "Donate button",
-            template='donate_button',
+            "RSS Donate button",
             texts=["Donate", "DONATE"],
-            region=self.coords.get_region('donate_dialog'),
+            region=self.coords.get_region('donate_rss_button'),
             fallback_point=self.coords.get_nav('donate_button'),
         )
         if donate_target is None:

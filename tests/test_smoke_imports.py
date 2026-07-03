@@ -23,11 +23,11 @@ MODULES = [
     'expedition_automation',
     'character_switcher',
     'account_switcher',
-    'daily_task_tracker',
     'schedule_manager',
     'instance_manager',
     'rok_game_controller',
     'multi_instance_launcher',
+    'progress_manager',
 ]
 
 

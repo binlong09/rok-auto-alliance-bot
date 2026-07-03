@@ -6,7 +6,6 @@ Single-window interface with sidebar instance list and tabbed main content.
 Replaces both multi_instance_manager_gui.py and bluestacks_manager_gui.py.
 """
 import logging
-import os
 import threading
 import time
 import tkinter as tk
@@ -17,10 +16,10 @@ from config_manager import (
     scan_for_adb_executables,
     scan_for_bluestacks_installations,
 )
-from daily_task_tracker import DailyTaskTracker, get_tracker_path_for_instance
 from instance_manager import InstanceManager
 from instance_manager_gui import InstanceManagerDialog
 from multi_instance_launcher import MultiInstanceLauncher
+from progress_manager import ProgressManager
 from schedule_manager import ScheduleManager
 
 
@@ -47,7 +46,6 @@ class UnifiedGUI:
         self.is_closing = False
         self.selected_instance_id = None
         self.auto_exit_var = tk.BooleanVar(value=True)
-        self.force_daily_var = tk.BooleanVar(value=False)
         self.log_buffers = {}
         self.instance_statuses = {}
 
@@ -340,11 +338,6 @@ class UnifiedGUI:
         tk.Label(info, text=sub, font=self.FONT_SMALL,
                  bg=bg, fg='#94a3b8' if not selected else '#c7d2fe', anchor='w').pack(anchor='w')
 
-        progress = self._get_daily_progress(iid)
-        pfg = '#a5b4fc' if selected else self.SIDEBAR_DIM
-        tk.Label(inner, text=progress, font=self.FONT_LABEL, bg=bg, fg=pfg
-                 ).pack(side='right')
-
         if is_scheduled:
             tk.Label(inner, text="⏱", font=self.FONT_LABEL, bg=bg, fg=self.STATUS_SCHEDULED
                      ).pack(side='right', padx=(0, self.PAD_SM - 2))
@@ -540,6 +533,11 @@ class UnifiedGUI:
             "Donate to Officer's recommended technology", self.donation_var,
             command=self._autosave_tasks)
 
+        self.territory_var = tk.BooleanVar(value=True)
+        self.territory_row = self._task_row(card_inner, "Territory RSS Claim",
+            "Claim alliance territory resource earnings", self.territory_var,
+            command=self._autosave_tasks)
+
         # separator
         tk.Frame(card_inner, bg='#f1f5f9', height=1).pack(fill='x', pady=self.PAD_SM)
 
@@ -698,19 +696,6 @@ class UnifiedGUI:
         ttk.Checkbutton(card3, text="Auto-exit BlueStacks after done",
                          variable=self.auto_exit_var,
                          command=self._on_auto_exit).pack(anchor='w', pady=2)
-        ttk.Checkbutton(card3, text="Force daily tasks (run even if completed today)",
-                         variable=self.force_daily_var,
-                         command=self._autosave_config).pack(anchor='w', pady=2)
-
-        # ── actions (only Reset Daily Tasks remains a button - everything
-        # else on this tab autosaves; see _autosave_config)
-        actions = tk.Frame(pad, bg=self.BG)
-        actions.pack(fill='x', pady=(self.PAD_SM, 0))
-
-        tk.Button(actions, text="Reset Daily Tasks", font=self.FONT_BODY,
-                  bg='#f59e0b', fg='white', activebackground='#d97706', activeforeground='white',
-                  relief='flat', bd=0, padx=14, pady=5, cursor='hand2',
-                  command=self._reset_daily).pack(side='left')
 
     def _capped(self, parent, bg, maxwidth=None):
         """Wrap children in a column that never grows wider than `maxwidth`
@@ -988,6 +973,7 @@ class UnifiedGUI:
         self.build_var.set(cm.get_bool('RiseOfKingdoms', 'perform_build', True))
         self.expedition_var.set(cm.get_bool('RiseOfKingdoms', 'perform_expedition', True))
         self.donation_var.set(cm.get_bool('RiseOfKingdoms', 'perform_donation', True))
+        self.territory_var.set(cm.get_bool('RiseOfKingdoms', 'perform_territory_claim', True))
         self.characters_var.set(cm.get_int('RiseOfKingdoms', 'num_of_characters', 10))
         self.march_var.set(cm.get_int('RiseOfKingdoms', 'march_preset', 1))
         self.version_var.set(
@@ -1010,30 +996,38 @@ class UnifiedGUI:
         self._load_schedule_ui(iid)
 
     def _update_task_status(self, iid):
-        cm = self.instance_manager.get_config_manager(iid)
-        if not cm:
-            return
-
-        num = cm.get_int('RiseOfKingdoms', 'num_of_characters', 1)
-        path = get_tracker_path_for_instance(self.instance_manager.instances_dir, iid)
-
-        if not os.path.exists(path):
-            for r in (self.build_row, self.expedition_row):
-                r._status.config(text=f"0/{num}", fg=self.STATUS_IDLE)
-            self.donation_row._status.config(text="every cycle", fg=self.STATUS_IDLE)
-            return
-
-        tracker = DailyTaskTracker(path)
-        st = tracker.get_completion_status()
-        today = st['today_utc']
-
-        for key, row in [('build', self.build_row), ('expedition', self.expedition_row)]:
-            done = sum(1 for ci in range(num)
-                       if st['characters'].get(str(ci), {}).get(key) == today)
-            color = self.STATUS_RUNNING if done == num else self.STATUS_STOPPED
-            row._status.config(text=f"{done}/{num}", fg=color)
-
-        self.donation_row._status.config(text="every cycle", fg=self.STATUS_IDLE)
+        pm = ProgressManager(iid)
+        data = pm._load()
+        if data and data.get("status") in ("in_progress", "completed"):
+            task_map = {
+                "build": self.build_row,
+                "expedition": self.expedition_row,
+                "donation": self.donation_row,
+                "territory": self.territory_row,
+            }
+            for task_name, row in task_map.items():
+                done = 0
+                total = 0
+                for acct in data.get("accounts", []):
+                    for ch in acct.get("characters", []):
+                        t_status = ch.get("tasks", {}).get(task_name, "skipped")
+                        if t_status != "skipped":
+                            total += 1
+                            if t_status == "completed":
+                                done += 1
+                if total > 0:
+                    if data["status"] == "completed":
+                        row._status.config(text=f"{done}/{total} done",
+                                           fg=self.STATUS_RUNNING)
+                    else:
+                        row._status.config(text=f"{done}/{total} done",
+                                           fg=self.STATUS_SCHEDULED)
+                else:
+                    row._status.config(text="skipped", fg=self.STATUS_IDLE)
+        else:
+            for r in (self.build_row, self.expedition_row,
+                      self.donation_row, self.territory_row):
+                r._status.config(text="every cycle", fg=self.STATUS_IDLE)
 
     # ── schedule tab logic ──────────────────────────────────────
 
@@ -1115,7 +1109,7 @@ class UnifiedGUI:
 
     # ── actions ─────────────────────────────────────────────────
 
-    def _launch_instance_now(self, iid, force_daily=None):
+    def _launch_instance_now(self, iid, resume=False):
         """Single shared launch path: dispatches automation for `iid` via the
         launcher. Used by the manual Launch button, Run Now, Launch All, and
         the automatic scheduler so there is exactly one place that calls
@@ -1127,8 +1121,7 @@ class UnifiedGUI:
         """
         if not iid or self.launcher.is_instance_running(iid):
             return False
-        force = self.force_daily_var.get() if force_daily is None else force_daily
-        if self.launcher.launch_instance(iid, force_daily_tasks=force):
+        if self.launcher.launch_instance(iid, resume=resume):
             self.instance_statuses[iid] = 'Starting'
             return True
         return False
@@ -1141,8 +1134,83 @@ class UnifiedGUI:
             messagebox.showinfo("Running", "This instance is already running.")
             return
         self._save_tasks(silent=True)
-        if self._launch_instance_now(iid):
+
+        resume = False
+        pm = ProgressManager(iid)
+        if pm.has_resumable_session():
+            summary = pm.get_session_summary() or ""
+            resume = self._show_resume_dialog(summary)
+            if resume is None:
+                return
+
+        if self._launch_instance_now(iid, resume=resume):
             self._select_instance(iid)
+
+    def _show_resume_dialog(self, summary):
+        """Show a dialog asking to resume or start fresh.
+
+        Returns True (resume), False (start fresh), or None (cancelled).
+        """
+        dlg = tk.Toplevel(self.root)
+        dlg.title("Previous Progress Found")
+        dlg.geometry("420x260")
+        dlg.resizable(False, False)
+        dlg.transient(self.root)
+        dlg.grab_set()
+        dlg.configure(bg='white')
+
+        result = [None]
+
+        tk.Label(dlg, text="Previous Progress Found",
+                 font=self.FONT_TITLE, bg='white', fg=self.TEXT
+                 ).pack(anchor='w', padx=self.PAD_XL, pady=(self.PAD_LG, self.PAD_SM))
+
+        tk.Label(dlg, text="An interrupted session was found for this instance:",
+                 font=self.FONT_BODY, bg='white', fg=self.TEXT2
+                 ).pack(anchor='w', padx=self.PAD_XL)
+
+        info_frame = tk.Frame(dlg, bg='#f8fafc', highlightbackground='#e2e8f0',
+                              highlightthickness=1)
+        info_frame.pack(fill='x', padx=self.PAD_XL, pady=self.PAD_SM)
+        tk.Label(info_frame, text=summary, font=self.FONT_MONO, bg='#f8fafc',
+                 fg=self.TEXT, justify='left'
+                 ).pack(anchor='w', padx=self.PAD_MD, pady=self.PAD_SM)
+
+        btn_frame = tk.Frame(dlg, bg='white')
+        btn_frame.pack(fill='x', padx=self.PAD_XL, pady=(self.PAD_SM, self.PAD_LG))
+
+        def on_resume():
+            result[0] = True
+            dlg.destroy()
+
+        def on_fresh():
+            result[0] = False
+            dlg.destroy()
+
+        def on_cancel():
+            result[0] = None
+            dlg.destroy()
+
+        tk.Button(btn_frame, text="Resume Progress", font=self.FONT_BODY_BD,
+                  bg=self.STATUS_RUNNING, fg='white', activebackground='#16a34a',
+                  activeforeground='white', relief='flat', bd=0,
+                  padx=self.PAD_LG, pady=self.PAD_SM - 2, cursor='hand2',
+                  command=on_resume).pack(side='left', padx=(0, self.PAD_SM))
+
+        tk.Button(btn_frame, text="Start Fresh", font=self.FONT_BODY_BD,
+                  bg=self.PRIMARY, fg='white', activebackground=self.PRIMARY_ACTIVE,
+                  activeforeground='white', relief='flat', bd=0,
+                  padx=self.PAD_LG, pady=self.PAD_SM - 2, cursor='hand2',
+                  command=on_fresh).pack(side='left', padx=(0, self.PAD_SM))
+
+        tk.Button(btn_frame, text="Cancel", font=self.FONT_BODY,
+                  bg='#e5e7eb', fg='#374151', activebackground='#d1d5db',
+                  relief='flat', bd=0, padx=self.PAD_MD, pady=self.PAD_SM - 2,
+                  cursor='hand2', command=on_cancel).pack(side='left')
+
+        dlg.protocol("WM_DELETE_WINDOW", on_cancel)
+        self.root.wait_window(dlg)
+        return result[0]
 
     def _stop_selected(self):
         iid = self.selected_instance_id
@@ -1167,13 +1235,9 @@ class UnifiedGUI:
             f"Launch {len(to_launch)} instance(s)?\n\n" +
             "\n".join(f"  • {n}" for n in names)):
             return
-        # Read the Tk variable on the main thread; the worker below must not
-        # touch Tk state.
-        force = self.force_daily_var.get()
-
         def do():
             for i, inst in enumerate(to_launch):
-                self._launch_instance_now(inst['id'], force_daily=force)
+                self._launch_instance_now(inst['id'])
                 if i < len(to_launch) - 1:
                     time.sleep(timings.LAUNCH_STAGGER_WAIT)
             self.root.after(0, self._load_sidebar)
@@ -1199,24 +1263,6 @@ class UnifiedGUI:
         self._load_sidebar()
         if instance_id:
             self._select_instance(instance_id)
-
-    def _reset_daily(self):
-        iid = self.selected_instance_id
-        if not iid:
-            messagebox.showwarning("No Instance", "Select an instance first.")
-            return
-        inst = self.instance_manager.get_instance(iid)
-        if not inst:
-            return
-        if not messagebox.askyesno("Confirm Reset",
-            f"Reset daily task tracking for '{inst['name']}'?\n"
-            "All daily tasks will run again on next launch."):
-            return
-        path = get_tracker_path_for_instance(self.instance_manager.instances_dir, iid)
-        DailyTaskTracker(path).reset_all_tasks()
-        self._update_task_status(iid)
-        self._load_sidebar()
-        messagebox.showinfo("Done", f"Daily tasks reset for '{inst['name']}'.")
 
     def _on_auto_exit(self):
         self.launcher.set_exit_after_complete(self.auto_exit_var.get())
@@ -1257,6 +1303,7 @@ class UnifiedGUI:
         c['RiseOfKingdoms']['perform_build'] = str(self.build_var.get())
         c['RiseOfKingdoms']['perform_expedition'] = str(self.expedition_var.get())
         c['RiseOfKingdoms']['perform_donation'] = str(self.donation_var.get())
+        c['RiseOfKingdoms']['perform_territory_claim'] = str(self.territory_var.get())
         c['RiseOfKingdoms']['num_of_characters'] = str(self.characters_var.get())
         c['RiseOfKingdoms']['march_preset'] = str(self.march_var.get())
         ver = self.version_var.get()
@@ -1576,24 +1623,6 @@ class UnifiedGUI:
                 self._refresh_schedule_status(iid)
 
     # ── helpers ──────────────────────────────────────────────────
-
-    def _get_daily_progress(self, iid):
-        try:
-            cm = self.instance_manager.get_config_manager(iid)
-            if not cm:
-                return '—'
-            num = cm.get_int('RiseOfKingdoms', 'num_of_characters', 1)
-            path = get_tracker_path_for_instance(self.instance_manager.instances_dir, iid)
-            if not os.path.exists(path):
-                return f"0/{num}"
-            tracker = DailyTaskTracker(path)
-            st = tracker.get_completion_status()
-            today = st['today_utc']
-            done = sum(1 for ci in range(num)
-                       if any(d == today for d in st['characters'].get(str(ci), {}).values()))
-            return f"{done}/{num}"
-        except Exception:
-            return '?'
 
     def _on_closing(self):
         running = self.launcher.get_running_instances()

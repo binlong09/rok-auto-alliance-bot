@@ -9,7 +9,7 @@ from queue import Queue
 
 import timings
 from bluestacks_controller import BlueStacksController
-from daily_task_tracker import DailyTaskTracker, get_tracker_path_for_instance
+from progress_manager import ProgressManager
 from rok_game_controller import RoKGameController
 
 
@@ -41,19 +41,17 @@ class AutomationThread(threading.Thread):
     """Thread class for running automation on a specific instance"""
 
     def __init__(self, instance_id, instance_name, config_manager, queue, stop_event=None,
-                 exit_after_complete=True, force_daily_tasks=False, instances_dir=None,
-                 on_complete_callback=None):
+                 exit_after_complete=True, on_complete_callback=None, resume=False):
         super().__init__()
         self.instance_id = instance_id
         self.instance_name = instance_name
         self.config_manager = config_manager
-        self.queue = queue  # Message queue for communication with main thread
+        self.queue = queue
         self.stop_event = stop_event or threading.Event()
-        self.daemon = True  # Thread will exit when main program exits
-        self.exit_after_complete = exit_after_complete  # Whether to exit BlueStacks after completion
-        self.force_daily_tasks = force_daily_tasks  # Whether to run daily tasks even if completed today
-        self.instances_dir = instances_dir  # Directory containing instance configs
-        self.on_complete_callback = on_complete_callback  # Callback when thread completes
+        self.daemon = True
+        self.exit_after_complete = exit_after_complete
+        self.on_complete_callback = on_complete_callback
+        self.resume = resume
 
         # Set up logging
         self.logger = logging.getLogger(f"automation.{instance_id}")
@@ -171,6 +169,7 @@ class AutomationThread(threading.Thread):
         """Run the automation sequence for this instance"""
         bluestacks_controller = None
         queue_handler = None
+        progress = None
 
         # List of logger names to capture for GUI display
         automation_loggers = [
@@ -210,18 +209,28 @@ class AutomationThread(threading.Thread):
             adb_device = f"127.0.0.1:{adb_port}"
             bluestacks_controller.set_adb_device(adb_device)
 
-            # Create daily task tracker if instances_dir is provided
-            daily_tracker = None
-            if self.instances_dir:
-                tracker_path = get_tracker_path_for_instance(self.instances_dir, self.instance_id)
-                daily_tracker = DailyTaskTracker(tracker_path)
-                self.log(f"Daily task tracking enabled (force={self.force_daily_tasks})")
+            # Set up progress tracking
+            progress = ProgressManager(self.instance_id)
+            if self.resume:
+                if not progress.resume_session():
+                    self.log("No resumable session found, starting fresh")
+                    self.resume = False
+            if not self.resume:
+                task_config = {
+                    "build": self.config_manager.get_bool('RiseOfKingdoms', 'perform_build', True),
+                    "expedition": self.config_manager.get_bool('RiseOfKingdoms', 'perform_expedition', True),
+                    "territory": self.config_manager.get_bool('RiseOfKingdoms', 'perform_territory_claim', True),
+                    "donation": self.config_manager.get_bool('RiseOfKingdoms', 'perform_donation', True),
+                }
+                from account_switcher import AccountSwitcher
+                accounts = AccountSwitcher.parse_accounts(self.config_manager)
+                num_chars = self.config_manager.get_int(
+                    'RiseOfKingdoms', 'num_of_characters', 10)
+                progress.start_session(accounts, num_chars, task_config)
 
             # Initialize RoK controller
             rok_controller = RoKGameController(
-                self.config_manager, bluestacks_controller,
-                daily_task_tracker=daily_tracker,
-                force_daily_tasks=self.force_daily_tasks
+                self.config_manager, bluestacks_controller, progress=progress
             )
 
             # Check if stop requested
@@ -326,24 +335,31 @@ class AutomationThread(threading.Thread):
                 self.log(f"Starting automation for {len(rok_controller.accounts)} account(s)")
             else:
                 self.log("Starting character switching automation")
+            if self.resume:
+                self.log("Resuming from previous progress")
             self.update_status("Running character automation")
 
-            if rok_controller.run_automation():
+            if rok_controller.run_automation(resume=self.resume):
                 self.log("Character automation completed successfully")
                 self.update_status("Completed")
+                progress.complete_session()
             else:
                 if self.stop_event.is_set():
                     self.log("Character automation stopped by user")
                     self.update_status("Stopped")
+                    progress.mark_interrupted()
                 else:
                     self.log("Character automation encountered issues")
                     self.update_status("Partial completion")
+                    progress.complete_session()
 
         except Exception as e:
             self.logger.error(f"Error in automation thread: {e}")
             self.logger.exception("Stack trace:")
             self.update_status(f"Error: {str(e)}")
             self.log(f"Error in automation: {str(e)}")
+            if progress:
+                progress.mark_interrupted()
 
         finally:
             # Remove queue handler from all loggers to prevent memory leaks
@@ -437,8 +453,13 @@ class MultiInstanceLauncher:
             except Exception:
                 self.logger.exception("Unexpected error processing automation message")
 
-    def launch_instance(self, instance_id, force_daily_tasks=False):
-        """Launch automation for a specific instance"""
+    def launch_instance(self, instance_id, resume=False):
+        """Launch automation for a specific instance.
+
+        Args:
+            instance_id: ID of the instance to launch.
+            resume: If True, resume from the last interrupted progress.
+        """
         # Check if instance is already running
         if instance_id in self.running_threads:
             self.logger.warning(f"Instance {instance_id} is already running")
@@ -467,9 +488,8 @@ class MultiInstanceLauncher:
             queue=self.message_queue,
             stop_event=stop_event,
             exit_after_complete=self.exit_after_complete,
-            force_daily_tasks=force_daily_tasks,
-            instances_dir=self.instance_manager.instances_dir,
-            on_complete_callback=self._on_thread_complete
+            on_complete_callback=self._on_thread_complete,
+            resume=resume,
         )
 
         # Store thread and stop event

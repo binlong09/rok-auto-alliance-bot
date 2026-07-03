@@ -12,6 +12,7 @@ fixed sleeps.
 import logging
 import time
 
+import cv2
 import timings
 from automation_base import DialogCloserMixin
 
@@ -99,9 +100,47 @@ class BuildAutomation(DialogCloserMixin):
         time.sleep(timings.ACTION_SETTLE_WAIT)
         return True
 
+    def _detect_blue_build_button(self, region):
+        """
+        Detect the cyan/blue BUILD button by color in HSV space.
+
+        Returns:
+            dict: {x, y} center of the button if found, None otherwise
+        """
+        screenshot = self.bluestacks.take_screenshot()
+        if screenshot is None:
+            return None
+
+        h, w = screenshot.shape[:2]
+        rx = min(region['x'], w - 1)
+        ry = min(region['y'], h - 1)
+        rw = min(region['width'], w - rx)
+        rh = min(region['height'], h - ry)
+        crop = screenshot[ry:ry + rh, rx:rx + rw]
+
+        hsv = cv2.cvtColor(crop, cv2.COLOR_BGR2HSV)
+        mask = cv2.inRange(hsv, (85, 100, 140), (105, 255, 255))
+
+        contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        if not contours:
+            return None
+
+        largest = max(contours, key=cv2.contourArea)
+        if cv2.contourArea(largest) < 2000:
+            return None
+
+        bx, by, bw, bh = cv2.boundingRect(largest)
+        center_x = rx + bx + bw // 2
+        center_y = ry + by + bh // 2
+        self.logger.info(f"Blue BUILD button detected at ({center_x}, {center_y})")
+        return {'x': center_x, 'y': center_y}
+
     def find_and_click_build_button(self):
         """
-        Locate "building progress" button and click it.
+        Locate the BUILD button on the flag info panel and click it.
+
+        Uses a narrow region that covers only the button area (not the
+        popup title where "Building" text would false-match "BUILD").
 
         Returns:
             bool: True if found and clicked, False otherwise
@@ -109,22 +148,46 @@ class BuildAutomation(DialogCloserMixin):
         if self.check_stop_requested():
             return False
 
-        # Poll: the flag info panel can take a moment to appear after
-        # selecting the flag in the middle of the screen.
-        build_region = self.coords.get_region('build_button')
-        result = self.ocr.wait_for_text_position(["remaining", "time"], build_region, timeout=8)
+        button_region = self.coords.get_region('build_action_button')
+        wide_region = self.coords.get_region('build_button')
+
+        # Primary: look for "BUILD" text in the narrow button region
+        result = self.ocr.wait_for_text_position(
+            ["BUILD", "Build"], button_region, timeout=8,
+        )
+        if result:
+            self.logger.info(f"Found BUILD button via OCR at ({result['x']}, {result['y']})")
+            if not self.bluestacks.click(result['x'], result['y'], self.click_delay_ms):
+                self.logger.error("Failed to click on BUILD button")
+                return False
+            time.sleep(timings.SCREEN_TRANSITION_WAIT)
+            return True
+
+        # Fallback 1: detect the blue button by color
+        result = self._detect_blue_build_button(button_region)
+        if result:
+            if not self.bluestacks.click(result['x'], result['y'], self.click_delay_ms):
+                self.logger.error("Failed to click on blue BUILD button")
+                return False
+            time.sleep(timings.SCREEN_TRANSITION_WAIT)
+            return True
+
+        # Fallback 2: find "remaining time" text and offset down to the button
+        result = self.ocr.wait_for_text_position(
+            ["remaining", "time"], wide_region, timeout=4,
+        )
         if result:
             offset_y = self.coords.get_offset('build_button_offset_y')
             build_button_y = result['y'] + offset_y
+            self.logger.info(f"Clicking BUILD via offset from 'remaining' text at y={build_button_y}")
             if not self.bluestacks.click(result['x'], build_button_y, self.click_delay_ms):
                 self.logger.error("Failed to click on build button")
                 return False
-            self.logger.info("Clicking build button")
             time.sleep(timings.SCREEN_TRANSITION_WAIT)
             return True
-        else:
-            self.logger.error("Build button not found")
-            return False
+
+        self.logger.error("BUILD button not found")
+        return False
 
     def find_and_click_tap_to_join_button(self):
         """

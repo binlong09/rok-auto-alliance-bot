@@ -3,7 +3,6 @@
 Recovery Manager - Handles error recovery and retry logic.
 
 This module provides:
-- Unified screen state detection via GameScreen enum
 - Return-to-home recovery from any screen state
 - Retry decorator for wrapping operations with automatic recovery
 """
@@ -11,24 +10,11 @@ import logging
 import time
 from collections.abc import Callable
 from dataclasses import dataclass
-from enum import Enum, auto
 from functools import wraps
 
 import timings
 from automation_base import StopCheckMixin
-
-
-class GameScreen(Enum):
-    """Possible game screens the bot can detect."""
-    HOME_VILLAGE = auto()          # Safe state - Age text visible
-    MAP_SCREEN = auto()            # World map view - kingdom numbers visible
-    CHARACTER_LOGIN = auto()       # Character login confirmation dialog
-    CHARACTER_SELECTION = auto()   # Characters list (star/normal characters)
-    SETTINGS_MENU = auto()         # Settings screen open
-    ALLIANCE_MENU = auto()         # Alliance screen open
-    EXIT_GAME_DIALOG = auto()      # "Exit the game?" dialog showing
-    DIALOG_OPEN = auto()           # Some dialog/popup is open
-    UNKNOWN = auto()               # Cannot determine screen state
+from screen_detector import GameScreen
 
 
 @dataclass
@@ -71,8 +57,8 @@ class RecoveryManager(StopCheckMixin):
         """
         Detect the current game screen state.
 
-        Runs OCR-based detection checks in priority order (most specific first).
-        This is slow (~2-3s) but reliable due to multiple preprocessing methods.
+        Delegates to ScreenDetector.detect_screen() which takes a single
+        ADB screenshot and runs all checks against it.
 
         Returns:
             GameScreen: The detected screen state
@@ -80,56 +66,21 @@ class RecoveryManager(StopCheckMixin):
         if self.check_stop_requested():
             return GameScreen.UNKNOWN
 
-        # Check in order of specificity (most unique text first)
-        # Each check uses OCR with 5 preprocessing methods internally
+        result = self.screen.detect_screen()
+        self.logger.debug(f"Detected: {result.name}")
+        return result
 
-        # Check exit dialog first - it's important to handle this quickly
-        if self.screen.is_exit_game_dialog():
-            self.logger.debug("Detected: EXIT_GAME_DIALOG")
-            return GameScreen.EXIT_GAME_DIALOG
-
-        if self.screen.is_in_character_login():
-            self.logger.debug("Detected: CHARACTER_LOGIN")
-            return GameScreen.CHARACTER_LOGIN
-
-        if self.screen.is_in_character_selection():
-            self.logger.debug("Detected: CHARACTER_SELECTION")
-            return GameScreen.CHARACTER_SELECTION
-
-        if self.screen.is_in_settings_screen():
-            self.logger.debug("Detected: SETTINGS_MENU")
-            return GameScreen.SETTINGS_MENU
-
-        if self.screen.is_char_in_alliance():
-            self.logger.debug("Detected: ALLIANCE_MENU")
-            return GameScreen.ALLIANCE_MENU
-
-        if self.screen.is_in_home_village():
-            self.logger.debug("Detected: HOME_VILLAGE")
-            return GameScreen.HOME_VILLAGE
-
-        if self.screen.is_in_map_screen():
-            self.logger.debug("Detected: MAP_SCREEN")
-            return GameScreen.MAP_SCREEN
-
-        if self.screen.is_bottom_bar_expanded():
-            self.logger.debug("Detected: DIALOG_OPEN")
-            return GameScreen.DIALOG_OPEN
-
-        self.logger.debug("Detected: UNKNOWN")
-        return GameScreen.UNKNOWN
-
-    def return_to_home(self, max_attempts: int = 5) -> bool:
+    def return_to_home(self, max_attempts: int = 8) -> bool:
         """
         Attempt to return to home village screen from any state.
 
-        Uses a state machine approach:
-        - Detect current screen
-        - Apply screen-specific recovery action
-        - Re-detect and repeat until home or max attempts
+        Strategy: spam the back button until the "Exit the game?" dialog
+        appears (meaning we've reached the outermost level), then dismiss
+        it.  After dismissal we're either in home village or on the map;
+        if on the map, toggle once to get home.
 
         Args:
-            max_attempts: Maximum number of recovery attempts
+            max_attempts: Maximum number of back-button presses
 
         Returns:
             bool: True if successfully returned to home, False otherwise
@@ -141,73 +92,46 @@ class RecoveryManager(StopCheckMixin):
             current_screen = self.get_current_screen()
             self.logger.info(
                 f"Recovery attempt {attempt + 1}/{max_attempts}: "
-                f"Current screen: {current_screen.name}"
+                f"{current_screen.name}"
             )
 
             if current_screen == GameScreen.HOME_VILLAGE:
                 self.logger.info("Successfully returned to home village")
                 return True
 
-            # Apply recovery action based on current screen
             if current_screen == GameScreen.EXIT_GAME_DIALOG:
-                # Dismiss the exit dialog: locate Cancel via OCR (button
-                # position varies), fall back to the fixed coordinate.
-                # NEVER click anywhere near Confirm - that exits the game.
-                self.logger.info("Exit dialog showing, clicking Cancel")
-                cancel = self.screen.ocr.detect_text_position(
-                    ["CANCEL", "Cancel"],
-                    self.coords.get_region('exit_dialog')
-                ) or self.exit_dialog_cancel
-                self.bluestacks.click(cancel['x'], cancel['y'], self.click_delay_ms)
+                self._dismiss_exit_dialog()
                 time.sleep(timings.ACTION_SETTLE_WAIT)
 
-            elif current_screen == GameScreen.MAP_SCREEN:
-                # Click map button to toggle back to home
-                self.logger.info("On map screen, clicking map button to return home")
-                self.bluestacks.click(
-                    self.map_button['x'],
-                    self.map_button['y'],
-                    self.click_delay_ms
-                )
-                time.sleep(timings.SCREEN_TRANSITION_WAIT)
+                landed = self.get_current_screen()
+                if landed == GameScreen.HOME_VILLAGE:
+                    self.logger.info("Successfully returned to home village")
+                    return True
+                if landed == GameScreen.MAP_SCREEN:
+                    self.logger.info("Landed on map, toggling to home village")
+                    self.bluestacks.click(
+                        self.map_button['x'],
+                        self.map_button['y'],
+                        self.click_delay_ms,
+                    )
+                    time.sleep(timings.MAP_LOAD_WAIT)
+                    return True
+                continue
 
-            elif current_screen == GameScreen.CHARACTER_LOGIN:
-                # Multiple escapes needed to exit character selection
-                self.logger.info("On character login, sending 3 escape keys")
-                for _ in range(3):
-                    self.bluestacks.send_escape()
-                    time.sleep(timings.ACTION_SETTLE_WAIT)
-                time.sleep(timings.ACTION_SETTLE_WAIT)
-
-            elif current_screen in (GameScreen.CHARACTER_SELECTION, GameScreen.SETTINGS_MENU):
-                # One escape per screen level (characters -> settings -> game);
-                # the loop re-detects after each so we never overshoot into
-                # the exit dialog.
-                self.logger.info(f"On {current_screen.name}, sending escape key")
-                self.bluestacks.send_escape()
-                time.sleep(timings.ACTION_SETTLE_WAIT)
-
-            elif current_screen == GameScreen.ALLIANCE_MENU:
-                # Two escapes to close alliance menu
-                self.logger.info("On alliance menu, sending 2 escape keys")
-                for _ in range(2):
-                    self.bluestacks.send_escape()
-                    time.sleep(timings.ACTION_SETTLE_WAIT)
-
-            elif current_screen == GameScreen.DIALOG_OPEN:
-                # Single escape for general dialogs
-                self.logger.info("Dialog open, sending escape key")
-                self.bluestacks.send_escape()
-                time.sleep(timings.ACTION_SETTLE_WAIT)
-
-            else:  # UNKNOWN
-                # Blind escape attempt
-                self.logger.info("Unknown screen, sending escape key")
-                self.bluestacks.send_escape()
-                time.sleep(timings.EXTENDED_SETTLE_WAIT)
+            self.bluestacks.send_escape()
+            time.sleep(timings.ACTION_SETTLE_WAIT)
 
         self.logger.error(f"Failed to return to home after {max_attempts} attempts")
         return False
+
+    def _dismiss_exit_dialog(self):
+        """Click Cancel on the 'Exit the game?' dialog."""
+        self.logger.info("Exit dialog detected — clicking Cancel")
+        cancel = self.screen.ocr.detect_text_position(
+            ["CANCEL", "Cancel"],
+            self.coords.get_region('exit_dialog'),
+        ) or self.exit_dialog_cancel
+        self.bluestacks.click(cancel['x'], cancel['y'], self.click_delay_ms)
 
 
 def with_retry(config: RetryConfig | None = None):
