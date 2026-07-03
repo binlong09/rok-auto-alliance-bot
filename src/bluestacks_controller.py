@@ -1,4 +1,5 @@
 import os
+import re
 import sys
 import subprocess
 import time
@@ -22,6 +23,16 @@ class BlueStacksController:
         self.bluestacks_instance_name = bs_config.get('bluestacks_instance_name')
         self.adb_path = bs_config.get('adb_path')
         self.wait_for_startup_seconds = int(bs_config.get('wait_for_startup_seconds', 30))
+
+        # Resolution the coordinate maps (coordinates.json, templates) were
+        # captured at. If the instance runs at anything else, every click
+        # lands in the wrong place, so ensure_correct_resolution() can fix
+        # bluestacks.conf and restart the instance.
+        self.expected_width = config_manager.get_int('BlueStacks', 'expected_resolution_width', 1280)
+        self.expected_height = config_manager.get_int('BlueStacks', 'expected_resolution_height', 720)
+        self.expected_dpi = config_manager.get_int('BlueStacks', 'expected_dpi', 240)
+        self.auto_fix_resolution = config_manager.get_bool('BlueStacks', 'auto_fix_resolution', True)
+        self.bluestacks_conf_path = bs_config.get('bluestacks_conf_path', '')
 
         # Default ADB device address
         self.adb_device = "127.0.0.1:5625"  # Default port, can be overridden
@@ -177,6 +188,216 @@ class BlueStacksController:
 
         return False
 
+    def get_screen_resolution(self):
+        """Read the current screen resolution via `adb shell wm size`.
+
+        Returns (width, height) or None if it cannot be determined. When an
+        override size is active it takes precedence over the physical size,
+        since that is what screencap/input coordinates operate on.
+        """
+        try:
+            result = subprocess.run(
+                [self.adb_path, "-s", self.adb_device, "shell", "wm", "size"],
+                capture_output=True, text=True, timeout=10)
+
+            physical = None
+            override = None
+            for line in result.stdout.splitlines():
+                match = re.search(r'(Physical|Override) size:\s*(\d+)x(\d+)', line)
+                if match:
+                    size = (int(match.group(2)), int(match.group(3)))
+                    if match.group(1) == 'Override':
+                        override = size
+                    else:
+                        physical = size
+
+            return override or physical
+
+        except Exception as e:
+            self.logger.error(f"Error reading screen resolution: {e}")
+            return None
+
+    def ensure_correct_resolution(self):
+        """Verify the instance runs at the expected resolution; fix and restart if not.
+
+        The whole automation relies on fixed coordinates captured at
+        expected_width x expected_height, so a mismatched resolution makes
+        every click land in the wrong place. When a mismatch is found (and
+        auto_fix_resolution is enabled), this rewrites the instance's
+        resolution in bluestacks.conf, restarts the instance and re-checks.
+
+        Returns True when the resolution is correct (or could not be read,
+        to avoid blocking automation on a probe failure); False when it is
+        wrong and could not be fixed.
+        """
+        expected = (self.expected_width, self.expected_height)
+
+        current = self.get_screen_resolution()
+        if current is None:
+            self.logger.warning(
+                "Could not read screen resolution - skipping resolution check")
+            return True
+
+        if current == expected:
+            self.logger.info(f"Screen resolution OK: {current[0]}x{current[1]}")
+            return True
+
+        self.logger.warning(
+            f"Screen resolution is {current[0]}x{current[1]}, expected "
+            f"{expected[0]}x{expected[1]}")
+
+        if not self.auto_fix_resolution:
+            self.logger.error(
+                "auto_fix_resolution is disabled - set the instance to "
+                f"{expected[0]}x{expected[1]} manually in BlueStacks settings")
+            return False
+
+        # Stop the instance BEFORE editing bluestacks.conf: BlueStacks
+        # rewrites the file on shutdown, which would overwrite our edit.
+        self.logger.info("Attempting to fix resolution in bluestacks.conf and restart the instance")
+        if not self.stop_instance():
+            self.logger.error("Could not stop the BlueStacks instance to fix its resolution")
+            return False
+
+        if not self._write_resolution_to_conf(expected[0], expected[1], self.expected_dpi):
+            return False
+
+        if not self.start_bluestacks():
+            self.logger.error("Failed to restart BlueStacks after fixing resolution")
+            return False
+
+        if not self.connect_adb():
+            self.logger.error("Failed to reconnect ADB after restarting BlueStacks")
+            return False
+
+        current = self.get_screen_resolution()
+        if current == expected:
+            self.logger.info(
+                f"Resolution fixed: instance restarted at {expected[0]}x{expected[1]}")
+            return True
+
+        self.logger.error(
+            f"Resolution is still {current[0]}x{current[1] if current else '?'} after "
+            "restart - fix it manually in BlueStacks settings (Display tab)")
+        return False
+
+    def _get_bluestacks_conf_path(self):
+        """Locate bluestacks.conf (config override first, then the standard
+        %ProgramData%\\BlueStacks_nxt location)."""
+        if self.bluestacks_conf_path:
+            return self.bluestacks_conf_path
+
+        program_data = os.environ.get('PROGRAMDATA', 'C:\\ProgramData')
+        return os.path.join(program_data, 'BlueStacks_nxt', 'bluestacks.conf')
+
+    def _write_resolution_to_conf(self, width, height, dpi):
+        """Set this instance's fb_width/fb_height/dpi in bluestacks.conf.
+
+        The file is a flat key="value" list; only this instance's display
+        keys are touched, every other line is preserved as-is.
+        """
+        conf_path = self._get_bluestacks_conf_path()
+        if not os.path.exists(conf_path):
+            self.logger.error(
+                f"bluestacks.conf not found at {conf_path} - set 'bluestacks_conf_path' "
+                "in config.ini [BlueStacks] if BlueStacks stores it elsewhere")
+            return False
+
+        prefix = f"bst.instance.{self.bluestacks_instance_name}."
+        new_values = {
+            prefix + "fb_width": str(width),
+            prefix + "fb_height": str(height),
+            prefix + "dpi": str(dpi),
+        }
+
+        try:
+            with open(conf_path, 'r', encoding='utf-8') as f:
+                lines = f.readlines()
+
+            remaining = dict(new_values)
+            updated_lines = []
+            instance_has_entries = False
+            for line in lines:
+                key = line.split('=', 1)[0].strip()
+                if key.startswith(prefix):
+                    instance_has_entries = True
+                if key in remaining:
+                    updated_lines.append(f'{key}="{remaining.pop(key)}"\n')
+                else:
+                    updated_lines.append(line)
+
+            if remaining and not instance_has_entries:
+                # No keys at all for this instance name: almost certainly a
+                # wrong instance name, so appending settings would be useless.
+                self.logger.error(
+                    f"No entries for instance '{self.bluestacks_instance_name}' found in "
+                    f"{conf_path} - check 'bluestacks_instance_name' in config.ini")
+                return False
+
+            # Instance exists but some display keys are missing: append them.
+            for key, value in remaining.items():
+                updated_lines.append(f'{key}="{value}"\n')
+
+            with open(conf_path, 'w', encoding='utf-8') as f:
+                f.writelines(updated_lines)
+
+            self.logger.info(
+                f"Updated {conf_path}: {self.bluestacks_instance_name} set to "
+                f"{width}x{height} @ {dpi} DPI")
+            return True
+
+        except Exception as e:
+            self.logger.error(f"Error updating bluestacks.conf: {e}")
+            return False
+
+    def stop_instance(self, wait_seconds=30):
+        """Stop this BlueStacks instance (kill its HD-Player.exe process) and
+        wait until the process is actually gone."""
+        if sys.platform != "win32":
+            self.logger.error("stop_instance() is only supported on Windows")
+            return False
+
+        try:
+            if not self._is_instance_process_running():
+                self.logger.info(
+                    f"BlueStacks instance '{self.bluestacks_instance_name}' is not running")
+                return True
+
+            cmd = ["wmic", "process", "where",
+                   f"name='HD-Player.exe' and commandline like '%{self.bluestacks_instance_name}%'",
+                   "get", "processid"]
+            info = subprocess.run(cmd, capture_output=True, text=True, timeout=10)
+            for line in info.stdout.strip().splitlines()[1:]:
+                pid = line.strip()
+                if pid:
+                    self.logger.info(f"Stopping BlueStacks instance process (PID {pid})")
+                    subprocess.run(["taskkill", "/F", "/PID", pid],
+                                   capture_output=True, timeout=10)
+
+            deadline = time.time() + wait_seconds
+            while time.time() < deadline:
+                if not self._is_instance_process_running():
+                    self.logger.info(
+                        f"BlueStacks instance '{self.bluestacks_instance_name}' stopped")
+                    return True
+                time.sleep(timings.POLL_INTERVAL)
+
+            self.logger.error(
+                f"BlueStacks instance still running {wait_seconds}s after taskkill")
+            return False
+
+        except Exception as e:
+            self.logger.error(f"Error stopping BlueStacks instance: {e}")
+            return False
+
+    def restart_instance(self):
+        """Restart this BlueStacks instance and reconnect ADB."""
+        if not self.stop_instance():
+            return False
+        if not self.start_bluestacks():
+            return False
+        return self.connect_adb()
+
     def take_screenshot(self):
         """Take a screenshot of the BlueStacks window using ADB"""
         try:
@@ -223,7 +444,7 @@ class BlueStacksController:
                 self.logger.warning("Screenshot has zero dimensions")
                 return None
 
-            expected_w, expected_h = 1280, 720
+            expected_w, expected_h = self.expected_width, self.expected_height
             if (w, h) != (expected_w, expected_h):
                 self.logger.warning(
                     f"Screenshot resolution {w}x{h} differs from expected "

@@ -161,7 +161,17 @@ class ConfigManager:
                 'bluestacks_exe_path': bs_path,
                 'bluestacks_instance_name': 'Nougat32',
                 'adb_path': adb_path,
-                'wait_for_startup_seconds': '30'
+                'wait_for_startup_seconds': '30',
+                # Resolution the coordinate maps expect. When the instance
+                # runs at anything else, the bot rewrites bluestacks.conf and
+                # restarts the instance (set auto_fix_resolution = False to
+                # only warn instead). bluestacks_conf_path may be left empty
+                # to use the default %ProgramData%\BlueStacks_nxt location.
+                'expected_resolution_width': '1280',
+                'expected_resolution_height': '720',
+                'expected_dpi': '240',
+                'auto_fix_resolution': 'True',
+                'bluestacks_conf_path': ''
             },
             'RiseOfKingdoms': {
                 'package_name': 'com.lilithgame.roc.gp',

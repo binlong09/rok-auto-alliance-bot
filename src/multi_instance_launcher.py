@@ -272,6 +272,25 @@ class AutomationThread(threading.Thread):
                     self.close_bluestacks(bluestacks_controller)
                 return
 
+            # Verify the emulator resolution matches what the coordinate maps
+            # expect; on mismatch this rewrites bluestacks.conf, restarts the
+            # instance and reconnects ADB automatically.
+            self.log("Checking emulator screen resolution")
+            self.update_status("Checking resolution")
+
+            if not bluestacks_controller.ensure_correct_resolution():
+                self.log(
+                    f"Screen resolution is wrong (expected "
+                    f"{bluestacks_controller.expected_width}x{bluestacks_controller.expected_height}) "
+                    "and could not be fixed automatically. Set it manually in "
+                    "BlueStacks Settings > Display, then restart the instance."
+                )
+                self.update_status("Wrong resolution")
+                if self.exit_after_complete and bluestacks_controller:
+                    self.log("Closing BlueStacks instance")
+                    self.close_bluestacks(bluestacks_controller)
+                return
+
             # Start Rise of Kingdoms
             if self.stop_event.is_set():
                 self.log("Automation stopped before launching game")
