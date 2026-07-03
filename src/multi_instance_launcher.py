@@ -300,7 +300,10 @@ class AutomationThread(threading.Thread):
             total_wait = rok_controller.game_load_wait_seconds
             interval = timings.POLL_INTERVAL  # Check for stop every 2 seconds
 
-            for _ in range(0, total_wait, interval):
+            # while-loop instead of range(): interval is a float now that it
+            # comes from timings, and range() only accepts ints.
+            remaining = total_wait
+            while remaining > 0:
                 if self.stop_event.is_set():
                     self.log("Automation stopped during game loading")
                     self.update_status("Stopped")
@@ -309,8 +312,8 @@ class AutomationThread(threading.Thread):
                         self.close_bluestacks(bluestacks_controller)
                     return
 
-                time.sleep(min(interval, total_wait))
-                total_wait -= interval
+                time.sleep(min(interval, remaining))
+                remaining -= interval
 
             rok_controller.wait_for_game_load()
 
