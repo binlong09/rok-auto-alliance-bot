@@ -28,14 +28,30 @@ def find_bluestacks_path():
 
 
 def find_tesseract_path():
-    """Auto-detect Tesseract installation path across different drives."""
-    tesseract_relative = "Program Files\\Tesseract-OCR\\tesseract.exe"
+    """Auto-detect Tesseract installation path.
 
-    if sys.platform == "win32":
-        drives = [f"{d}:\\" for d in string.ascii_uppercase if os.path.exists(f"{d}:\\")]
-    else:
+    Search order:
+    1. Bundled alongside the executable (PyInstaller dist or dev src/)
+    2. System-installed Tesseract across all drives (Windows)
+    3. Hardcoded fallback
+    """
+    if sys.platform != "win32":
         return "/usr/bin/tesseract"
 
+    # Bundled Tesseract: check relative to the running executable (frozen)
+    # or relative to this source file (dev mode).
+    if getattr(sys, 'frozen', False):
+        base = os.path.dirname(sys.executable)
+    else:
+        base = os.path.dirname(os.path.abspath(__file__))
+
+    bundled = os.path.join(base, "Tesseract-OCR", "tesseract.exe")
+    if os.path.exists(bundled):
+        return bundled
+
+    # System-installed Tesseract
+    tesseract_relative = "Program Files\\Tesseract-OCR\\tesseract.exe"
+    drives = [f"{d}:\\" for d in string.ascii_uppercase if os.path.exists(f"{d}:\\")]
     for drive in drives:
         tess_path = os.path.join(drive, tesseract_relative)
         if os.path.exists(tess_path):
