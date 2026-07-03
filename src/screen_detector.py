@@ -5,8 +5,8 @@ Screen Detector - Detects current game screen states.
 This module handles detection of various game screens and UI states
 using OCR to identify text on screen.
 """
-import time
 import logging
+import time
 
 import timings
 from automation_base import StopCheckMixin

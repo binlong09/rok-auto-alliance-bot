@@ -19,8 +19,8 @@ Locating tries the most reliable method first and degrades gracefully:
 so the bot never becomes *less* capable than the old fixed-position version,
 it only gets more accurate as detection methods succeed.
 """
-import time
 import logging
+import time
 
 import timings
 from automation_base import StopCheckMixin

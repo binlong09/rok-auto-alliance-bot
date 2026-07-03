@@ -3,7 +3,6 @@ import pytest
 
 from character_switcher import CharacterSwitcher
 
-
 FIRST = [{'x': 100 + i, 'y': 200 + i} for i in range(6)]
 AFTER = [{'x': 500 + i, 'y': 600 + i} for i in range(6)]
 

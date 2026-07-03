@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
-import os
+import argparse
 import logging
+import os
 import tkinter as tk
 from tkinter import messagebox
-import argparse
 
 
 def setup_environment():
@@ -43,7 +43,7 @@ def main():
         from unified_gui import UnifiedGUI
         logger.info("Starting unified GUI")
         root = tk.Tk()
-        app = UnifiedGUI(root)
+        UnifiedGUI(root)
 
         try:
             root.iconbitmap("assets/rok_icon.ico")

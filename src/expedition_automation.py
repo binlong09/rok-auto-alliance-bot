@@ -38,8 +38,8 @@ HOW TO CREATE NEW AUTOMATION FEATURES - DOCUMENTATION
 
 =============================================================================
 """
-import time
 import logging
+import time
 
 import timings
 from automation_base import StopCheckMixin

@@ -6,9 +6,9 @@ This module tracks which daily tasks (build, expedition) have been completed
 for each character, using UTC time to determine the current day.
 Tasks marked as completed today will be skipped unless force mode is enabled.
 """
-import os
 import json
 import logging
+import os
 from datetime import datetime, timezone
 
 
@@ -35,11 +35,11 @@ class DailyTaskTracker:
         """Load tracking data from JSON file."""
         if os.path.exists(self.tracking_file):
             try:
-                with open(self.tracking_file, 'r') as f:
+                with open(self.tracking_file) as f:
                     data = json.load(f)
                 self.logger.debug(f"Loaded daily task tracking from {self.tracking_file}")
                 return data
-            except (json.JSONDecodeError, IOError) as e:
+            except (OSError, json.JSONDecodeError) as e:
                 self.logger.warning(f"Error loading tracking file, starting fresh: {e}")
 
         # Return empty structure if file doesn't exist or is corrupted
@@ -60,7 +60,7 @@ class DailyTaskTracker:
                 json.dump(self.data, f, indent=2)
 
             self.logger.debug(f"Saved daily task tracking to {self.tracking_file}")
-        except IOError as e:
+        except OSError as e:
             self.logger.error(f"Error saving tracking file: {e}")
 
     def _get_today_utc(self):

@@ -5,7 +5,6 @@ import pytest
 
 from coordinate_manager import CoordinateManager
 
-
 COORDS = {
     "resolution": "1280x720",
     "navigation": {

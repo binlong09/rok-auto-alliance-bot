@@ -7,12 +7,12 @@ This module provides:
 - Return-to-home recovery from any screen state
 - Retry decorator for wrapping operations with automatic recovery
 """
-import time
 import logging
+import time
+from collections.abc import Callable
+from dataclasses import dataclass
 from enum import Enum, auto
 from functools import wraps
-from dataclasses import dataclass
-from typing import Callable, Optional
 
 import timings
 from automation_base import StopCheckMixin
@@ -210,7 +210,7 @@ class RecoveryManager(StopCheckMixin):
         return False
 
 
-def with_retry(config: Optional[RetryConfig] = None):
+def with_retry(config: RetryConfig | None = None):
     """
     Decorator that adds retry logic with optional recovery.
 

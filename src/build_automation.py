@@ -9,8 +9,8 @@ Navigation steps verify the resulting screen state (OCR / template
 matching) and poll for expected text instead of single-shot checks after
 fixed sleeps.
 """
-import time
 import logging
+import time
 
 import timings
 from automation_base import DialogCloserMixin

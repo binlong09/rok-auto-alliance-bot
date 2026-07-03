@@ -27,8 +27,8 @@ keyword variants; run with debug_mode enabled the first time to capture
 screenshots if a step fails, and add template images (see template_matcher.py)
 for any icon this flow cannot find via text.
 """
-import time
 import logging
+import time
 
 import timings
 from automation_base import StopCheckMixin

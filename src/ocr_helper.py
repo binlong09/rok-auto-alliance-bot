@@ -5,9 +5,10 @@ OCR Helper - Centralized text detection and image processing for OCR.
 This module handles all OCR-related operations including image preprocessing,
 text detection, and text position finding.
 """
-import time
 import logging
 import re
+import time
+
 import cv2
 import numpy as np
 import pytesseract

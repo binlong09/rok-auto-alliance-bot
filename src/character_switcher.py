@@ -6,14 +6,15 @@ This module automates the process of switching between characters in
 Rise of Kingdoms, navigating the character selection screen.
 Includes recovery and graceful degradation for failed characters.
 """
-import time
 import logging
+import time
+
 import numpy as np
 
 import timings
 from automation_base import DialogCloserMixin
-from recovery_manager import RetryConfig, with_retry
 from daily_task_tracker import DailyTaskTracker
+from recovery_manager import RetryConfig, with_retry
 
 
 class CharacterSwitcher(DialogCloserMixin):

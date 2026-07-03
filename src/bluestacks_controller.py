@@ -1,9 +1,10 @@
+import logging
 import os
 import re
-import sys
 import subprocess
+import sys
 import time
-import logging
+
 import cv2
 import numpy as np
 
@@ -133,8 +134,8 @@ class BlueStacksController:
         try:
             # Connect to the device
             connect_cmd = [self.adb_path, "connect", self.adb_device]
-            result = subprocess.run(connect_cmd, capture_output=True, text=True,
-                                    timeout=15)
+            subprocess.run(connect_cmd, capture_output=True, text=True,
+                           timeout=15)
 
             # Verify connection
             verify_cmd = [self.adb_path, "devices"]
@@ -314,7 +315,7 @@ class BlueStacksController:
         }
 
         try:
-            with open(conf_path, 'r', encoding='utf-8') as f:
+            with open(conf_path, encoding='utf-8') as f:
                 lines = f.readlines()
 
             remaining = dict(new_values)

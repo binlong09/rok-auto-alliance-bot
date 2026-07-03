@@ -8,8 +8,8 @@ specifically finding and donating to officer-recommended technologies.
 Every navigation step verifies the resulting screen state (via OCR /
 template matching) instead of blindly clicking fixed coordinates.
 """
-import time
 import logging
+import time
 
 import timings
 from automation_base import DialogCloserMixin

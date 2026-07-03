@@ -1,19 +1,16 @@
 #!/usr/bin/env python3
-import os
-import sys
-import time
 import logging
-import threading
-import subprocess
 import queue
+import subprocess
+import sys
+import threading
+import time
 from queue import Queue
 
 import timings
-from instance_manager import InstanceManager
-from config_manager import ConfigManager
 from bluestacks_controller import BlueStacksController
-from rok_game_controller import RoKGameController
 from daily_task_tracker import DailyTaskTracker, get_tracker_path_for_instance
+from rok_game_controller import RoKGameController
 
 
 class QueueLogHandler(logging.Handler):

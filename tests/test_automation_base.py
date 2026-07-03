@@ -4,7 +4,7 @@ import logging
 import pytest
 
 import automation_base
-from automation_base import StopCheckMixin, DialogCloserMixin
+from automation_base import DialogCloserMixin, StopCheckMixin
 
 
 class _StopComponent(StopCheckMixin):

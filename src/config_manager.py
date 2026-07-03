@@ -1,8 +1,8 @@
-import os
-import sys
-import logging
 import configparser
+import logging
+import os
 import string
+import sys
 
 
 def find_bluestacks_path():

@@ -33,12 +33,11 @@ Well-known template names used by the automation modules (all optional):
     campaign_icon, expedition_banner, expedition_chest,
     march_button, account_button, switch_account_button
 """
-import os
 import glob
 import logging
+import os
 
 import cv2
-import numpy as np
 
 
 class TemplateMatcher:
@@ -185,8 +184,8 @@ class TemplateMatcher:
 
 def _capture_template(name, x, y, width, height):
     """Capture a template from the live BlueStacks screen (CLI helper)."""
-    from config_manager import ConfigManager
     from bluestacks_controller import BlueStacksController
+    from config_manager import ConfigManager
 
     logging.basicConfig(level=logging.INFO, format="%(levelname)s - %(message)s")
     logger = logging.getLogger(__name__)

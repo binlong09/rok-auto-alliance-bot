@@ -2,3 +2,4 @@
 # Install with: pip install -r requirements-dev.txt
 pyinstaller>=6.0
 pytest>=8.0
+ruff>=0.4

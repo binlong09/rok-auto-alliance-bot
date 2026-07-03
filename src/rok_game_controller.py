@@ -5,22 +5,22 @@ RoK Game Controller - Main orchestrator for Rise of Kingdoms automation.
 This is the main controller that coordinates game lifecycle and
 delegates specific automation tasks to specialized classes.
 """
-import time
 import logging
 import subprocess
+import time
 
 import timings
+from account_switcher import AccountSwitcher
 from automation_base import DialogCloserMixin
-from coordinate_manager import CoordinateManager
-from ocr_helper import OCRHelper
-from screen_detector import ScreenDetector
-from navigation_helper import VerifiedNavigator
 from build_automation import BuildAutomation
+from character_switcher import CharacterSwitcher
+from coordinate_manager import CoordinateManager
 from donation_automation import DonationAutomation
 from expedition_automation import ExpeditionAutomation
-from character_switcher import CharacterSwitcher
-from account_switcher import AccountSwitcher
+from navigation_helper import VerifiedNavigator
+from ocr_helper import OCRHelper
 from recovery_manager import RecoveryManager
+from screen_detector import ScreenDetector
 
 
 class RoKGameController(DialogCloserMixin):

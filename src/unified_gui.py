@@ -5,20 +5,22 @@ Rise of Kingdoms — Unified GUI
 Single-window interface with sidebar instance list and tabbed main content.
 Replaces both multi_instance_manager_gui.py and bluestacks_manager_gui.py.
 """
-import os
-import sys
-import time
 import logging
-import tkinter as tk
-from tkinter import ttk, messagebox, filedialog
+import os
 import threading
+import time
+import tkinter as tk
+from tkinter import filedialog, messagebox, ttk
 
 import timings
+from config_manager import (
+    scan_for_adb_executables,
+    scan_for_bluestacks_installations,
+)
+from daily_task_tracker import DailyTaskTracker, get_tracker_path_for_instance
 from instance_manager import InstanceManager
 from instance_manager_gui import InstanceManagerDialog
 from multi_instance_launcher import MultiInstanceLauncher
-from daily_task_tracker import DailyTaskTracker, get_tracker_path_for_instance
-from config_manager import ConfigManager, scan_for_bluestacks_installations, scan_for_adb_executables
 from schedule_manager import ScheduleManager
 
 
@@ -135,7 +137,6 @@ class UnifiedGUI:
 
         CARD = self.CARD
         BG   = self.BG
-        BORDER = self.BORDER
         TEXT = self.TEXT
         TEXT2 = self.TEXT2
         PRIMARY = self.PRIMARY

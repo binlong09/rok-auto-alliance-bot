@@ -5,7 +5,6 @@ import pytest
 
 from template_matcher import TemplateMatcher
 
-
 PATCH_X, PATCH_Y = 120, 60      # top-left of the patch in the screenshot
 PATCH_W, PATCH_H = 20, 20
 CENTER = (PATCH_X + PATCH_W // 2, PATCH_Y + PATCH_H // 2)

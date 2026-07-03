@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
-import os
-import sys
 import json
 import logging
-import uuid
+import os
 import shutil
+import sys
+import uuid
+
 from config_manager import ConfigManager
 
 # Application name for AppData folder
@@ -124,7 +125,7 @@ class InstanceManager:
             shutil.copy("config.ini", default_config_path)
         else:
             # Create a new default config
-            config_manager = ConfigManager(default_config_path)
+            ConfigManager(default_config_path)
             # The constructor will create a default config file
 
         # Save index
@@ -134,7 +135,7 @@ class InstanceManager:
     def _load_instances(self):
         """Load instance information from index file"""
         try:
-            with open(self.index_file, 'r') as f:
+            with open(self.index_file) as f:
                 index_data = json.load(f)
 
             # Convert to dictionary for easier access
