@@ -59,11 +59,16 @@ jobs:
           }
           echo "VERSION=$ver" >> $env:GITHUB_OUTPUT
 
-      - name: Upload build artifact
+      - name: Create ZIP
+        run: |
+          Compress-Archive -Path "dist\RoK Automation\*" `
+            -DestinationPath "RoK_Automation_${{ steps.version.outputs.VERSION }}.zip"
+
+      - name: Upload ZIP
         uses: actions/upload-artifact@v4
         with:
           name: RoK-Automation-${{ steps.version.outputs.VERSION }}
-          path: dist/RoK Automation/
+          path: RoK_Automation_${{ steps.version.outputs.VERSION }}.zip
           retention-days: 30
 
   release:
@@ -78,15 +83,10 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: RoK-Automation-${{ needs.build.outputs.version }}
-          path: release-files/
-
-      - name: Create ZIP
-        run: |
-          cd release-files
-          zip -r "../RoK_Automation_${{ github.ref_name }}.zip" .
+          path: ./
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          files: RoK_Automation_${{ github.ref_name }}.zip
+          files: "*.zip"
           generate_release_notes: true
