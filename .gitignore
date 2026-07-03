@@ -6,6 +6,7 @@ src/logs/
 src/config.ini
 
 # Debug/temp images (root and src)
+template_match_*.png
 temp_screenshot*.png
 text_region.png
 text_*.png
