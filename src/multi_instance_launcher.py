@@ -5,8 +5,6 @@ import time
 import logging
 import threading
 import subprocess
-import tkinter as tk
-from tkinter import ttk, messagebox
 from queue import Queue
 
 from instance_manager import InstanceManager
@@ -242,8 +240,16 @@ class AutomationThread(threading.Thread):
             self.update_status("Connecting to ADB")
 
             if not bluestacks_controller.connect_adb():
-                self.log("Failed to connect to ADB")
-                self.update_status("Failed to connect to ADB")
+                if bluestacks_controller.last_connect_error == "adb_disabled":
+                    self.log(
+                        "ADB debugging is disabled inside this BlueStacks instance. "
+                        "Open the instance -> Settings -> Advanced -> enable 'Android Debug Bridge (ADB)', "
+                        "then restart the instance."
+                    )
+                    self.update_status("ADB Disabled in Instance")
+                else:
+                    self.log("Failed to connect to ADB")
+                    self.update_status("Failed to connect to ADB")
                 if self.exit_after_complete and bluestacks_controller:
                     self.log("Closing BlueStacks instance")
                     self.close_bluestacks(bluestacks_controller)
@@ -472,128 +478,18 @@ class MultiInstanceLauncher:
         return True
 
     def stop_all_instances(self):
-        """Stop all running instances with improved user feedback"""
-        running_instances = self.launcher.get_running_instances()
+        """Stop all currently running instances.
 
-        if not running_instances:
-            messagebox.showinfo("None Running", "No instances are currently running.")
-            return
+        GUI-facing concerns (confirmation dialogs, progress windows, status
+        updates) belong to the caller (MultiInstanceManagerGUI.stop_all_instances) -
+        this just signals every running instance to stop.
+        """
+        running_instances = self.get_running_instances()
 
-        # Confirm with user
-        result = messagebox.askyesno(
-            "Stop All",
-            f"Stop automation for {len(running_instances)} running instances?"
-        )
+        for instance_id in running_instances:
+            self.stop_instance(instance_id)
 
-        if not result:
-            return
-
-        # Disable Stop All button during operation
-        stop_all_button = None
-        for widget in self.root.winfo_children():
-            if isinstance(widget, ttk.Frame):
-                for child in widget.winfo_children():
-                    if isinstance(child, ttk.Frame):
-                        for button in child.winfo_children():
-                            if isinstance(button, ttk.Button) and button['text'] == "Stop All":
-                                stop_all_button = button
-                                button.config(state=tk.DISABLED)
-                                break
-
-        # Show stopping progress
-        progress_window = tk.Toplevel(self.root)
-        progress_window.title("Stopping Instances")
-        progress_window.geometry("400x200")
-        progress_window.transient(self.root)
-        progress_window.grab_set()
-
-        ttk.Label(progress_window, text=f"Stopping {len(running_instances)} instances...",
-                  font=("", 12, "bold")).pack(pady=10)
-
-        # Add progress bar
-        progress = ttk.Progressbar(progress_window, orient="horizontal", length=300, mode="determinate")
-        progress.pack(pady=10)
-        progress["maximum"] = len(running_instances)
-        progress["value"] = 0
-
-        # Status text
-        status_var = tk.StringVar(value="Initiating stop commands...")
-        ttk.Label(progress_window, textvariable=status_var).pack(pady=5)
-
-        # List of instances being stopped
-        stopping_frame = ttk.Frame(progress_window)
-        stopping_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=5)
-        stopping_list = tk.Text(stopping_frame, height=5, width=40)
-        stopping_list.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
-        scrollbar = ttk.Scrollbar(stopping_frame, orient=tk.VERTICAL, command=stopping_list.yview)
-        scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
-        stopping_list.config(yscrollcommand=scrollbar.set)
-
-        # Stop instances one by one to provide visual feedback
-        def stop_instances_with_progress():
-            try:
-                # Get instance names for nicer display
-                instance_names = {}
-                for instance_id in running_instances:
-                    instance = self.instance_manager.get_instance(instance_id)
-                    if instance:
-                        instance_names[instance_id] = instance["name"]
-                    else:
-                        instance_names[instance_id] = f"Instance {instance_id}"
-
-                # Stop each instance with feedback
-                for i, instance_id in enumerate(running_instances):
-                    instance_name = instance_names.get(instance_id, f"Instance {instance_id}")
-
-                    # Update progress window
-                    self.root.after_idle(lambda: status_var.set(f"Stopping {instance_name}..."))
-                    self.root.after_idle(lambda: stopping_list.insert(tk.END, f"Stopping {instance_name}...\n"))
-                    self.root.after_idle(lambda: stopping_list.see(tk.END))
-                    self.root.after_idle(lambda: progress.config(value=i))
-
-                    # Stop the instance
-                    self.launcher.stop_instance(instance_id)
-
-                    # Update status in the main UI
-                    self.root.after_idle(lambda id=instance_id: self.update_instance_status(id, "Stopping"))
-
-                    # Small delay for visual feedback
-                    time.sleep(0.5)
-
-                # All instances are being stopped
-                self.root.after_idle(lambda: status_var.set("All instances are stopping..."))
-                self.root.after_idle(lambda: progress.config(value=len(running_instances)))
-
-                # Wait a moment before closing the progress window
-                time.sleep(2)
-
-                # Final update to UI
-                self.root.after_idle(self.load_instances)
-                self.root.after_idle(lambda: self.on_instance_select(None))
-
-                # Re-enable the Stop All button if it exists
-                if stop_all_button:
-                    self.root.after_idle(lambda: stop_all_button.config(state=tk.NORMAL))
-
-                # Show completion message and close progress window
-                self.root.after_idle(lambda: messagebox.showinfo("Operation Complete",
-                                                                 f"Stop commands sent to {len(running_instances)} instances.\n\n"
-                                                                 "Instances will shut down shortly."))
-                self.root.after_idle(progress_window.destroy)
-
-            except Exception as e:
-                # Handle any errors
-                self.logger.error(f"Error in stop_all operation: {e}")
-                self.root.after_idle(lambda: messagebox.showerror("Error",
-                                                                  f"An error occurred while stopping instances: {str(e)}"))
-
-                # Make sure to re-enable button and close window
-                if stop_all_button:
-                    self.root.after_idle(lambda: stop_all_button.config(state=tk.NORMAL))
-                self.root.after_idle(progress_window.destroy)
-
-        # Run the stopping process in a separate thread
-        threading.Thread(target=stop_instances_with_progress, daemon=True).start()
+        self.logger.info(f"Requested stop for {len(running_instances)} instance(s)")
 
     def get_running_instances(self):
         """Get list of running instance IDs"""

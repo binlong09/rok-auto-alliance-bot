@@ -61,17 +61,31 @@ class ScreenDetector:
         """
         Check if the game is currently showing the map screen.
 
+        Rather than checking for a hardcoded list of kingdom numbers (which
+        only works for a handful of specific kingdoms), this looks for
+        kingdom-agnostic signals in the kingdom_check region:
+          1. Coordinate-style numbers (kingdom coords are always 3-4 digit
+             numbers, and the map screen shows at least two of them, e.g.
+             the kingdom number and the X/Y position).
+          2. Generic map UI text ("Kingdom", "K:") as a fallback in case the
+             numbers aren't cleanly OCR'd.
+
         Returns:
             bool: True if in map screen, False otherwise
         """
         if self.check_stop_requested():
             return False
 
-        # Check for kingdom number
-        keywords = ["3174", "1960", "3494"]
         region = self.coords.get_region('kingdom_check')
 
-        result = self.ocr.detect_text_in_region(keywords, region)
+        # Generic map UI keywords that aren't tied to a specific kingdom.
+        keywords = ["Kingdom", "kingdom", "K:", "k:"]
+
+        # At least two 3-4 digit numbers (kingdom number + coordinate)
+        # reliably indicates the map screen regardless of which kingdom
+        # the player is in.
+        result = self.ocr.detect_pattern_in_region(r'\d{3,4}', region, min_matches=2) \
+            or self.ocr.detect_text_in_region(keywords, region)
 
         if result:
             self.logger.info("Currently in map screen")

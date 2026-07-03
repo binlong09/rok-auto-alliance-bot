@@ -144,24 +144,64 @@ class RoKGameController:
             return True
         return False
 
-    def start_game(self):
-        """Start Rise of Kingdoms app."""
+    def is_rok_process_running(self):
+        """Check whether the RoK process is actually running on the device.
+
+        Used as a fallback check because "am start" can report a transport
+        error (e.g. "error: closed") on the response channel even when the
+        activity itself launched successfully.
+        """
+        try:
+            check_cmd = f'"{self.bluestacks.adb_path}" -s {self.bluestacks.adb_device} shell pidof {self.package_name}'
+            result = subprocess.run(check_cmd, shell=True, capture_output=True, text=True)
+            return bool(result.stdout.strip())
+        except Exception:
+            return False
+
+    def start_game(self, max_retries=3, retry_delay_seconds=2):
+        """Start Rise of Kingdoms app.
+
+        Retries on transient ADB transport errors (e.g. "error: closed"), which
+        happen when the ADB bridge reports the device as connected slightly
+        before it is actually ready to accept shell commands.
+        """
         self.logger.info("Starting Rise of Kingdoms...")
         self.logger.info(f"package name: {self.package_name}")
-        try:
-            start_cmd = f'"{self.bluestacks.adb_path}" -s {self.bluestacks.adb_device} shell am start -n {self.package_name}/{self.activity_name}'
-            result = subprocess.run(start_cmd, shell=True, capture_output=True, text=True)
 
-            if "Error" in result.stdout or "error" in result.stderr:
-                self.logger.error(f"Failed to start Rise of Kingdoms: {result.stderr}")
+        start_cmd = f'"{self.bluestacks.adb_path}" -s {self.bluestacks.adb_device} shell am start -n {self.package_name}/{self.activity_name}'
+
+        for attempt in range(1, max_retries + 1):
+            try:
+                result = subprocess.run(start_cmd, shell=True, capture_output=True, text=True)
+
+                if "Error" in result.stdout or "error" in result.stderr:
+                    # The "am start" response itself failed, but the activity may
+                    # have launched anyway before the ADB transport dropped the
+                    # connection. Verify actual process state before giving up.
+                    time.sleep(1.5)
+                    if self.is_rok_process_running():
+                        self.logger.info(
+                            f"Rise of Kingdoms is running despite reported ADB error: {result.stderr.strip()}"
+                        )
+                        return True
+
+                    self.logger.error(f"Failed to start Rise of Kingdoms (attempt {attempt}/{max_retries}): {result.stderr}")
+                    if attempt < max_retries:
+                        time.sleep(retry_delay_seconds)
+                        continue
+                    return False
+
+                self.logger.info("Rise of Kingdoms started successfully")
+                return True
+
+            except Exception as e:
+                self.logger.error(f"Error starting Rise of Kingdoms (attempt {attempt}/{max_retries}): {e}")
+                if attempt < max_retries:
+                    time.sleep(retry_delay_seconds)
+                    continue
                 return False
 
-            self.logger.info("Rise of Kingdoms started successfully")
-            return True
-
-        except Exception as e:
-            self.logger.error(f"Error starting Rise of Kingdoms: {e}")
-            return False
+        return False
 
     def wait_for_game_load(self):
         """Wait for the game to load with stop check capability."""

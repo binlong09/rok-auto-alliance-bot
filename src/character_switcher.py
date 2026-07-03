@@ -306,15 +306,31 @@ class CharacterSwitcher:
         Returns:
             bool: True if successful, False otherwise
         """
-        self.logger.info(f"Waiting {self.character_login_loading_time}s for character login screen...")
-        time.sleep(self.character_login_loading_time)
+        # Poll for the character login dialog instead of a single fixed-wait check.
+        # A single check right after a fixed sleep is prone to a race condition
+        # where the dialog hasn't finished rendering yet, causing the character
+        # to be incorrectly treated as skipped.
+        max_wait = 8  # total seconds to wait
+        poll_interval = 1.5  # check every 1.5s
+        elapsed = 0
+        is_login_screen = False
+
+        self.logger.info(f"Polling up to {max_wait}s for character login screen...")
+        while elapsed < max_wait:
+            if self.check_stop_requested():
+                return False
+
+            time.sleep(poll_interval)
+            elapsed += poll_interval
+
+            is_login_screen = self.screen.is_in_character_login()
+            self.logger.info(f"is_in_character_login() returned: {is_login_screen} (elapsed: {elapsed}s)")
+
+            if is_login_screen:
+                break
 
         if self.check_stop_requested():
             return False
-
-        # Check if this screen is now character login screen
-        is_login_screen = self.screen.is_in_character_login()
-        self.logger.info(f"is_in_character_login() returned: {is_login_screen}")
 
         if is_login_screen:
             # Click the "Yes" button to confirm character switch

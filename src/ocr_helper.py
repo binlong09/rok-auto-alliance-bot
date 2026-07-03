@@ -6,6 +6,7 @@ This module handles all OCR-related operations including image preprocessing,
 text detection, and text position finding.
 """
 import logging
+import re
 import cv2
 import numpy as np
 import pytesseract
@@ -139,13 +140,19 @@ class OCRHelper:
             region_height = min(text_region['height'], height - region_y)
 
             cropped = screenshot[region_y:region_y + region_height, region_x:region_x + region_width]
-            cv2.imwrite("text_region.png", cropped)
+            if self.debug_mode:
+                cv2.imwrite("text_region.png", cropped)
+
+            # Upscale 2x for better OCR accuracy on small UI text. This is safe here
+            # because this method only checks for keyword presence (returns True/False)
+            # and does not return any coordinates, unlike detect_text_position().
+            upscaled = cv2.resize(cropped, None, fx=2, fy=2, interpolation=cv2.INTER_CUBIC)
 
             # Preprocess
             if self.config.get_bool('OCR', 'preprocess_image', True):
-                processed_images = self.preprocess_image_for_ocr(cropped)
+                processed_images = self.preprocess_image_for_ocr(upscaled)
             else:
-                processed_images = {'original': cropped}
+                processed_images = {'original': upscaled}
 
             # Try different preprocessing methods
             for method_name, processed_image in processed_images.items():
@@ -156,7 +163,7 @@ class OCRHelper:
                 ocr_result = pytesseract.image_to_string(processed_image, config=custom_config, output_type=Output.DICT)
 
                 detected_text = ocr_result['text'].lower() if 'text' in ocr_result else ""
-                self.logger.info(f"OCR detected text ({method_name}): {detected_text}")
+                self.logger.debug(f"OCR detected text ({method_name}): {detected_text}")
 
                 for keyword in keywords:
                     if keyword.lower() in detected_text:
@@ -168,6 +175,83 @@ class OCRHelper:
 
         except Exception as e:
             self.logger.error(f"Error detecting text in region: {e}")
+            self.logger.exception("Stack trace:")
+            return False
+
+    def detect_pattern_in_region(self, pattern, text_region=None, min_matches=1):
+        """
+        Detect if a regex pattern matches enough times in the specified text region.
+
+        Unlike detect_text_in_region (which does substring matching against a
+        fixed keyword list), this runs a regular expression against the raw
+        OCR output. Useful for detecting content that varies (e.g. numbers)
+        rather than fixed text.
+
+        Args:
+            pattern (str): Regex pattern to search for (compiled with re.findall)
+            text_region (dict, optional): Region to search in {x, y, width, height}
+            min_matches (int): Minimum number of matches required for a hit
+
+        Returns:
+            bool: True if the pattern matches at least min_matches times, False otherwise
+        """
+        if self.check_stop_requested():
+            return False
+
+        try:
+            if text_region is None:
+                text_region = self.default_region
+
+            screenshot = self.bluestacks.take_screenshot()
+            if screenshot is None:
+                return False
+
+            height, width = screenshot.shape[:2]
+
+            # Adjust region bounds
+            region_x = min(text_region['x'], width - 1)
+            region_y = min(text_region['y'], height - 1)
+            region_width = min(text_region['width'], width - region_x)
+            region_height = min(text_region['height'], height - region_y)
+
+            cropped = screenshot[region_y:region_y + region_height, region_x:region_x + region_width]
+            if self.debug_mode:
+                cv2.imwrite("text_region.png", cropped)
+
+            # Upscale 2x for better OCR accuracy on small UI text.
+            upscaled = cv2.resize(cropped, None, fx=2, fy=2, interpolation=cv2.INTER_CUBIC)
+
+            # Preprocess
+            if self.config.get_bool('OCR', 'preprocess_image', True):
+                processed_images = self.preprocess_image_for_ocr(upscaled)
+            else:
+                processed_images = {'original': upscaled}
+
+            compiled_pattern = re.compile(pattern)
+
+            # Try different preprocessing methods
+            for method_name, processed_image in processed_images.items():
+                if self.check_stop_requested():
+                    return False
+
+                custom_config = '--oem 3 --psm 6'
+                ocr_result = pytesseract.image_to_string(processed_image, config=custom_config, output_type=Output.DICT)
+
+                detected_text = ocr_result['text'] if 'text' in ocr_result else ""
+                self.logger.debug(f"OCR detected text ({method_name}): {detected_text}")
+
+                matches = compiled_pattern.findall(detected_text)
+                if len(matches) >= min_matches:
+                    self.logger.info(
+                        f"Pattern '{pattern}' matched {len(matches)} time(s) with method {method_name}: {matches}"
+                    )
+                    return True
+
+            self.logger.info(f"Pattern '{pattern}' did not match at least {min_matches} time(s) in any preprocessing method")
+            return False
+
+        except Exception as e:
+            self.logger.error(f"Error detecting pattern in region: {e}")
             self.logger.exception("Stack trace:")
             return False
 
@@ -227,7 +311,7 @@ class OCRHelper:
                         filtered_texts.append(text.lower())
                         filtered_indices.append(i)
 
-                self.logger.info(f"OCR detected texts ({method_name}): {filtered_texts}")
+                self.logger.debug(f"OCR detected texts ({method_name}): {filtered_texts}")
 
                 if not filtered_texts:
                     continue

@@ -23,6 +23,10 @@ class BlueStacksController:
         # Default ADB device address
         self.adb_device = "127.0.0.1:5625"  # Default port, can be overridden
 
+        # Set on connect_adb() failure to let callers distinguish *why* it failed
+        # (e.g. "adb_disabled" so the GUI can show a specific message)
+        self.last_connect_error = None
+
     def set_adb_device(self, device_address):
         """Set the ADB device address (typically IP:PORT)"""
         self.adb_device = device_address
@@ -51,6 +55,7 @@ class BlueStacksController:
     def connect_adb(self):
         """Connect to BlueStacks via ADB"""
         self.logger.info(f"Connecting to ADB on device: {self.adb_device}")
+        self.last_connect_error = None
 
         try:
             # Connect to the device
@@ -61,16 +66,54 @@ class BlueStacksController:
             verify_cmd = f'"{self.adb_path}" devices'
             verify_result = subprocess.run(verify_cmd, shell=True, capture_output=True, text=True)
 
-            if self.adb_device in verify_result.stdout:
-                self.logger.info(f"Successfully connected to ADB on device: {self.adb_device}")
-                return True
-            else:
+            if self.adb_device not in verify_result.stdout:
                 self.logger.error(f"Failed to connect to ADB on device: {self.adb_device}")
+                self.last_connect_error = "not_found"
                 return False
+
+            # The device can show up as connected in `adb devices` while its
+            # shell/data channel is still broken (commonly because ADB
+            # debugging is disabled inside the BlueStacks instance). Verify a
+            # real shell command actually works before trusting the connection.
+            if not self._verify_adb_shell():
+                self.logger.error(
+                    f"Connected to {self.adb_device} but ADB shell commands are not working "
+                    "(every 'adb shell' call returns 'error: closed'). This almost always means "
+                    "Android Debug Bridge (ADB) is disabled inside this BlueStacks instance. "
+                    "Open the instance, go to Settings > Advanced, enable 'Android Debug Bridge (ADB)', "
+                    "then restart the instance and try again."
+                )
+                self.last_connect_error = "adb_disabled"
+                return False
+
+            self.logger.info(f"Successfully connected to ADB on device: {self.adb_device}")
+            return True
 
         except Exception as e:
             self.logger.error(f"Error connecting to ADB: {e}")
+            self.last_connect_error = "exception"
             return False
+
+    def _verify_adb_shell(self, retries=3, delay_seconds=2):
+        """Verify the ADB shell/data channel actually works, not just the transport.
+
+        Retries with a short delay first, since a freshly-connected instance can
+        briefly report "closed" before its shell channel is ready.
+        """
+        check_cmd = f'"{self.adb_path}" -s {self.adb_device} shell echo ok'
+
+        for attempt in range(1, retries + 1):
+            try:
+                result = subprocess.run(check_cmd, shell=True, capture_output=True, text=True)
+                if "ok" in result.stdout:
+                    return True
+            except Exception:
+                pass
+
+            if attempt < retries:
+                time.sleep(delay_seconds)
+
+        return False
 
     def take_screenshot(self):
         """Take a screenshot of the BlueStacks window using ADB"""
@@ -97,12 +140,39 @@ class BlueStacksController:
                 self.logger.error("Failed to save screenshot")
                 return None
 
+            # Guard against a stale/truncated pull: a failed screencap or an
+            # interrupted pull can leave a 0-byte (or otherwise empty) file
+            # behind, which cv2.imread may still "succeed" on in odd cases.
+            if os.path.getsize(screenshot_path) == 0:
+                self.logger.error("Screenshot file is empty (0 bytes) - screencap/pull likely failed")
+                return None
+
             # Read the image
             image = cv2.imread(screenshot_path)
 
             if image is None:
                 self.logger.error("Failed to read screenshot image")
                 return None
+
+            # Validate dimensions - a corrupt/truncated PNG can decode to a
+            # zero-sized array instead of returning None.
+            h, w = image.shape[:2]
+            if h == 0 or w == 0:
+                self.logger.warning("Screenshot has zero dimensions")
+                return None
+
+            expected_w, expected_h = 1280, 720
+            if (w, h) != (expected_w, expected_h):
+                self.logger.warning(
+                    f"Screenshot resolution {w}x{h} differs from expected "
+                    f"{expected_w}x{expected_h}"
+                )
+
+            # A screencap failure can sometimes still produce a valid-looking
+            # but entirely black image. Flag it as a warning (informational
+            # only) so automation isn't blocked on a false positive.
+            if float(np.mean(image)) < 1.0:
+                self.logger.warning("Screenshot appears to be all-black - screencap may have failed")
 
             return image
 

@@ -22,7 +22,7 @@ class StopAutomationException(Exception):
 
 
 # Import our controllers
-from config_manager import ConfigManager
+from config_manager import ConfigManager, scan_for_bluestacks_installations, scan_for_adb_executables
 from bluestacks_controller import BlueStacksController
 from rok_game_controller import RoKGameController
 from instance_manager import InstanceManager
@@ -267,6 +267,12 @@ class RiseOfKingdomsManagerGUI:
         # === INSTANCE SETTINGS (Collapsible) ===
         self.create_instance_settings(content)
 
+        # === STATUS CARD ===
+        self.create_status_card(content)
+
+        # === ACTION BUTTONS ===
+        self.create_action_buttons(content)
+
     def _on_canvas_configure(self, event):
         """Resize the inner frame to match canvas width"""
         self.canvas.itemconfig(self.canvas_frame, width=event.width)
@@ -473,11 +479,13 @@ class RiseOfKingdomsManagerGUI:
         ttk.Label(content, text="BlueStacks Path:").grid(row=row, column=0, sticky=tk.W, pady=3)
         ttk.Entry(content, textvariable=self.bluestacks_path, width=35).grid(row=row, column=1, sticky=tk.W, pady=3, padx=5)
         ttk.Button(content, text="Browse", command=self.browse_bluestacks, width=8).grid(row=row, column=2, pady=3)
+        ttk.Button(content, text="Scan", command=self.scan_for_bluestacks, width=8).grid(row=row, column=3, pady=3, padx=(3, 0))
 
         row += 1
         ttk.Label(content, text="ADB Path:").grid(row=row, column=0, sticky=tk.W, pady=3)
         ttk.Entry(content, textvariable=self.adb_path, width=35).grid(row=row, column=1, sticky=tk.W, pady=3, padx=5)
         ttk.Button(content, text="Browse", command=self.browse_adb, width=8).grid(row=row, column=2, pady=3)
+        ttk.Button(content, text="Scan", command=self.scan_for_adb, width=8).grid(row=row, column=3, pady=3, padx=(3, 0))
 
         row += 1
         ttk.Label(content, text="BlueStacks Instance:").grid(row=row, column=0, sticky=tk.W, pady=3)
@@ -627,6 +635,61 @@ class RiseOfKingdomsManagerGUI:
             self.adb_path.set(path)
             self.log(f"ADB path: {path}", "info")
 
+    def scan_for_bluestacks(self):
+        """Scan the machine for a BlueStacks installation and its adb executable"""
+        self.log("Scanning for BlueStacks installation...", "info")
+
+        def worker():
+            installations = scan_for_bluestacks_installations()
+            self.root.after(0, lambda: self._on_bluestacks_scan_done(installations))
+
+        Thread(target=worker, daemon=True).start()
+
+    def _on_bluestacks_scan_done(self, installations):
+        if not installations:
+            self.log("BlueStacks not found", "warning")
+            messagebox.showwarning("Scan Complete", "No BlueStacks installation was found on this machine.")
+            return
+
+        player_path, adb_path = installations[0]
+        self.bluestacks_path.set(player_path)
+        if adb_path:
+            self.adb_path.set(adb_path)
+
+        self.log(f"Found BlueStacks: {player_path}", "success")
+
+        message = f"Found BlueStacks at:\n{player_path}"
+        if adb_path:
+            message += f"\n\nADB:\n{adb_path}"
+        if len(installations) > 1:
+            message += f"\n\n({len(installations) - 1} other installation(s) also found, using the first one.)"
+        messagebox.showinfo("Scan Complete", message)
+
+    def scan_for_adb(self):
+        """Scan the machine for an adb executable"""
+        self.log("Scanning for ADB executable...", "info")
+
+        def worker():
+            paths = scan_for_adb_executables()
+            self.root.after(0, lambda: self._on_adb_scan_done(paths))
+
+        Thread(target=worker, daemon=True).start()
+
+    def _on_adb_scan_done(self, paths):
+        if not paths:
+            self.log("ADB not found", "warning")
+            messagebox.showwarning("Scan Complete", "No ADB executable was found on this machine.")
+            return
+
+        adb_path = paths[0]
+        self.adb_path.set(adb_path)
+        self.log(f"Found ADB: {adb_path}", "success")
+
+        message = f"Found ADB at:\n{adb_path}"
+        if len(paths) > 1:
+            message += f"\n\n({len(paths) - 1} other match(es) also found, using the first one.)"
+        messagebox.showinfo("Scan Complete", message)
+
     # === Daily Task Management ===
 
     def reset_daily_tasks(self):
@@ -745,8 +808,16 @@ class RiseOfKingdomsManagerGUI:
             self.update_status("Connecting ADB...", "running")
 
             if not self.bluestacks_controller.connect_adb():
-                self.log("Failed to connect ADB", "error")
-                self.update_status("Failed to connect ADB", "error")
+                if self.bluestacks_controller.last_connect_error == "adb_disabled":
+                    self.log(
+                        "ADB debugging is disabled inside this BlueStacks instance. "
+                        "Open the instance -> Settings -> Advanced -> enable 'Android Debug Bridge (ADB)', "
+                        "then restart the instance.", "error"
+                    )
+                    self.update_status("ADB Disabled in Instance", "error")
+                else:
+                    self.log("Failed to connect ADB", "error")
+                    self.update_status("Failed to connect ADB", "error")
                 return
 
             # Start game
