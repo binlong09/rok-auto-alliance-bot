@@ -21,6 +21,7 @@ from navigation_helper import VerifiedNavigator
 from ocr_helper import OCRHelper
 from recovery_manager import RecoveryManager
 from screen_detector import ScreenDetector
+from subprocess_utils import run_hidden
 from territory_automation import TerritoryAutomation
 
 
@@ -203,7 +204,7 @@ class RoKGameController(DialogCloserMixin):
                 self.bluestacks.adb_path, "-s", self.bluestacks.adb_device,
                 "shell", "pidof", self.package_name
             ]
-            result = subprocess.run(check_cmd, capture_output=True, text=True,
+            result = run_hidden(check_cmd, capture_output=True, text=True,
                                     timeout=15)
             return bool(result.stdout.strip())
         except subprocess.TimeoutExpired:
@@ -229,7 +230,7 @@ class RoKGameController(DialogCloserMixin):
 
         for attempt in range(1, max_retries + 1):
             try:
-                result = subprocess.run(start_cmd, capture_output=True, text=True,
+                result = run_hidden(start_cmd, capture_output=True, text=True,
                                         timeout=15)
 
                 if "Error" in result.stdout or "error" in result.stderr:

@@ -83,11 +83,11 @@ class OCRDebugTool:
 
     def _connect_adb(self):
         """Connect to ADB device."""
-        import subprocess
+        from subprocess_utils import run_hidden
         try:
             # Connect to the device
             connect_cmd = [ADB_PATH, "connect", f"127.0.0.1:{ADB_PORT}"]
-            result = subprocess.run(connect_cmd, capture_output=True, text=True)
+            result = run_hidden(connect_cmd, capture_output=True, text=True)
             print(f"ADB connect output: {result.stdout.strip()}")
             if result.stderr:
                 print(f"ADB stderr: {result.stderr.strip()}")

@@ -13,6 +13,7 @@ import logging
 import time
 
 import cv2
+
 import timings
 from automation_base import DialogCloserMixin
 

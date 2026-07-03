@@ -9,6 +9,7 @@ import cv2
 import numpy as np
 
 import timings
+from subprocess_utils import popen_hidden, run_hidden
 
 _DEBUG_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "debug_output")
 
@@ -75,7 +76,7 @@ class BlueStacksController:
                     return False
 
                 cmd = [self.bluestacks_exe_path, "--instance", self.bluestacks_instance_name]
-                subprocess.Popen(cmd)
+                popen_hidden(cmd)
 
             # Poll instead of a blind sleep: continue as soon as ADB responds,
             # bounded by the configured startup wait.
@@ -102,9 +103,9 @@ class BlueStacksController:
         """Quick probe: connect and run a shell echo. True only when the
         instance is fully responsive on ADB (transport AND shell channel)."""
         try:
-            subprocess.run([self.adb_path, "connect", self.adb_device],
+            run_hidden([self.adb_path, "connect", self.adb_device],
                            capture_output=True, text=True, timeout=timeout_seconds)
-            result = subprocess.run(
+            result = run_hidden(
                 [self.adb_path, "-s", self.adb_device, "shell", "echo", "ok"],
                 capture_output=True, text=True, timeout=timeout_seconds)
             return "ok" in result.stdout
@@ -121,7 +122,7 @@ class BlueStacksController:
             cmd = ["wmic", "process", "where",
                    f"name='HD-Player.exe' and commandline like '%{self.bluestacks_instance_name}%'",
                    "get", "processid"]
-            info = subprocess.run(cmd, capture_output=True, text=True, timeout=10)
+            info = run_hidden(cmd, capture_output=True, text=True, timeout=10)
             out = info.stdout.strip()
             return 'ProcessId' in out and len(out.splitlines()) > 1
         except Exception as e:
@@ -136,12 +137,12 @@ class BlueStacksController:
         try:
             # Connect to the device
             connect_cmd = [self.adb_path, "connect", self.adb_device]
-            subprocess.run(connect_cmd, capture_output=True, text=True,
+            run_hidden(connect_cmd, capture_output=True, text=True,
                            timeout=15)
 
             # Verify connection
             verify_cmd = [self.adb_path, "devices"]
-            verify_result = subprocess.run(verify_cmd, capture_output=True, text=True,
+            verify_result = run_hidden(verify_cmd, capture_output=True, text=True,
                                            timeout=15)
 
             if self.adb_device not in verify_result.stdout:
@@ -182,7 +183,7 @@ class BlueStacksController:
 
         for attempt in range(1, retries + 1):
             try:
-                result = subprocess.run(check_cmd, capture_output=True, text=True,
+                result = run_hidden(check_cmd, capture_output=True, text=True,
                                         timeout=15)
                 if "ok" in result.stdout:
                     return True
@@ -202,7 +203,7 @@ class BlueStacksController:
         since that is what screencap/input coordinates operate on.
         """
         try:
-            result = subprocess.run(
+            result = run_hidden(
                 [self.adb_path, "-s", self.adb_device, "shell", "wm", "size"],
                 capture_output=True, text=True, timeout=10)
 
@@ -372,12 +373,12 @@ class BlueStacksController:
             cmd = ["wmic", "process", "where",
                    f"name='HD-Player.exe' and commandline like '%{self.bluestacks_instance_name}%'",
                    "get", "processid"]
-            info = subprocess.run(cmd, capture_output=True, text=True, timeout=10)
+            info = run_hidden(cmd, capture_output=True, text=True, timeout=10)
             for line in info.stdout.strip().splitlines()[1:]:
                 pid = line.strip()
                 if pid:
                     self.logger.info(f"Stopping BlueStacks instance process (PID {pid})")
-                    subprocess.run(["taskkill", "/F", "/PID", pid],
+                    run_hidden(["taskkill", "/F", "/PID", pid],
                                    capture_output=True, timeout=10)
 
             deadline = time.time() + wait_seconds
@@ -419,11 +420,11 @@ class BlueStacksController:
 
             # Take screenshot command
             screenshot_cmd = [self.adb_path, "-s", self.adb_device, "shell", "screencap", "-p", "/sdcard/screenshot.png"]
-            subprocess.run(screenshot_cmd, capture_output=True, timeout=30)
+            run_hidden(screenshot_cmd, capture_output=True, timeout=30)
 
             # Pull screenshot to PC
             pull_cmd = [self.adb_path, "-s", self.adb_device, "pull", "/sdcard/screenshot.png", screenshot_path]
-            subprocess.run(pull_cmd, capture_output=True, timeout=30)
+            run_hidden(pull_cmd, capture_output=True, timeout=30)
 
             # Check if screenshot was saved
             if not os.path.exists(screenshot_path):
@@ -475,7 +476,7 @@ class BlueStacksController:
         try:
             # Use ADB to simulate tap
             tap_cmd = [self.adb_path, "-s", self.adb_device, "shell", "input", "tap", str(x), str(y)]
-            result = subprocess.run(tap_cmd, capture_output=True, text=True, timeout=15)
+            result = run_hidden(tap_cmd, capture_output=True, text=True, timeout=15)
 
             if result.returncode != 0:
                 self.logger.error(
@@ -502,7 +503,7 @@ class BlueStacksController:
                 self.adb_path, "-s", self.adb_device, "shell", "input", "swipe",
                 str(start_x), str(start_y), str(end_x), str(end_y), str(duration_ms)
             ]
-            result = subprocess.run(swipe_cmd, capture_output=True, text=True, timeout=15)
+            result = run_hidden(swipe_cmd, capture_output=True, text=True, timeout=15)
 
             if result.returncode != 0:
                 self.logger.error(
@@ -537,7 +538,7 @@ class BlueStacksController:
             escaped = escaped.replace(" ", "%s")
 
             text_cmd = [self.adb_path, "-s", self.adb_device, "shell", "input", "text", escaped]
-            result = subprocess.run(text_cmd, capture_output=True, text=True, timeout=15)
+            result = run_hidden(text_cmd, capture_output=True, text=True, timeout=15)
 
             if result.returncode != 0:
                 self.logger.error(
@@ -559,7 +560,7 @@ class BlueStacksController:
         try:
             # Use ADB to send back button keyevent
             key_cmd = [self.adb_path, "-s", self.adb_device, "shell", "input", "keyevent", "4"]
-            result = subprocess.run(key_cmd, capture_output=True, text=True, timeout=15)
+            result = run_hidden(key_cmd, capture_output=True, text=True, timeout=15)
 
             if result.returncode != 0:
                 self.logger.error(
