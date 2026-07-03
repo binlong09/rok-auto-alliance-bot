@@ -13,6 +13,7 @@ import tkinter as tk
 from tkinter import ttk, messagebox, filedialog
 import threading
 
+import timings
 from instance_manager import InstanceManager
 from instance_manager_gui import InstanceManagerDialog
 from multi_instance_launcher import MultiInstanceLauncher
@@ -63,34 +64,78 @@ class UnifiedGUI:
         )
         self.logger = logging.getLogger(__name__)
 
+    # ── design tokens ───────────────────────────────────────────
+    # One place for the spacing rhythm, type scale, and color palette so the
+    # rest of the class reads from these instead of scattering literals.
+
+    FONT_FAMILY = 'Segoe UI'
+    FONT_TITLE   = (FONT_FAMILY, 14, 'bold')   # window / toolbar title
+    FONT_SUB     = (FONT_FAMILY, 13, 'bold')   # sidebar app name
+    FONT_SECTION = (FONT_FAMILY, 9, 'bold')    # ALL-CAPS section headers
+    FONT_BODY    = (FONT_FAMILY, 10)           # standard body text / controls
+    FONT_BODY_BD = (FONT_FAMILY, 10, 'bold')   # bold body text / primary buttons
+    FONT_ROW     = (FONT_FAMILY, 11)           # task-row titles
+    FONT_LABEL   = (FONT_FAMILY, 9)            # field captions / secondary buttons
+    FONT_SMALL   = (FONT_FAMILY, 8)            # sidebar meta text
+    FONT_DOT     = (FONT_FAMILY, 7)            # status dot glyph
+    FONT_MONO    = ('Consolas', 10)            # log console
+
+    # Spacing scale (base-4). Everything in the UI should pad/pack to one of
+    # these instead of an ad hoc pixel count.
+    PAD_XS = 4
+    PAD_SM = 8
+    PAD_MD = 12
+    PAD_LG = 16
+    PAD_XL = 20
+
+    # One status palette, used identically by the sidebar dots, the toolbar
+    # status label, and the schedule indicator.
+    STATUS_RUNNING   = '#22c55e'
+    STATUS_STOPPED   = '#64748b'
+    STATUS_IDLE      = '#94a3b8'
+    STATUS_ERROR     = '#ef4444'
+    STATUS_SCHEDULED = '#f59e0b'
+
+    CARD           = '#ffffff'
+    BG             = '#f3f4f6'
+    BORDER         = '#e5e7eb'
+    TEXT           = '#1e293b'
+    TEXT2          = '#94a3b8'
+    PRIMARY        = '#4f46e5'
+    PRIMARY_ACTIVE = '#4338ca'
+    DANGER         = '#ef4444'
+    DANGER_ACTIVE  = '#dc2626'
+    DISABLED_BG    = '#e5e7eb'
+    DISABLED_FG    = '#94a3b8'
+
     # ── styles ──────────────────────────────────────────────────
 
     def _setup_styles(self):
         s = ttk.Style()
         s.theme_use('clam')
 
-        CARD = '#ffffff'
-        BG   = '#f3f4f6'
-        BORDER = '#e0e3e8'
-        TEXT = '#1e293b'
-        TEXT2 = '#64748b'
-        PRIMARY = '#4f46e5'
+        CARD = self.CARD
+        BG   = self.BG
+        BORDER = self.BORDER
+        TEXT = self.TEXT
+        TEXT2 = self.TEXT2
+        PRIMARY = self.PRIMARY
 
-        s.configure('.', font=('Segoe UI', 10), background=BG, foreground=TEXT)
+        s.configure('.', font=self.FONT_BODY, background=BG, foreground=TEXT)
         s.configure('TFrame', background=BG)
         s.configure('Card.TFrame', background=CARD)
 
         s.configure('TLabel', background=BG, foreground=TEXT)
         s.configure('Card.TLabel', background=CARD, foreground=TEXT)
-        s.configure('Dim.TLabel', background=CARD, foreground=TEXT2, font=('Segoe UI', 9))
+        s.configure('Dim.TLabel', background=CARD, foreground=TEXT2, font=self.FONT_LABEL)
         s.configure('Section.TLabel', background=CARD, foreground=TEXT2,
-                     font=('Segoe UI', 9, 'bold'))
-        s.configure('TabActive.TLabel', foreground=PRIMARY, font=('Segoe UI', 10, 'bold'),
+                     font=self.FONT_SECTION)
+        s.configure('TabActive.TLabel', foreground=PRIMARY, font=self.FONT_BODY_BD,
                      background=CARD)
-        s.configure('TabInactive.TLabel', foreground=TEXT2, font=('Segoe UI', 10),
+        s.configure('TabInactive.TLabel', foreground=TEXT2, font=self.FONT_BODY,
                      background='#f8f9fa')
 
-        s.configure('TCheckbutton', background=CARD, foreground=TEXT, font=('Segoe UI', 10))
+        s.configure('TCheckbutton', background=CARD, foreground=TEXT, font=self.FONT_BODY)
         s.map('TCheckbutton', background=[('active', CARD)])
 
         s.configure('TSpinbox', arrowsize=14)
@@ -101,11 +146,11 @@ class UnifiedGUI:
 
         s.configure('Sidebar.TFrame', background='#1e293b')
         s.configure('Sidebar.TLabel', background='#1e293b', foreground='#e2e8f0',
-                     font=('Segoe UI', 10))
+                     font=self.FONT_BODY)
         s.configure('SidebarTitle.TLabel', background='#1e293b', foreground='#ffffff',
-                     font=('Segoe UI', 13, 'bold'))
+                     font=self.FONT_SUB)
         s.configure('SidebarDim.TLabel', background='#1e293b', foreground='#94a3b8',
-                     font=('Segoe UI', 9))
+                     font=self.FONT_LABEL)
 
     # ── build ui ────────────────────────────────────────────────
 
@@ -132,11 +177,11 @@ class UnifiedGUI:
 
         # header
         hdr = tk.Frame(sb, bg=self.SIDEBAR_BG)
-        hdr.grid(row=0, column=0, sticky='ew', padx=16, pady=(18, 12))
+        hdr.grid(row=0, column=0, sticky='ew', padx=self.PAD_LG, pady=(self.PAD_LG + 2, self.PAD_MD))
 
-        tk.Label(hdr, text="RoK Alliance Bot", font=('Segoe UI', 14, 'bold'),
+        tk.Label(hdr, text="RoK Alliance Bot", font=self.FONT_TITLE,
                  bg=self.SIDEBAR_BG, fg='#ffffff').pack(anchor='w')
-        self._sidebar_sub = tk.Label(hdr, text="", font=('Segoe UI', 9),
+        self._sidebar_sub = tk.Label(hdr, text="", font=self.FONT_LABEL,
                                       bg=self.SIDEBAR_BG, fg=self.SIDEBAR_DIM)
         self._sidebar_sub.pack(anchor='w', pady=(2, 0))
 
@@ -169,21 +214,21 @@ class UnifiedGUI:
         tk.Frame(sb, bg='#334155', height=1).grid(row=2, column=0, sticky='ew')
 
         footer = tk.Frame(sb, bg=self.SIDEBAR_BG)
-        footer.grid(row=3, column=0, sticky='ew', padx=10, pady=10)
+        footer.grid(row=3, column=0, sticky='ew', padx=self.PAD_SM + 2, pady=self.PAD_SM + 2)
 
-        tk.Button(footer, text="▶ Launch All", font=('Segoe UI', 9, 'bold'),
-                  bg='#22c55e', fg='white', activebackground='#16a34a', activeforeground='white',
-                  relief='flat', bd=0, padx=10, pady=4, cursor='hand2',
-                  command=self._launch_all).pack(side='left', padx=(0, 4))
+        tk.Button(footer, text="▶ Launch All", font=self.FONT_LABEL + ('bold',),
+                  bg=self.STATUS_RUNNING, fg='white', activebackground='#16a34a', activeforeground='white',
+                  relief='flat', bd=0, padx=self.PAD_SM + 2, pady=self.PAD_XS, cursor='hand2',
+                  command=self._launch_all).pack(side='left', padx=(0, self.PAD_XS))
 
-        tk.Button(footer, text="■ Stop All", font=('Segoe UI', 9, 'bold'),
-                  bg='#ef4444', fg='white', activebackground='#dc2626', activeforeground='white',
-                  relief='flat', bd=0, padx=10, pady=4, cursor='hand2',
-                  command=self._stop_all).pack(side='left', padx=(0, 4))
+        tk.Button(footer, text="■ Stop All", font=self.FONT_LABEL + ('bold',),
+                  bg=self.DANGER, fg='white', activebackground=self.DANGER_ACTIVE, activeforeground='white',
+                  relief='flat', bd=0, padx=self.PAD_SM + 2, pady=self.PAD_XS, cursor='hand2',
+                  command=self._stop_all).pack(side='left', padx=(0, self.PAD_XS))
 
-        tk.Button(footer, text="Manage", font=('Segoe UI', 9),
+        tk.Button(footer, text="Manage", font=self.FONT_LABEL,
                   bg='#334155', fg='#cbd5e1', activebackground='#475569', activeforeground='white',
-                  relief='flat', bd=0, padx=10, pady=4, cursor='hand2',
+                  relief='flat', bd=0, padx=self.PAD_SM + 2, pady=self.PAD_XS, cursor='hand2',
                   command=self._open_manager).pack(side='right')
 
     # ── sidebar items ───────────────────────────────────────────
@@ -207,34 +252,43 @@ class UnifiedGUI:
         selected = iid == self.selected_instance_id
         bg = self.SIDEBAR_SELECTED if selected else self.SIDEBAR_BG
 
+        try:
+            is_scheduled = self.schedule_manager.is_enabled(iid)
+        except Exception:
+            is_scheduled = False
+
         frame = tk.Frame(self._sb_inner, bg=bg, cursor='hand2')
         frame.pack(fill='x', padx=6, pady=1)
 
         inner = tk.Frame(frame, bg=bg)
-        inner.pack(fill='x', padx=10, pady=7)
+        inner.pack(fill='x', padx=self.PAD_SM + 2, pady=7)
 
         # dot
         status_text = self.instance_statuses.get(iid, '')
         is_error = 'error' in status_text.lower() or 'fail' in status_text.lower()
-        dot_fg = '#ef4444' if is_error else ('#22c55e' if is_running else '#64748b')
-        tk.Label(inner, text="●", font=('Segoe UI', 7), bg=bg, fg=dot_fg
-                 ).pack(side='left', padx=(0, 8))
+        dot_fg = self.STATUS_ERROR if is_error else (self.STATUS_RUNNING if is_running else self.STATUS_STOPPED)
+        tk.Label(inner, text="●", font=self.FONT_DOT, bg=bg, fg=dot_fg
+                 ).pack(side='left', padx=(0, self.PAD_SM))
 
         info = tk.Frame(inner, bg=bg)
         info.pack(side='left', fill='x', expand=True)
 
         name_fg = '#ffffff' if selected else self.SIDEBAR_TEXT
-        tk.Label(info, text=inst['name'], font=('Segoe UI', 10, 'bold' if selected else ''),
+        tk.Label(info, text=inst['name'], font=(self.FONT_FAMILY, 10, 'bold' if selected else ''),
                  bg=bg, fg=name_fg, anchor='w').pack(anchor='w')
 
         sub = f"{inst.get('bluestacks_instance', '')} · :{inst.get('adb_port', '')}"
-        tk.Label(info, text=sub, font=('Segoe UI', 8),
+        tk.Label(info, text=sub, font=self.FONT_SMALL,
                  bg=bg, fg='#94a3b8' if not selected else '#c7d2fe', anchor='w').pack(anchor='w')
 
         progress = self._get_daily_progress(iid)
         pfg = '#a5b4fc' if selected else self.SIDEBAR_DIM
-        tk.Label(inner, text=progress, font=('Segoe UI', 9), bg=bg, fg=pfg
+        tk.Label(inner, text=progress, font=self.FONT_LABEL, bg=bg, fg=pfg
                  ).pack(side='right')
+
+        if is_scheduled:
+            tk.Label(inner, text="⏱", font=self.FONT_LABEL, bg=bg, fg=self.STATUS_SCHEDULED
+                     ).pack(side='right', padx=(0, self.PAD_SM - 2))
 
         # bind click on everything
         def click(e, i=iid):
@@ -257,7 +311,7 @@ class UnifiedGUI:
     # ── main area ───────────────────────────────────────────────
 
     def _build_main(self):
-        main = tk.Frame(self.root, bg='#f3f4f6')
+        main = tk.Frame(self.root, bg=self.BG)
         main.grid(row=0, column=1, sticky='nsew')
         main.grid_rowconfigure(2, weight=1)
         main.grid_columnconfigure(0, weight=1)
@@ -269,26 +323,28 @@ class UnifiedGUI:
         toolbar.grid_columnconfigure(1, weight=1)
 
         self._tb_title = tk.Label(toolbar, text="Select an instance",
-                                   font=('Segoe UI', 14, 'bold'), bg='white', fg='#1e293b')
-        self._tb_title.grid(row=0, column=0, padx=(20, 0), pady=13, sticky='w')
+                                   font=self.FONT_TITLE, bg='white', fg=self.TEXT)
+        self._tb_title.grid(row=0, column=0, padx=(self.PAD_XL, 0), pady=13, sticky='w')
 
-        self._tb_status = tk.Label(toolbar, text="", font=('Segoe UI', 10),
-                                    bg='white', fg='#94a3b8')
-        self._tb_status.grid(row=0, column=1, padx=(8, 0), sticky='w')
+        self._tb_status = tk.Label(toolbar, text="", font=self.FONT_BODY,
+                                    bg='white', fg=self.STATUS_IDLE)
+        self._tb_status.grid(row=0, column=1, padx=(self.PAD_SM, 0), sticky='w')
 
         btn_frame = tk.Frame(toolbar, bg='white')
-        btn_frame.grid(row=0, column=2, padx=(0, 16), sticky='e')
+        btn_frame.grid(row=0, column=2, padx=(0, self.PAD_LG), sticky='e')
 
         self._launch_btn = tk.Button(
-            btn_frame, text="▶ Launch", font=('Segoe UI', 10, 'bold'),
-            bg='#4f46e5', fg='white', activebackground='#4338ca', activeforeground='white',
+            btn_frame, text="▶ Launch", font=self.FONT_BODY_BD,
+            bg=self.PRIMARY, fg='white', activebackground=self.PRIMARY_ACTIVE, activeforeground='white',
+            disabledforeground=self.DISABLED_FG,
             relief='flat', bd=0, padx=14, pady=5, cursor='hand2',
             command=self._launch_selected)
-        self._launch_btn.pack(side='left', padx=(0, 6))
+        self._launch_btn.pack(side='left', padx=(0, self.PAD_SM - 2))
 
         self._stop_btn = tk.Button(
-            btn_frame, text="■ Stop", font=('Segoe UI', 10, 'bold'),
-            bg='#ef4444', fg='white', activebackground='#dc2626', activeforeground='white',
+            btn_frame, text="■ Stop", font=self.FONT_BODY_BD,
+            bg=self.DANGER, fg='white', activebackground=self.DANGER_ACTIVE, activeforeground='white',
+            disabledforeground=self.DISABLED_FG,
             relief='flat', bd=0, padx=14, pady=5, cursor='hand2',
             command=self._stop_selected)
         self._stop_btn.pack(side='left')
@@ -301,10 +357,10 @@ class UnifiedGUI:
 
         self._current_tab = 'tasks'
         self._tab_btns = {}
-        for name in ('Tasks', 'Config', 'Logs'):
+        for name in ('Tasks', 'Config', 'Schedule', 'Logs'):
             key = name.lower()
-            lbl = tk.Label(tab_bar, text=name, font=('Segoe UI', 10),
-                           bg='#f8f9fa', fg='#94a3b8', padx=18, pady=8, cursor='hand2')
+            lbl = tk.Label(tab_bar, text=name, font=self.FONT_BODY,
+                           bg='#f8f9fa', fg=self.STATUS_IDLE, padx=18, pady=self.PAD_SM, cursor='hand2')
             lbl.pack(side='left')
             lbl.bind('<Button-1>', lambda e, k=key: self._switch_tab(k))
             self._tab_btns[key] = lbl
@@ -312,7 +368,7 @@ class UnifiedGUI:
         tk.Frame(main, bg='#e5e7eb', height=1).grid(row=1, column=0, sticky='sew')
 
         # content
-        self._content = tk.Frame(main, bg='#f3f4f6')
+        self._content = tk.Frame(main, bg=self.BG)
         self._content.grid(row=2, column=0, sticky='nsew')
         self._content.grid_rowconfigure(0, weight=1)
         self._content.grid_columnconfigure(0, weight=1)
@@ -320,6 +376,7 @@ class UnifiedGUI:
         self._tab_frames = {}
         self._build_tasks_tab()
         self._build_config_tab()
+        self._build_schedule_tab()
         self._build_logs_tab()
 
         self._switch_tab('tasks')
@@ -330,9 +387,9 @@ class UnifiedGUI:
         self._current_tab = key
         for k, btn in self._tab_btns.items():
             if k == key:
-                btn.configure(fg='#4f46e5', font=('Segoe UI', 10, 'bold'), bg='white')
+                btn.configure(fg=self.PRIMARY, font=self.FONT_BODY_BD, bg='white')
             else:
-                btn.configure(fg='#94a3b8', font=('Segoe UI', 10), bg='#f8f9fa')
+                btn.configure(fg=self.STATUS_IDLE, font=self.FONT_BODY, bg='#f8f9fa')
 
         for k, f in self._tab_frames.items():
             if k == key:
@@ -342,21 +399,23 @@ class UnifiedGUI:
 
         if key == 'logs':
             self._render_logs()
+        elif key == 'schedule':
+            self._refresh_schedule_status()
 
     # ── tasks tab ───────────────────────────────────────────────
 
     def _build_tasks_tab(self):
-        outer = tk.Frame(self._content, bg='#f3f4f6')
+        outer = tk.Frame(self._content, bg=self.BG)
         self._tab_frames['tasks'] = outer
         outer.grid_rowconfigure(0, weight=1)
         outer.grid_columnconfigure(0, weight=1)
 
-        canvas = tk.Canvas(outer, bg='#f3f4f6', highlightthickness=0, bd=0)
+        canvas = tk.Canvas(outer, bg=self.BG, highlightthickness=0, bd=0)
         canvas.grid(row=0, column=0, sticky='nsew')
         sb = ttk.Scrollbar(outer, orient='vertical', command=canvas.yview)
         canvas.configure(yscrollcommand=sb.set)
 
-        inner = tk.Frame(canvas, bg='#f3f4f6')
+        inner = tk.Frame(canvas, bg=self.BG)
         cw = canvas.create_window((0, 0), window=inner, anchor='nw')
         inner.bind('<Configure>', lambda e: canvas.configure(scrollregion=canvas.bbox('all')))
         canvas.bind('<Configure>', lambda e: canvas.itemconfig(cw, width=e.width))
@@ -364,19 +423,19 @@ class UnifiedGUI:
             lambda ev: canvas.yview_scroll(int(-1*(ev.delta/120)), 'units')))
         canvas.bind('<Leave>', lambda e: canvas.unbind_all('<MouseWheel>'))
 
-        pad = tk.Frame(inner, bg='#f3f4f6')
-        pad.pack(fill='x', padx=20, pady=16)
+        pad = tk.Frame(inner, bg=self.BG)
+        pad.pack(fill='x', padx=self.PAD_XL, pady=self.PAD_LG)
 
         # ── card
-        card = tk.Frame(pad, bg='white', highlightbackground='#e5e7eb', highlightthickness=1)
+        card = tk.Frame(pad, bg='white', highlightbackground=self.BORDER, highlightthickness=1)
         card.pack(fill='x')
 
         card_inner = tk.Frame(card, bg='white')
-        card_inner.pack(fill='x', padx=20, pady=16)
+        card_inner.pack(fill='x', padx=self.PAD_XL, pady=self.PAD_LG)
 
         # daily tasks
-        tk.Label(card_inner, text="DAILY TASKS", font=('Segoe UI', 9, 'bold'),
-                 bg='white', fg='#94a3b8').pack(anchor='w', pady=(0, 8))
+        tk.Label(card_inner, text="DAILY TASKS", font=self.FONT_SECTION,
+                 bg='white', fg=self.TEXT2).pack(anchor='w', pady=(0, self.PAD_SM))
 
         self.build_var = tk.BooleanVar(value=True)
         self.build_row = self._task_row(card_inner, "1 Troop Build",
@@ -387,22 +446,22 @@ class UnifiedGUI:
             "Collect expedition chest rewards", self.expedition_var)
 
         # separator
-        tk.Frame(card_inner, bg='#f1f5f9', height=1).pack(fill='x', pady=12)
+        tk.Frame(card_inner, bg='#f1f5f9', height=1).pack(fill='x', pady=self.PAD_MD)
 
         # recurring tasks
-        tk.Label(card_inner, text="RECURRING TASKS", font=('Segoe UI', 9, 'bold'),
-                 bg='white', fg='#94a3b8').pack(anchor='w', pady=(0, 8))
+        tk.Label(card_inner, text="RECURRING TASKS", font=self.FONT_SECTION,
+                 bg='white', fg=self.TEXT2).pack(anchor='w', pady=(0, self.PAD_SM))
 
         self.donation_var = tk.BooleanVar(value=True)
         self.donation_row = self._task_row(card_inner, "Tech Donation",
             "Donate to Officer's recommended technology", self.donation_var)
 
         # separator
-        tk.Frame(card_inner, bg='#f1f5f9', height=1).pack(fill='x', pady=12)
+        tk.Frame(card_inner, bg='#f1f5f9', height=1).pack(fill='x', pady=self.PAD_MD)
 
         # run options
-        tk.Label(card_inner, text="RUN OPTIONS", font=('Segoe UI', 9, 'bold'),
-                 bg='white', fg='#94a3b8').pack(anchor='w', pady=(0, 8))
+        tk.Label(card_inner, text="RUN OPTIONS", font=self.FONT_SECTION,
+                 bg='white', fg=self.TEXT2).pack(anchor='w', pady=(0, self.PAD_SM))
 
         opts = tk.Frame(card_inner, bg='white')
         opts.pack(fill='x')
@@ -422,45 +481,45 @@ class UnifiedGUI:
 
         # save
         save_frame = tk.Frame(card_inner, bg='white')
-        save_frame.pack(fill='x', pady=(16, 0))
+        save_frame.pack(fill='x', pady=(self.PAD_LG, 0))
 
-        tk.Button(save_frame, text="Save Changes", font=('Segoe UI', 10, 'bold'),
-                  bg='#4f46e5', fg='white', activebackground='#4338ca', activeforeground='white',
-                  relief='flat', bd=0, padx=20, pady=6, cursor='hand2',
+        tk.Button(save_frame, text="Save Changes", font=self.FONT_BODY_BD,
+                  bg=self.PRIMARY, fg='white', activebackground=self.PRIMARY_ACTIVE, activeforeground='white',
+                  relief='flat', bd=0, padx=self.PAD_XL, pady=self.PAD_SM - 2, cursor='hand2',
                   command=self._save_tasks).pack(side='right')
 
     def _task_row(self, parent, title, desc, var):
         row = tk.Frame(parent, bg='#f8fafc', highlightbackground='#e2e8f0', highlightthickness=1)
-        row.pack(fill='x', pady=(0, 6))
+        row.pack(fill='x', pady=(0, self.PAD_SM - 2))
 
         inner = tk.Frame(row, bg='#f8fafc')
-        inner.pack(fill='x', padx=12, pady=10)
+        inner.pack(fill='x', padx=self.PAD_MD, pady=self.PAD_SM + 2)
 
         cb = ttk.Checkbutton(inner, variable=var)
         cb.configure(style='TCheckbutton')
-        cb.pack(side='left', padx=(0, 10))
+        cb.pack(side='left', padx=(0, self.PAD_SM + 2))
         # override checkbutton bg to match row
         ttk.Style().configure('TCheckbutton', background='#f8fafc')
 
         info = tk.Frame(inner, bg='#f8fafc')
         info.pack(side='left', fill='x', expand=True)
-        tk.Label(info, text=title, font=('Segoe UI', 11), bg='#f8fafc', fg='#1e293b'
+        tk.Label(info, text=title, font=self.FONT_ROW, bg='#f8fafc', fg=self.TEXT
                  ).pack(anchor='w')
-        tk.Label(info, text=desc, font=('Segoe UI', 9), bg='#f8fafc', fg='#94a3b8'
+        tk.Label(info, text=desc, font=self.FONT_LABEL, bg='#f8fafc', fg=self.TEXT2
                  ).pack(anchor='w')
 
-        status_lbl = tk.Label(inner, text="", font=('Segoe UI', 10, 'bold'),
-                              bg='#f8fafc', fg='#94a3b8')
-        status_lbl.pack(side='right', padx=(8, 0))
+        status_lbl = tk.Label(inner, text="", font=self.FONT_BODY_BD,
+                              bg='#f8fafc', fg=self.TEXT2)
+        status_lbl.pack(side='right', padx=(self.PAD_SM, 0))
 
         row._status = status_lbl
         return row
 
     def _opt_field(self, parent, label, var, col, spinbox=None, combo=None):
         frame = tk.Frame(parent, bg='white')
-        frame.grid(row=0, column=col, sticky='ew', padx=(0, 16) if col < 2 else 0)
+        frame.grid(row=0, column=col, sticky='ew', padx=(0, self.PAD_LG) if col < 2 else 0)
 
-        tk.Label(frame, text=label, font=('Segoe UI', 9), bg='white', fg='#64748b'
+        tk.Label(frame, text=label, font=self.FONT_LABEL, bg='white', fg='#64748b'
                  ).pack(anchor='w')
 
         if spinbox:
@@ -474,17 +533,17 @@ class UnifiedGUI:
     # ── config tab ──────────────────────────────────────────────
 
     def _build_config_tab(self):
-        outer = tk.Frame(self._content, bg='#f3f4f6')
+        outer = tk.Frame(self._content, bg=self.BG)
         self._tab_frames['config'] = outer
         outer.grid_rowconfigure(0, weight=1)
         outer.grid_columnconfigure(0, weight=1)
 
-        canvas = tk.Canvas(outer, bg='#f3f4f6', highlightthickness=0, bd=0)
+        canvas = tk.Canvas(outer, bg=self.BG, highlightthickness=0, bd=0)
         canvas.grid(row=0, column=0, sticky='nsew')
         sb = ttk.Scrollbar(outer, orient='vertical', command=canvas.yview)
         canvas.configure(yscrollcommand=sb.set)
 
-        inner = tk.Frame(canvas, bg='#f3f4f6')
+        inner = tk.Frame(canvas, bg=self.BG)
         cw = canvas.create_window((0, 0), window=inner, anchor='nw')
         inner.bind('<Configure>', lambda e: canvas.configure(scrollregion=canvas.bbox('all')))
         canvas.bind('<Configure>', lambda e: canvas.itemconfig(cw, width=e.width))
@@ -492,8 +551,8 @@ class UnifiedGUI:
             lambda ev: canvas.yview_scroll(int(-1*(ev.delta/120)), 'units')))
         canvas.bind('<Leave>', lambda e: canvas.unbind_all('<MouseWheel>'))
 
-        pad = tk.Frame(inner, bg='#f3f4f6')
-        pad.pack(fill='x', padx=20, pady=16)
+        pad = tk.Frame(inner, bg=self.BG)
+        pad.pack(fill='x', padx=self.PAD_XL, pady=self.PAD_LG)
 
         # ── paths card
         card1 = self._card(pad, "BLUESTACKS PATHS")
@@ -531,96 +590,178 @@ class UnifiedGUI:
                          variable=self.force_daily_var).pack(anchor='w', pady=2)
 
         # ── actions
-        actions = tk.Frame(pad, bg='#f3f4f6')
-        actions.pack(fill='x', pady=(12, 0))
+        actions = tk.Frame(pad, bg=self.BG)
+        actions.pack(fill='x', pady=(self.PAD_MD, 0))
 
-        tk.Button(actions, text="Reset Daily Tasks", font=('Segoe UI', 10),
+        tk.Button(actions, text="Reset Daily Tasks", font=self.FONT_BODY,
                   bg='#f59e0b', fg='white', activebackground='#d97706', activeforeground='white',
                   relief='flat', bd=0, padx=14, pady=5, cursor='hand2',
-                  command=self._reset_daily).pack(side='left', padx=(0, 8))
+                  command=self._reset_daily).pack(side='left', padx=(0, self.PAD_SM))
 
-        tk.Button(actions, text="Save Config", font=('Segoe UI', 10, 'bold'),
-                  bg='#4f46e5', fg='white', activebackground='#4338ca', activeforeground='white',
-                  relief='flat', bd=0, padx=20, pady=5, cursor='hand2',
+        tk.Button(actions, text="Save Config", font=self.FONT_BODY_BD,
+                  bg=self.PRIMARY, fg='white', activebackground=self.PRIMARY_ACTIVE, activeforeground='white',
+                  relief='flat', bd=0, padx=self.PAD_XL, pady=5, cursor='hand2',
                   command=self._save_config).pack(side='right')
 
     def _card(self, parent, title):
-        wrapper = tk.Frame(parent, bg='white', highlightbackground='#e5e7eb',
+        wrapper = tk.Frame(parent, bg='white', highlightbackground=self.BORDER,
                            highlightthickness=1)
-        wrapper.pack(fill='x', pady=(0, 12))
+        wrapper.pack(fill='x', pady=(0, self.PAD_MD))
         inner = tk.Frame(wrapper, bg='white')
-        inner.pack(fill='x', padx=20, pady=16)
-        tk.Label(inner, text=title, font=('Segoe UI', 9, 'bold'), bg='white', fg='#94a3b8'
-                 ).pack(anchor='w', pady=(0, 10))
+        inner.pack(fill='x', padx=self.PAD_XL, pady=self.PAD_LG)
+        tk.Label(inner, text=title, font=self.FONT_SECTION, bg='white', fg=self.TEXT2
+                 ).pack(anchor='w', pady=(0, self.PAD_SM + 2))
         return inner
 
     def _path_row(self, parent, label, var, browse_cmd, scan_cmd):
-        tk.Label(parent, text=label, font=('Segoe UI', 9), bg='white', fg='#64748b'
+        tk.Label(parent, text=label, font=self.FONT_LABEL, bg='white', fg='#64748b'
                  ).pack(anchor='w', pady=(0, 2))
 
         row = tk.Frame(parent, bg='white')
-        row.pack(fill='x', pady=(0, 10))
+        row.pack(fill='x', pady=(0, self.PAD_MD - 2))
 
         ttk.Entry(row, textvariable=var, width=50).pack(side='left', fill='x', expand=True)
 
-        tk.Button(row, text="Browse", font=('Segoe UI', 9),
+        tk.Button(row, text="Browse", font=self.FONT_LABEL,
                   bg='#e5e7eb', fg='#374151', activebackground='#d1d5db',
-                  relief='flat', bd=0, padx=8, pady=2, cursor='hand2',
+                  relief='flat', bd=0, padx=self.PAD_SM, pady=2, cursor='hand2',
                   command=browse_cmd).pack(side='left', padx=(6, 0))
-        tk.Button(row, text="Scan", font=('Segoe UI', 9),
+        tk.Button(row, text="Scan", font=self.FONT_LABEL,
                   bg='#e5e7eb', fg='#374151', activebackground='#d1d5db',
-                  relief='flat', bd=0, padx=8, pady=2, cursor='hand2',
+                  relief='flat', bd=0, padx=self.PAD_SM, pady=2, cursor='hand2',
                   command=scan_cmd).pack(side='left', padx=(4, 0))
 
     def _cfg_row(self, parent, label, var, row, width=25, spinbox=None):
-        tk.Label(parent, text=label, font=('Segoe UI', 10), bg='white', fg='#374151'
+        tk.Label(parent, text=label, font=self.FONT_BODY, bg='white', fg='#374151'
                  ).grid(row=row, column=0, sticky='w', pady=5)
 
         if spinbox:
             lo, hi, step = spinbox
             ttk.Spinbox(parent, from_=lo, to=hi, increment=step,
                         textvariable=var, width=8).grid(
-                row=row, column=1, sticky='w', padx=(12, 0), pady=5)
+                row=row, column=1, sticky='w', padx=(self.PAD_MD, 0), pady=5)
         else:
             ttk.Entry(parent, textvariable=var, width=width).grid(
-                row=row, column=1, sticky='w', padx=(12, 0), pady=5)
+                row=row, column=1, sticky='w', padx=(self.PAD_MD, 0), pady=5)
+
+    # ── schedule tab ────────────────────────────────────────────
+
+    def _build_schedule_tab(self):
+        outer = tk.Frame(self._content, bg=self.BG)
+        self._tab_frames['schedule'] = outer
+        outer.grid_rowconfigure(0, weight=1)
+        outer.grid_columnconfigure(0, weight=1)
+
+        canvas = tk.Canvas(outer, bg=self.BG, highlightthickness=0, bd=0)
+        canvas.grid(row=0, column=0, sticky='nsew')
+        sb = ttk.Scrollbar(outer, orient='vertical', command=canvas.yview)
+        canvas.configure(yscrollcommand=sb.set)
+
+        inner = tk.Frame(canvas, bg=self.BG)
+        cw = canvas.create_window((0, 0), window=inner, anchor='nw')
+        inner.bind('<Configure>', lambda e: canvas.configure(scrollregion=canvas.bbox('all')))
+        canvas.bind('<Configure>', lambda e: canvas.itemconfig(cw, width=e.width))
+        canvas.bind('<Enter>', lambda e: canvas.bind_all('<MouseWheel>',
+            lambda ev: canvas.yview_scroll(int(-1*(ev.delta/120)), 'units')))
+        canvas.bind('<Leave>', lambda e: canvas.unbind_all('<MouseWheel>'))
+
+        pad = tk.Frame(inner, bg=self.BG)
+        pad.pack(fill='x', padx=self.PAD_XL, pady=self.PAD_LG)
+
+        # ── auto-schedule card
+        card1 = self._card(pad, "AUTO-SCHEDULE")
+
+        self.schedule_enabled_var = tk.BooleanVar(value=False)
+        ttk.Checkbutton(card1, text="Enable automatic scheduled runs",
+                         variable=self.schedule_enabled_var,
+                         command=self._on_schedule_toggle).pack(anchor='w', pady=(0, self.PAD_SM))
+
+        interval_row = tk.Frame(card1, bg='white')
+        interval_row.pack(anchor='w', fill='x', pady=(self.PAD_XS, 0))
+
+        tk.Label(interval_row, text="Run every", font=self.FONT_BODY, bg='white', fg='#374151'
+                 ).pack(side='left')
+
+        self.schedule_interval_var = tk.IntVar(value=ScheduleManager.DEFAULT_INTERVAL_HOURS)
+        interval_spin = ttk.Spinbox(interval_row, from_=1, to=48, width=6,
+                                     textvariable=self.schedule_interval_var,
+                                     command=self._on_schedule_interval_change)
+        interval_spin.pack(side='left', padx=(self.PAD_SM, self.PAD_XS))
+        interval_spin.bind('<Return>', lambda e: self._on_schedule_interval_change())
+        interval_spin.bind('<FocusOut>', lambda e: self._on_schedule_interval_change())
+
+        tk.Label(interval_row, text="hours (1-48)", font=self.FONT_BODY, bg='white', fg='#374151'
+                 ).pack(side='left')
+
+        # ── status card
+        card2 = self._card(pad, "STATUS")
+
+        self.sched_last_var = tk.StringVar(value="Never")
+        self.sched_next_var = tk.StringVar(value="Not scheduled")
+        self.sched_remaining_var = tk.StringVar(value="Not scheduled")
+
+        self._status_line(card2, "Last run", self.sched_last_var)
+        self._status_line(card2, "Next run", self.sched_next_var)
+        self._status_line(card2, "Time remaining", self.sched_remaining_var)
+
+        # ── actions
+        actions = tk.Frame(pad, bg=self.BG)
+        actions.pack(fill='x', pady=(self.PAD_MD, 0))
+
+        tk.Label(actions, text="Run Now launches this instance immediately and resets its schedule.",
+                 font=self.FONT_LABEL, bg=self.BG, fg=self.TEXT2).pack(side='left')
+
+        self._run_now_btn = tk.Button(
+            actions, text="Run Now", font=self.FONT_BODY_BD,
+            bg=self.PRIMARY, fg='white', activebackground=self.PRIMARY_ACTIVE, activeforeground='white',
+            relief='flat', bd=0, padx=self.PAD_XL, pady=self.PAD_SM - 2, cursor='hand2',
+            command=self._on_schedule_run_now)
+        self._run_now_btn.pack(side='right')
+
+    def _status_line(self, parent, label, var):
+        row = tk.Frame(parent, bg='white')
+        row.pack(fill='x', pady=(0, self.PAD_XS))
+        tk.Label(row, text=label, font=self.FONT_BODY, bg='white', fg=self.TEXT2,
+                 width=15, anchor='w').pack(side='left')
+        tk.Label(row, textvariable=var, font=self.FONT_BODY_BD, bg='white', fg=self.TEXT
+                 ).pack(side='left')
 
     # ── logs tab ────────────────────────────────────────────────
 
     def _build_logs_tab(self):
-        outer = tk.Frame(self._content, bg='#f3f4f6')
+        outer = tk.Frame(self._content, bg=self.BG)
         self._tab_frames['logs'] = outer
         outer.grid_rowconfigure(0, weight=1)
         outer.grid_columnconfigure(0, weight=1)
 
-        wrapper = tk.Frame(outer, bg='white', highlightbackground='#e5e7eb',
+        wrapper = tk.Frame(outer, bg='white', highlightbackground=self.BORDER,
                            highlightthickness=1)
-        wrapper.grid(row=0, column=0, sticky='nsew', padx=20, pady=16)
+        wrapper.grid(row=0, column=0, sticky='nsew', padx=self.PAD_XL, pady=self.PAD_LG)
         wrapper.grid_rowconfigure(1, weight=1)
         wrapper.grid_columnconfigure(0, weight=1)
 
         # header
         hdr = tk.Frame(wrapper, bg='white')
-        hdr.grid(row=0, column=0, sticky='ew', padx=16, pady=(12, 0))
+        hdr.grid(row=0, column=0, sticky='ew', padx=self.PAD_LG, pady=(self.PAD_MD, 0))
 
-        tk.Label(hdr, text="AUTOMATION LOGS", font=('Segoe UI', 9, 'bold'),
-                 bg='white', fg='#94a3b8').pack(side='left')
+        tk.Label(hdr, text="AUTOMATION LOGS", font=self.FONT_SECTION,
+                 bg='white', fg=self.TEXT2).pack(side='left')
 
-        tk.Button(hdr, text="Clear", font=('Segoe UI', 9),
+        tk.Button(hdr, text="Clear", font=self.FONT_LABEL,
                   bg='#e5e7eb', fg='#374151', activebackground='#d1d5db',
-                  relief='flat', bd=0, padx=8, pady=2, cursor='hand2',
+                  relief='flat', bd=0, padx=self.PAD_SM, pady=2, cursor='hand2',
                   command=self._clear_logs).pack(side='right')
 
         # text
         log_frame = tk.Frame(wrapper, bg='#0f172a')
-        log_frame.grid(row=1, column=0, sticky='nsew', padx=12, pady=12)
+        log_frame.grid(row=1, column=0, sticky='nsew', padx=self.PAD_MD, pady=self.PAD_MD)
         log_frame.grid_rowconfigure(0, weight=1)
         log_frame.grid_columnconfigure(0, weight=1)
 
         self._log_text = tk.Text(
-            log_frame, wrap='word', font=('Consolas', 10),
+            log_frame, wrap='word', font=self.FONT_MONO,
             bg='#0f172a', fg='#cbd5e1', insertbackground='white',
-            selectbackground='#334155', relief='flat', padx=12, pady=10,
+            selectbackground='#334155', relief='flat', padx=self.PAD_MD, pady=self.PAD_SM + 2,
             spacing1=1, spacing3=1)
         self._log_text.grid(row=0, column=0, sticky='nsew')
 
@@ -628,7 +769,7 @@ class UnifiedGUI:
         self._log_text.configure(yscrollcommand=scrollbar.set)
         scrollbar.grid(row=0, column=1, sticky='ns')
 
-        self._log_text.tag_configure('ts', foreground='#475569', font=('Consolas', 9))
+        self._log_text.tag_configure('ts', foreground='#475569', font=(self.FONT_MONO[0], 9))
         self._log_text.tag_configure('info', foreground='#cbd5e1')
         self._log_text.tag_configure('ok', foreground='#4ade80')
         self._log_text.tag_configure('warn', foreground='#fbbf24')
@@ -668,15 +809,18 @@ class UnifiedGUI:
 
         self._tb_title.config(text=inst['name'])
         if is_running:
-            self._tb_status.config(text=f"· {status or 'Running'}", fg='#22c55e')
+            self._tb_status.config(text=f"· {status or 'Running'}", fg=self.STATUS_RUNNING)
         else:
-            self._tb_status.config(text="· Idle", fg='#94a3b8')
+            self._tb_status.config(text="· Idle", fg=self.STATUS_IDLE)
+        self._update_toolbar_buttons(is_running)
 
         self._load_instance_ui(instance_id)
         self._load_sidebar()
 
         if self._current_tab == 'logs':
             self._render_logs()
+        elif self._current_tab == 'schedule':
+            self._refresh_schedule_status(instance_id)
 
     def _load_instance_ui(self, iid):
         cm = self.instance_manager.get_config_manager(iid)
@@ -698,6 +842,7 @@ class UnifiedGUI:
         self.startup_wait_var.set(cm.get_int('BlueStacks', 'wait_for_startup_seconds', 20))
 
         self._update_task_status(iid)
+        self._load_schedule_ui(iid)
 
     def _update_task_status(self, iid):
         cm = self.instance_manager.get_config_manager(iid)
@@ -709,8 +854,8 @@ class UnifiedGUI:
 
         if not os.path.exists(path):
             for r in (self.build_row, self.expedition_row):
-                r._status.config(text=f"0/{num}", fg='#94a3b8')
-            self.donation_row._status.config(text="every cycle", fg='#94a3b8')
+                r._status.config(text=f"0/{num}", fg=self.STATUS_IDLE)
+            self.donation_row._status.config(text="every cycle", fg=self.STATUS_IDLE)
             return
 
         tracker = DailyTaskTracker(path)
@@ -720,12 +865,105 @@ class UnifiedGUI:
         for key, row in [('build', self.build_row), ('expedition', self.expedition_row)]:
             done = sum(1 for ci in range(num)
                        if st['characters'].get(str(ci), {}).get(key) == today)
-            color = '#22c55e' if done == num else '#64748b'
+            color = self.STATUS_RUNNING if done == num else self.STATUS_STOPPED
             row._status.config(text=f"{done}/{num}", fg=color)
 
-        self.donation_row._status.config(text="every cycle", fg='#94a3b8')
+        self.donation_row._status.config(text="every cycle", fg=self.STATUS_IDLE)
+
+    # ── schedule tab logic ──────────────────────────────────────
+
+    def _load_schedule_ui(self, iid):
+        """(Re)load the Schedule tab's fields for the given instance. Called on
+        instance selection so switching instances always reflects that
+        instance's own schedule, not whatever was last shown."""
+        if not hasattr(self, 'schedule_enabled_var'):
+            return
+        schedule = self.schedule_manager.get_schedule(iid)
+        self.schedule_enabled_var.set(schedule.get('enabled', False))
+        self.schedule_interval_var.set(
+            schedule.get('interval_hours', ScheduleManager.DEFAULT_INTERVAL_HOURS))
+        self._refresh_schedule_status(iid)
+
+    def _refresh_schedule_status(self, iid=None):
+        """Refresh the read-only last/next/remaining labels. Safe to call from
+        the status-poll tick (via root.after) or directly from the main
+        thread (tab switch, instance selection, after an action)."""
+        if self.is_closing or not hasattr(self, 'sched_last_var'):
+            return
+        iid = iid or self.selected_instance_id
+        if not iid:
+            return
+        try:
+            self.sched_last_var.set(self.schedule_manager.format_last_run_datetime(iid))
+            self.sched_next_var.set(self.schedule_manager.format_next_run_datetime(iid))
+            self.sched_remaining_var.set(self.schedule_manager.format_time_remaining(iid))
+        except tk.TclError:
+            pass
+
+    def _on_schedule_toggle(self):
+        iid = self.selected_instance_id
+        if not iid:
+            return
+        self.schedule_manager.enable_schedule(iid, self.schedule_enabled_var.get())
+        self._refresh_schedule_status(iid)
+        self._load_sidebar()
+
+    def _on_schedule_interval_change(self):
+        iid = self.selected_instance_id
+        if not iid:
+            return
+        try:
+            hours = int(self.schedule_interval_var.get())
+        except (tk.TclError, ValueError):
+            return
+        hours = max(1, min(48, hours))
+        self.schedule_interval_var.set(hours)
+        self.schedule_manager.set_interval(iid, hours)
+        self._refresh_schedule_status(iid)
+
+    def _on_schedule_run_now(self):
+        iid = self.selected_instance_id
+        if not iid:
+            return
+        if self.launcher.is_instance_running(iid):
+            messagebox.showinfo("Running", "This instance is already running.")
+            return
+        if not self.schedule_enabled_var.get():
+            # trigger_immediate_run() is a no-op on a disabled schedule; arm it
+            # first so it has something to reset, keeping schedule state
+            # consistent with what Run Now is about to do.
+            self.schedule_manager.enable_schedule(iid, True)
+            self.schedule_enabled_var.set(True)
+        self.schedule_manager.trigger_immediate_run(iid)
+        self._save_tasks(silent=True)
+        if self._launch_instance_now(iid):
+            # Same "mark complete at launch-start" rule as the automatic
+            # scheduler (see _launch_scheduled) so Run Now also pushes
+            # next_run into the future instead of leaving it "due".
+            self.schedule_manager.mark_run_complete(iid)
+            self._on_instance_log(iid, "Manual 'Run Now' triggered from Schedule tab")
+            self._refresh_schedule_status(iid)
+            self._select_instance(iid)
 
     # ── actions ─────────────────────────────────────────────────
+
+    def _launch_instance_now(self, iid, force_daily=None):
+        """Single shared launch path: dispatches automation for `iid` via the
+        launcher. Used by the manual Launch button, Run Now, Launch All, and
+        the automatic scheduler so there is exactly one place that calls
+        launcher.launch_instance().
+
+        Only touches the launcher and the plain instance_statuses dict (both
+        already safe to mutate off the main thread in the existing code) -
+        any Tkinter widget update must be done by the caller.
+        """
+        if not iid or self.launcher.is_instance_running(iid):
+            return False
+        force = self.force_daily_var.get() if force_daily is None else force_daily
+        if self.launcher.launch_instance(iid, force_daily_tasks=force):
+            self.instance_statuses[iid] = 'Starting'
+            return True
+        return False
 
     def _launch_selected(self):
         iid = self.selected_instance_id
@@ -735,8 +973,7 @@ class UnifiedGUI:
             messagebox.showinfo("Running", "This instance is already running.")
             return
         self._save_tasks(silent=True)
-        if self.launcher.launch_instance(iid, force_daily_tasks=self.force_daily_var.get()):
-            self.instance_statuses[iid] = 'Starting'
+        if self._launch_instance_now(iid):
             self._select_instance(iid)
 
     def _stop_selected(self):
@@ -762,13 +999,15 @@ class UnifiedGUI:
             f"Launch {len(to_launch)} instance(s)?\n\n" +
             "\n".join(f"  • {n}" for n in names)):
             return
+        # Read the Tk variable on the main thread; the worker below must not
+        # touch Tk state.
         force = self.force_daily_var.get()
+
         def do():
             for i, inst in enumerate(to_launch):
-                self.launcher.launch_instance(inst['id'], force_daily_tasks=force)
-                self.instance_statuses[inst['id']] = 'Starting'
+                self._launch_instance_now(inst['id'], force_daily=force)
                 if i < len(to_launch) - 1:
-                    time.sleep(5)
+                    time.sleep(timings.LAUNCH_STAGGER_WAIT)
             self.root.after(0, self._load_sidebar)
         threading.Thread(target=do, daemon=True).start()
 
@@ -951,11 +1190,35 @@ class UnifiedGUI:
             is_running = self.launcher.is_instance_running(instance_id)
             if is_running:
                 self.root.after(0, lambda: self._tb_status.config(
-                    text=f"· {status}", fg='#22c55e'))
+                    text=f"· {status}", fg=self.STATUS_RUNNING))
             else:
                 self.root.after(0, lambda: self._tb_status.config(
-                    text="· Idle", fg='#94a3b8'))
+                    text="· Idle", fg=self.STATUS_IDLE))
                 self.root.after(0, lambda: self._update_task_status(instance_id))
+            self.root.after(0, lambda: self._update_toolbar_buttons(is_running))
+
+    # ── toolbar button state ────────────────────────────────────
+
+    def _update_toolbar_buttons(self, is_running):
+        """Launch/Stop visually reflect the current run state: whichever
+        action isn't available right now is disabled and dimmed, so the
+        primary action (Launch, indigo) vs. the destructive one (Stop, red)
+        is never ambiguous."""
+        if self.is_closing:
+            return
+        try:
+            if is_running:
+                self._launch_btn.configure(state='disabled', bg=self.DISABLED_BG,
+                                            fg=self.DISABLED_FG, cursor='arrow')
+                self._stop_btn.configure(state='normal', bg=self.DANGER,
+                                          fg='white', cursor='hand2')
+            else:
+                self._launch_btn.configure(state='normal', bg=self.PRIMARY,
+                                            fg='white', cursor='hand2')
+                self._stop_btn.configure(state='disabled', bg=self.DISABLED_BG,
+                                          fg=self.DISABLED_FG, cursor='arrow')
+        except tk.TclError:
+            pass
 
     # ── status poll ─────────────────────────────────────────────
 
@@ -965,7 +1228,77 @@ class UnifiedGUI:
                 self.root.after(0, self._load_sidebar)
             except Exception:
                 self.logger.exception("Status poll failed")
+            try:
+                self._check_schedules()
+            except Exception:
+                self.logger.exception("Schedule check failed")
+            try:
+                self.root.after(0, self._refresh_schedule_status)
+            except Exception:
+                self.logger.exception("Schedule status refresh failed")
             time.sleep(3)
+
+    # ── scheduler engine ────────────────────────────────────────
+
+    def _check_schedules(self):
+        """Runs on the background poll thread once per tick. For every
+        instance whose schedule is enabled and due, and which isn't already
+        running, dispatch a launch on the main thread. Never raises -
+        anything unexpected here is logged, not propagated, so a single bad
+        instance config can't kill the poll loop."""
+        if self.is_closing:
+            return
+        try:
+            instances = self.instance_manager.get_all_instances()
+        except Exception:
+            self.logger.exception("Schedule check: failed to list instances")
+            return
+
+        for inst in instances:
+            iid = inst.get('id')
+            if not iid:
+                continue
+            try:
+                if not self.schedule_manager.is_enabled(iid):
+                    continue
+                if not self.schedule_manager.is_due(iid):
+                    continue
+                if self.launcher.is_instance_running(iid):
+                    continue
+                self.root.after(0, self._launch_scheduled, iid)
+            except Exception:
+                self.logger.exception(f"Schedule check failed for instance {iid}")
+
+    def _launch_scheduled(self, iid):
+        """Main-thread dispatch for an auto-scheduled launch. Re-checks
+        is_closing/is_instance_running here (not just in _check_schedules)
+        to close the race between the background check and this callback
+        actually running.
+
+        mark_run_complete() is called *before* launching rather than when
+        the automation finishes. is_due() only looks at next_run_utc, so if
+        we waited until completion, every poll tick between "became due" and
+        "finished running" would still see is_due()==True; the
+        is_instance_running guard would happen to block a double-launch
+        during that window, but marking complete at launch-start makes the
+        loop-safety explicit (next_run_utc is pushed into the future
+        immediately) instead of relying on that timing coincidence.
+        """
+        if self.is_closing:
+            return
+        if self.launcher.is_instance_running(iid):
+            return
+
+        inst = self.instance_manager.get_instance(iid)
+        name = inst['name'] if inst else iid
+
+        self.schedule_manager.mark_run_complete(iid)
+        self._on_instance_log(iid, f"Scheduled run starting for '{name}' (interval reached)")
+
+        if self._launch_instance_now(iid):
+            self._load_sidebar()
+            if self.selected_instance_id == iid:
+                self._refresh_schedule_status(iid)
 
     # ── helpers ──────────────────────────────────────────────────
 
