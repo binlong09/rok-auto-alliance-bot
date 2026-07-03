@@ -10,6 +10,8 @@ import numpy as np
 
 import timings
 
+_DEBUG_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "debug_output")
+
 
 class BlueStacksController:
     """Controller for BlueStacks operations and interactions"""
@@ -408,7 +410,8 @@ class BlueStacksController:
             # Use ADB port to create unique screenshot filename per instance
             # This prevents conflicts when running multiple instances simultaneously
             port = self.adb_device.split(':')[-1] if ':' in self.adb_device else 'default'
-            screenshot_path = f"temp_screenshot_{port}.png"
+            os.makedirs(_DEBUG_DIR, exist_ok=True)
+            screenshot_path = os.path.join(_DEBUG_DIR, f"temp_screenshot_{port}.png")
 
             # Remove old screenshot if exists
             if os.path.exists(screenshot_path):

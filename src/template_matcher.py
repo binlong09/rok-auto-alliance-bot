@@ -39,6 +39,8 @@ import os
 
 import cv2
 
+_DEBUG_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "debug_output")
+
 
 class TemplateMatcher:
     """Finds template images inside screenshots using cv2.matchTemplate."""
@@ -177,7 +179,8 @@ class TemplateMatcher:
                           (best['x'] - half_w, best['y'] - half_h),
                           (best['x'] + half_w, best['y'] + half_h),
                           (0, 255, 0), 2)
-            cv2.imwrite(f"template_match_{name}.png", debug_img)
+            os.makedirs(_DEBUG_DIR, exist_ok=True)
+            cv2.imwrite(os.path.join(_DEBUG_DIR, f"template_match_{name}.png"), debug_img)
 
         return best
 

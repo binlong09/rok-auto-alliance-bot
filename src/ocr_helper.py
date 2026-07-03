@@ -6,6 +6,7 @@ This module handles all OCR-related operations including image preprocessing,
 text detection, and text position finding.
 """
 import logging
+import os
 import re
 import time
 
@@ -17,6 +18,8 @@ from pytesseract import Output
 import timings
 from automation_base import StopCheckMixin
 from template_matcher import TemplateMatcher
+
+_DEBUG_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "debug_output")
 
 
 class OCRHelper(StopCheckMixin):
@@ -76,25 +79,26 @@ class OCRHelper(StopCheckMixin):
             cv2.THRESH_BINARY, 11, 2
         )
         if self.debug_mode:
-            cv2.imwrite("ocr_adaptive_thresh.png", adaptive_thresh)
+            os.makedirs(_DEBUG_DIR, exist_ok=True)
+            cv2.imwrite(os.path.join(_DEBUG_DIR, "ocr_adaptive_thresh.png"), adaptive_thresh)
 
         # Otsu's thresholding
         _, otsu_thresh = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
         if self.debug_mode:
-            cv2.imwrite("ocr_otsu_thresh.png", otsu_thresh)
+            cv2.imwrite(os.path.join(_DEBUG_DIR, "ocr_otsu_thresh.png"), otsu_thresh)
 
         # Inverted Otsu's
         inverted = cv2.bitwise_not(gray)
         _, inverted_otsu = cv2.threshold(inverted, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
         if self.debug_mode:
-            cv2.imwrite("ocr_inverted_otsu.png", inverted_otsu)
+            cv2.imwrite(os.path.join(_DEBUG_DIR, "ocr_inverted_otsu.png"), inverted_otsu)
 
         # CLAHE (Contrast Limited Adaptive Histogram Equalization)
         clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8, 8))
         contrast_enhanced = clahe.apply(gray)
         _, contrast_thresh = cv2.threshold(contrast_enhanced, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
         if self.debug_mode:
-            cv2.imwrite("ocr_contrast_enhanced.png", contrast_thresh)
+            cv2.imwrite(os.path.join(_DEBUG_DIR, "ocr_contrast_enhanced.png"), contrast_thresh)
 
         # Note: Scaled version removed from preprocessing for position detection
         # because it returns 2x coordinates that cause incorrect click positions.
@@ -104,7 +108,7 @@ class OCRHelper(StopCheckMixin):
         # Threshold to isolate light pixels, then invert for black text on white
         _, white_text = cv2.threshold(gray, 180, 255, cv2.THRESH_BINARY)
         if self.debug_mode:
-            cv2.imwrite("ocr_white_text.png", white_text)
+            cv2.imwrite(os.path.join(_DEBUG_DIR, "ocr_white_text.png"), white_text)
 
         return {
             'adaptive': adaptive_thresh,
@@ -115,7 +119,8 @@ class OCRHelper(StopCheckMixin):
             'original': gray
         }
 
-    def _prepare_region_images(self, text_region, upscale=False, debug_name=None):
+    def _prepare_region_images(self, text_region, upscale=False, debug_name=None,
+                               screenshot=None):
         """
         Shared pipeline for region-based OCR: take a screenshot, clamp the
         region to the screen bounds, crop, and preprocess.
@@ -128,6 +133,8 @@ class OCRHelper(StopCheckMixin):
                 safe for callers that don't map coordinates back to the screen.
             debug_name (str, optional): Filename to save the cropped region to
                 when debug_mode is enabled
+            screenshot (numpy array, optional): Pre-captured screenshot to
+                reuse. When None a fresh ADB screenshot is taken.
 
         Returns:
             tuple: (processed_images, region_x, region_y, screenshot),
@@ -136,7 +143,8 @@ class OCRHelper(StopCheckMixin):
         if text_region is None:
             text_region = self.default_region
 
-        screenshot = self.bluestacks.take_screenshot()
+        if screenshot is None:
+            screenshot = self.bluestacks.take_screenshot()
         if screenshot is None:
             return None
 
@@ -150,7 +158,8 @@ class OCRHelper(StopCheckMixin):
 
         cropped = screenshot[region_y:region_y + region_height, region_x:region_x + region_width]
         if self.debug_mode and debug_name:
-            cv2.imwrite(debug_name, cropped)
+            os.makedirs(_DEBUG_DIR, exist_ok=True)
+            cv2.imwrite(os.path.join(_DEBUG_DIR, debug_name), cropped)
 
         if upscale:
             cropped = cv2.resize(cropped, None, fx=2, fy=2, interpolation=cv2.INTER_CUBIC)
@@ -163,7 +172,7 @@ class OCRHelper(StopCheckMixin):
 
         return processed_images, region_x, region_y, screenshot
 
-    def detect_text_in_region(self, keywords, text_region=None):
+    def detect_text_in_region(self, keywords, text_region=None, screenshot=None):
         """
         Detect if any of the keywords appear in the specified text region of the screen.
 
@@ -182,7 +191,8 @@ class OCRHelper(StopCheckMixin):
             # because this method only checks for keyword presence (returns True/False)
             # and does not return any coordinates, unlike detect_text_position().
             prepared = self._prepare_region_images(text_region, upscale=True,
-                                                   debug_name="text_region.png")
+                                                   debug_name="text_region.png",
+                                                   screenshot=screenshot)
             if prepared is None:
                 return False
             processed_images, _, _, _ = prepared
@@ -211,7 +221,8 @@ class OCRHelper(StopCheckMixin):
             self.logger.exception("Stack trace:")
             return False
 
-    def detect_pattern_in_region(self, pattern, text_region=None, min_matches=1):
+    def detect_pattern_in_region(self, pattern, text_region=None, min_matches=1,
+                                screenshot=None):
         """
         Detect if a regex pattern matches enough times in the specified text region.
 
@@ -234,7 +245,8 @@ class OCRHelper(StopCheckMixin):
         try:
             # Upscale 2x for better OCR accuracy on small UI text.
             prepared = self._prepare_region_images(text_region, upscale=True,
-                                                   debug_name="text_region.png")
+                                                   debug_name="text_region.png",
+                                                   screenshot=screenshot)
             if prepared is None:
                 return False
             processed_images, _, _, _ = prepared
@@ -346,7 +358,7 @@ class OCRHelper(StopCheckMixin):
                                 if self.debug_mode:
                                     debug_img = screenshot.copy()
                                     cv2.circle(debug_img, (text_x, text_y), 10, (0, 255, 0), -1)
-                                    cv2.imwrite("text_position_debug.png", debug_img)
+                                    cv2.imwrite(os.path.join(_DEBUG_DIR, "text_position_debug.png"), debug_img)
 
                                 return {'x': text_x, 'y': text_y}
 
@@ -370,7 +382,7 @@ class OCRHelper(StopCheckMixin):
                                 if self.debug_mode:
                                     debug_img = screenshot.copy()
                                     cv2.circle(debug_img, (text_x, text_y), 10, (0, 0, 255), -1)
-                                    cv2.imwrite("text_position_fallback.png", debug_img)
+                                    cv2.imwrite(os.path.join(_DEBUG_DIR, "text_position_fallback.png"), debug_img)
 
                                 return {'x': text_x, 'y': text_y}
 
@@ -383,7 +395,7 @@ class OCRHelper(StopCheckMixin):
             self.logger.exception("Stack trace:")
             return None
 
-    def find_template(self, name, region=None, threshold=None):
+    def find_template(self, name, region=None, threshold=None, screenshot=None):
         """
         Find a UI element by image template matching.
 
@@ -391,6 +403,8 @@ class OCRHelper(StopCheckMixin):
             name: Template name (src/templates/<name>.png)
             region (dict, optional): Region to search in {x, y, width, height}
             threshold (float, optional): Minimum match confidence (0-1)
+            screenshot (numpy array, optional): Pre-captured screenshot to
+                reuse. When None a fresh ADB screenshot is taken.
 
         Returns:
             dict: Center position {x, y, confidence} if found, None otherwise
@@ -399,7 +413,8 @@ class OCRHelper(StopCheckMixin):
         if self.check_stop_requested():
             return None
 
-        screenshot = self.bluestacks.take_screenshot()
+        if screenshot is None:
+            screenshot = self.bluestacks.take_screenshot()
         if screenshot is None:
             return None
 
@@ -523,7 +538,8 @@ class OCRHelper(StopCheckMixin):
             cropped = screenshot[region_y:region_y + region_height, region_x:region_x + region_width]
 
             if self.debug_mode:
-                cv2.imwrite("red_banner_search_region.png", cropped)
+                os.makedirs(_DEBUG_DIR, exist_ok=True)
+                cv2.imwrite(os.path.join(_DEBUG_DIR, "red_banner_search_region.png"), cropped)
 
             # Convert to HSV
             hsv = cv2.cvtColor(cropped, cv2.COLOR_BGR2HSV)
@@ -544,7 +560,7 @@ class OCRHelper(StopCheckMixin):
             mask = cv2.bitwise_or(mask1, mask2)
 
             if self.debug_mode:
-                cv2.imwrite("red_banner_mask.png", mask)
+                cv2.imwrite(os.path.join(_DEBUG_DIR, "red_banner_mask.png"), mask)
 
             # Find contours
             contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
@@ -581,7 +597,7 @@ class OCRHelper(StopCheckMixin):
                               (region_x + x + w, region_y + y + h),
                               (0, 255, 0), 2)
                 cv2.circle(debug_img, (center_x, center_y), 5, (0, 0, 255), -1)
-                cv2.imwrite("red_banner_detected.png", debug_img)
+                cv2.imwrite(os.path.join(_DEBUG_DIR, "red_banner_detected.png"), debug_img)
 
             return {'x': center_x, 'y': center_y, 'width': w, 'height': h}
 
