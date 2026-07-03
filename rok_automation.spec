@@ -15,6 +15,8 @@ a = Analysis(
         (os.path.join(SRC_DIR, 'config.ini'), '.'),  # Config file from src directory
         (os.path.join(SRC_DIR, 'coordinates.json'), '.'),  # Coordinates config
         (os.path.join(SRC_DIR, 'README.txt'), '.'),  # User guide
+        ('VERSION', '.'),  # Current version, read by the auto-updater
+        ('updater.bat', '.'),  # Out-of-process update script (run from %TEMP%)
     ] + ([(os.path.join(SRC_DIR, 'templates'), 'templates')]
          if os.path.isdir(os.path.join(SRC_DIR, 'templates')) else []),
     hiddenimports=[

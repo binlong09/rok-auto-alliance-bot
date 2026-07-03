@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 import logging
 import queue
-import subprocess
 import sys
 import threading
 import time
@@ -11,6 +10,7 @@ import timings
 from bluestacks_controller import BlueStacksController
 from progress_manager import ProgressManager
 from rok_game_controller import RoKGameController
+from subprocess_utils import run_hidden
 
 
 class QueueLogHandler(logging.Handler):
@@ -90,7 +90,7 @@ class AutomationThread(threading.Thread):
                     "get", "processid"
                 ]
                 try:
-                    process_info = subprocess.run(check_instance_cmd, capture_output=True, text=True,
+                    process_info = run_hidden(check_instance_cmd, capture_output=True, text=True,
                                                   timeout=5)
                     process_output = process_info.stdout.strip()
                     is_running = 'ProcessId' in process_output and len(process_output.split('\n')) > 1
@@ -115,7 +115,7 @@ class AutomationThread(threading.Thread):
                         "shell", "am", "force-stop", package_name
                     ]
                     self.log(f"Stopping RoK app with command: {force_stop_cmd}")
-                    subprocess.run(force_stop_cmd, capture_output=True, timeout=10)
+                    run_hidden(force_stop_cmd, capture_output=True, timeout=10)
 
                     # Add a delay to ensure app is fully stopped
                     time.sleep(timings.APP_STOP_WAIT)
@@ -131,7 +131,7 @@ class AutomationThread(threading.Thread):
                     "get", "processid"
                 ]
                 try:
-                    process_info = subprocess.run(check_instance_cmd, capture_output=True, text=True,
+                    process_info = run_hidden(check_instance_cmd, capture_output=True, text=True,
                                                   timeout=5)
                     process_output = process_info.stdout.strip()
 
@@ -145,7 +145,7 @@ class AutomationThread(threading.Thread):
                                 # Kill this specific PID
                                 kill_cmd = ["taskkill", "/F", "/PID", pid]
                                 self.log(f"Killing process with command: {kill_cmd}")
-                                subprocess.run(kill_cmd, capture_output=True, timeout=5)
+                                run_hidden(kill_cmd, capture_output=True, timeout=5)
                     else:
                         self.log(f"No running process found for instance {bs_instance_name}")
                 except Exception as e:
@@ -153,7 +153,7 @@ class AutomationThread(threading.Thread):
             elif not sys.platform == "win32":
                 # On Linux/Mac, try to use pkill with instance name filter
                 self.log(f"Using pkill to terminate BlueStacks instance {bs_instance_name}")
-                subprocess.run(["pkill", "-f", f"BlueStacks.*{bs_instance_name}"], capture_output=True,
+                run_hidden(["pkill", "-f", f"BlueStacks.*{bs_instance_name}"], capture_output=True,
                                timeout=10)
 
             self.log(f"BlueStacks instance {bs_instance_name} closed")

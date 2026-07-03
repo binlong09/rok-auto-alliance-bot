@@ -51,7 +51,7 @@ Automation bot for **Rise of Kingdoms** that handles repetitive daily alliance t
 ### From Source
 
 ```bash
-git clone https://github.com/minnyat/rok-auto-alliance-bot.git
+git clone https://github.com/binlong09/rok-auto-alliance-bot.git
 cd rok-auto-alliance-bot
 
 # Install dependencies
@@ -206,8 +206,14 @@ python build.py
 
 ## Upgrading
 
+The app updates itself. On startup it checks GitHub for a newer release; if one exists, a dialog offers to install it. Accepting downloads the new version, swaps it in, and restarts the app automatically. Your instance configurations and logs are never touched.
+
+To disable the startup check, set the environment variable `AUTO_UPDATE=off`.
+
+Manual upgrade (older versions without the auto-updater):
+
 1. Download and extract the new version to a new location
-2. Copy the `Instances` folder from the old version to the new one
+2. Copy the `instances` folder from the old version to the new one (portable mode only; standard installs keep instance data in `%APPDATA%\RoK Automation`, which upgrades never touch)
 3. Delete the old version
 
 ## Supported Game Versions

@@ -17,6 +17,18 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # The auto-updater compares the bundled VERSION file against release
+      # tags; a mismatch would make clients update in a loop (or never).
+      - name: Check VERSION matches tag
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: |
+          $tag = "${{ github.ref }}" -replace '^refs/tags/v', ''
+          $ver = (Get-Content VERSION -Raw).Trim()
+          if ($tag -ne $ver) {
+            Write-Error "VERSION file ($ver) does not match release tag ($tag). Bump VERSION before tagging."
+            exit 1
+          }
+
       - name: Set up Python
         uses: actions/setup-python@v5
         with:

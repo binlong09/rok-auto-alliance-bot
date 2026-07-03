@@ -14,15 +14,13 @@ Usage:
     python build.py --version X.Y.Z  # Specify version number
 """
 
-import os
-import sys
+import argparse
 import shutil
 import subprocess
+import sys
 import zipfile
-import argparse
 from datetime import datetime
 from pathlib import Path
-
 
 # Configuration
 APP_NAME = "RoK Automation"
@@ -31,8 +29,18 @@ DIST_DIR = "dist"
 BUILD_DIR = "build"
 OUTPUT_DIR = "releases"
 
-# Default version (can be overridden via command line)
-DEFAULT_VERSION = "1.0.6"
+def read_version_file():
+    """Read the default version from the VERSION file at the repo root.
+
+    VERSION is the single source of truth: it is bundled into the exe and
+    compared against GitHub release tags by the auto-updater, so a release
+    build must always use it.
+    """
+    version_path = get_project_root() / "VERSION"
+    try:
+        return version_path.read_text(encoding="utf-8").strip()
+    except OSError as e:
+        raise BuildError(f"VERSION file not found: {version_path}") from e
 
 
 class BuildError(Exception):
@@ -139,8 +147,8 @@ def check_dependencies():
             print_success(f"PyInstaller {version}")
         else:
             raise BuildError("PyInstaller not found. Install with: pip install -r requirements-dev.txt")
-    except FileNotFoundError:
-        raise BuildError("PyInstaller not found. Install with: pip install -r requirements-dev.txt")
+    except FileNotFoundError as e:
+        raise BuildError("PyInstaller not found. Install with: pip install -r requirements-dev.txt") from e
 
     # Check if spec file exists
     project_root = get_project_root()
@@ -168,14 +176,14 @@ def run_pyinstaller(project_root):
     print()
 
     try:
-        result = subprocess.run(
+        subprocess.run(
             cmd,
             cwd=project_root,
             check=True
         )
         print_success("PyInstaller completed successfully")
     except subprocess.CalledProcessError as e:
-        raise BuildError(f"PyInstaller failed with exit code {e.returncode}")
+        raise BuildError(f"PyInstaller failed with exit code {e.returncode}") from e
 
 
 def verify_build(project_root):
@@ -248,7 +256,7 @@ def create_version_file(project_root, version):
         f.write(f"Build Date: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
         f.write(f"Python: {sys.version.split()[0]}\n")
 
-    print_success(f"Created VERSION.txt")
+    print_success("Created VERSION.txt")
 
 
 def main():
@@ -256,17 +264,21 @@ def main():
     parser = argparse.ArgumentParser(description="Build RoK Automation Bot")
     parser.add_argument("--clean", action="store_true", help="Clean build artifacts only")
     parser.add_argument("--no-zip", action="store_true", help="Skip ZIP creation")
-    parser.add_argument("--version", type=str, default=DEFAULT_VERSION, help="Version number (e.g., 1.0.0)")
+    parser.add_argument("--version", type=str, default=None,
+                        help="Version number (default: read from VERSION file)")
     args = parser.parse_args()
 
     project_root = get_project_root()
 
-    print_header(f"Building {APP_NAME} v{args.version}")
-    print(f"   Project: {project_root}")
-    print(f"   Python: {sys.version.split()[0]}")
-    print(f"   Platform: {sys.platform}")
-
     try:
+        if args.version is None:
+            args.version = read_version_file()
+
+        print_header(f"Building {APP_NAME} v{args.version}")
+        print(f"   Project: {project_root}")
+        print(f"   Python: {sys.version.split()[0]}")
+        print(f"   Platform: {sys.platform}")
+
         # Clean previous builds
         clean_build_artifacts(project_root)
 

@@ -50,6 +50,9 @@ def main():
         except Exception:
             logger.warning("Could not load application icon")
 
+        from updater import check_for_updates_async
+        check_for_updates_async(root)
+
         root.mainloop()
 
     except ImportError as e:
