@@ -1,4 +1,5 @@
 import os
+import sys
 import subprocess
 import time
 import logging
@@ -34,24 +35,83 @@ class BlueStacksController:
         self.adb_device = device_address
 
     def start_bluestacks(self):
-        """Start BlueStacks with specified instance"""
+        """Start BlueStacks with specified instance.
+
+        Skips launching (and the startup wait) entirely when the instance is
+        already up and answering on ADB; otherwise polls for readiness instead
+        of sleeping blindly, so a warm instance continues within seconds.
+        """
         self.logger.info(f"Starting BlueStacks instance: {self.bluestacks_instance_name}")
 
         try:
-            if not os.path.exists(self.bluestacks_exe_path):
-                self.logger.error(f"BlueStacks executable not found at: {self.bluestacks_exe_path}")
-                return False
+            # Already up and ADB-responsive: nothing to start or wait for.
+            if self._is_adb_ready():
+                self.logger.info(
+                    f"BlueStacks instance '{self.bluestacks_instance_name}' is already "
+                    "running and ADB is ready - skipping startup wait")
+                return True
 
-            cmd = [self.bluestacks_exe_path, "--instance", self.bluestacks_instance_name]
-            subprocess.Popen(cmd)
+            if self._is_instance_process_running():
+                self.logger.info(
+                    "BlueStacks process is already running but ADB is not ready yet - "
+                    "waiting for it instead of launching a second time")
+            else:
+                if not os.path.exists(self.bluestacks_exe_path):
+                    self.logger.error(f"BlueStacks executable not found at: {self.bluestacks_exe_path}")
+                    return False
 
-            self.logger.info(f"Waiting {self.wait_for_startup_seconds} seconds for BlueStacks to initialize...")
-            time.sleep(self.wait_for_startup_seconds)
+                cmd = [self.bluestacks_exe_path, "--instance", self.bluestacks_instance_name]
+                subprocess.Popen(cmd)
 
+            # Poll instead of a blind sleep: continue as soon as ADB responds,
+            # bounded by the configured startup wait.
+            max_wait = self.wait_for_startup_seconds
+            self.logger.info(f"Waiting up to {max_wait} seconds for BlueStacks to initialize...")
+            deadline = time.time() + max_wait
+            while time.time() < deadline:
+                time.sleep(timings.ADB_RETRY_DELAY)
+                if self._is_adb_ready():
+                    self.logger.info("BlueStacks is ready (ADB responding)")
+                    return True
+
+            # Preserve the old contract: after the configured wait we proceed
+            # and let connect_adb() do the detailed verification/reporting.
+            self.logger.warning(
+                f"BlueStacks not ADB-ready after {max_wait}s - proceeding anyway")
             return True
 
         except Exception as e:
             self.logger.error(f"Error starting BlueStacks: {e}")
+            return False
+
+    def _is_adb_ready(self, timeout_seconds=4):
+        """Quick probe: connect and run a shell echo. True only when the
+        instance is fully responsive on ADB (transport AND shell channel)."""
+        try:
+            subprocess.run([self.adb_path, "connect", self.adb_device],
+                           capture_output=True, text=True, timeout=timeout_seconds)
+            result = subprocess.run(
+                [self.adb_path, "-s", self.adb_device, "shell", "echo", "ok"],
+                capture_output=True, text=True, timeout=timeout_seconds)
+            return "ok" in result.stdout
+        except Exception:
+            return False
+
+    def _is_instance_process_running(self):
+        """Check whether an HD-Player.exe process for this specific instance
+        is already running (Windows only; same wmic filter the launcher uses
+        for shutdown)."""
+        if sys.platform != "win32":
+            return False
+        try:
+            cmd = ["wmic", "process", "where",
+                   f"name='HD-Player.exe' and commandline like '%{self.bluestacks_instance_name}%'",
+                   "get", "processid"]
+            info = subprocess.run(cmd, capture_output=True, text=True, timeout=10)
+            out = info.stdout.strip()
+            return 'ProcessId' in out and len(out.splitlines()) > 1
+        except Exception as e:
+            self.logger.debug(f"BlueStacks process check failed: {e}")
             return False
 
     def connect_adb(self):
