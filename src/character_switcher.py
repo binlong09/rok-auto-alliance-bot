@@ -374,18 +374,27 @@ class CharacterSwitcher:
             if self.check_stop_requested():
                 return False
         else:
-            # Character being selected is already the current one
-            # WARNING: This could mean click landed on wrong position or current character
-            self.logger.warning(
-                f"No character login dialog detected for character {self.current_character_index + 1}. "
-                f"This character may have been SKIPPED! Click might have hit current character or empty space."
+            # No login dialog: the clicked character is almost always the one
+            # we're ALREADY logged in as (starred characters keep their list
+            # position, so the current character can be sitting in the slot
+            # we just clicked - e.g. slot 1 shows a green checkmark). That is
+            # a normal case, not an error: the character is loaded, so just
+            # get back in-game and run its actions.
+            #
+            # Blind escape keys are NOT safe here - one escape too many lands
+            # on the home screen and opens the "Exit the game?" dialog, which
+            # then breaks every subsequent action. Use the state-aware
+            # recovery instead: it closes the characters/settings screens and
+            # verifies the home village is actually visible.
+            self.logger.info(
+                f"No character login dialog for character {self.current_character_index + 1} - "
+                "it is already the active character. Returning to the game screen."
             )
-            self.logger.info("Returning to main screen with 3 escape keys...")
-            for _ in range(3):
-                if self.check_stop_requested():
-                    return False
-                self.close_dialogs()
-                time.sleep(timings.ACTION_SETTLE_WAIT)
+            if not self.recovery.return_to_home(max_attempts=5):
+                self.logger.error(
+                    "Could not return to the game screen after selecting the current character"
+                )
+                return False
 
         return True
 

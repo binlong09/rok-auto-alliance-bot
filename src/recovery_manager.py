@@ -19,13 +19,15 @@ import timings
 
 class GameScreen(Enum):
     """Possible game screens the bot can detect."""
-    HOME_VILLAGE = auto()      # Safe state - Age text visible
-    MAP_SCREEN = auto()        # World map view - kingdom numbers visible
-    CHARACTER_LOGIN = auto()   # Character selection/login screen
-    ALLIANCE_MENU = auto()     # Alliance screen open
-    EXIT_GAME_DIALOG = auto()  # "Exit the game?" dialog showing
-    DIALOG_OPEN = auto()       # Some dialog/popup is open
-    UNKNOWN = auto()           # Cannot determine screen state
+    HOME_VILLAGE = auto()          # Safe state - Age text visible
+    MAP_SCREEN = auto()            # World map view - kingdom numbers visible
+    CHARACTER_LOGIN = auto()       # Character login confirmation dialog
+    CHARACTER_SELECTION = auto()   # Characters list (star/normal characters)
+    SETTINGS_MENU = auto()         # Settings screen open
+    ALLIANCE_MENU = auto()         # Alliance screen open
+    EXIT_GAME_DIALOG = auto()      # "Exit the game?" dialog showing
+    DIALOG_OPEN = auto()           # Some dialog/popup is open
+    UNKNOWN = auto()               # Cannot determine screen state
 
 
 @dataclass
@@ -93,6 +95,14 @@ class RecoveryManager:
         if self.screen.is_in_character_login():
             self.logger.debug("Detected: CHARACTER_LOGIN")
             return GameScreen.CHARACTER_LOGIN
+
+        if self.screen.is_in_character_selection():
+            self.logger.debug("Detected: CHARACTER_SELECTION")
+            return GameScreen.CHARACTER_SELECTION
+
+        if self.screen.is_in_settings_screen():
+            self.logger.debug("Detected: SETTINGS_MENU")
+            return GameScreen.SETTINGS_MENU
 
         if self.screen.is_char_in_alliance():
             self.logger.debug("Detected: ALLIANCE_MENU")
@@ -171,6 +181,14 @@ class RecoveryManager:
                 for _ in range(3):
                     self.bluestacks.send_escape()
                     time.sleep(timings.ACTION_SETTLE_WAIT)
+                time.sleep(timings.ACTION_SETTLE_WAIT)
+
+            elif current_screen in (GameScreen.CHARACTER_SELECTION, GameScreen.SETTINGS_MENU):
+                # One escape per screen level (characters -> settings -> game);
+                # the loop re-detects after each so we never overshoot into
+                # the exit dialog.
+                self.logger.info(f"On {current_screen.name}, sending escape key")
+                self.bluestacks.send_escape()
                 time.sleep(timings.ACTION_SETTLE_WAIT)
 
             elif current_screen == GameScreen.ALLIANCE_MENU:
