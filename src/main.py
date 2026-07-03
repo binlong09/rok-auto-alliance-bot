@@ -37,21 +37,13 @@ def main():
     args = parser.parse_args()
 
     try:
-        if args.single:
-            from bluestacks_manager_gui import RiseOfKingdomsManagerGUI
-            logger.info("Starting in legacy single instance mode")
-            root = tk.Tk()
-            app = RiseOfKingdomsManagerGUI(root)
-        elif args.multi:
-            from multi_instance_manager_gui import MultiInstanceManagerGUI
-            logger.info("Starting in legacy multi-instance mode")
-            root = tk.Tk()
-            app = MultiInstanceManagerGUI(root)
-        else:
-            from unified_gui import UnifiedGUI
-            logger.info("Starting unified GUI")
-            root = tk.Tk()
-            app = UnifiedGUI(root)
+        if args.single or args.multi:
+            logger.warning("--single/--multi legacy mode removed, starting unified GUI")
+
+        from unified_gui import UnifiedGUI
+        logger.info("Starting unified GUI")
+        root = tk.Tk()
+        app = UnifiedGUI(root)
 
         try:
             root.iconbitmap("assets/rok_icon.ico")
