@@ -89,3 +89,10 @@ def test_claim_animation_not_misclassified(detector):
     what must never happen is classifying it as a different task screen."""
     result = classify(detector, "territory_claim_animation.jpg")
     assert result not in (TASK_SCREENS - {GameScreen.TERRITORY}), f"misclassified as {result}"
+
+
+def test_donate_dialog_classified(detector):
+    """Live capture in the Maximum-Donations-Reached state. The dialog
+    title is the tech's NAME (varies per recommendation), so this dialog
+    keeps OCR detection rather than a title template anchor."""
+    assert classify(detector, "donate_dialog.jpg") == GameScreen.DONATE_DIALOG
