@@ -12,11 +12,11 @@ import time
 import numpy as np
 
 import timings
-from automation_base import DialogCloserMixin
+from automation_base import StopCheckMixin
 from recovery_manager import RetryConfig, with_retry
 
 
-class CharacterSwitcher(DialogCloserMixin):
+class CharacterSwitcher(StopCheckMixin):
     """Automates character switching workflow with recovery support."""
 
     STOP_CONTEXT = "character switching"

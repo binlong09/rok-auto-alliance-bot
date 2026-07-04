@@ -1,10 +1,7 @@
-"""Tests for the shared automation mixins (automation_base)."""
+"""Tests for the shared automation mixin (automation_base)."""
 import logging
 
-import pytest
-
-import automation_base
-from automation_base import DialogCloserMixin, StopCheckMixin
+from automation_base import StopCheckMixin
 
 
 class _StopComponent(StopCheckMixin):
@@ -13,25 +10,6 @@ class _StopComponent(StopCheckMixin):
     def __init__(self, stop_check=None):
         self.logger = logging.getLogger("test_automation_base")
         self.stop_check = stop_check
-
-
-class _FakeBlueStacks:
-    def __init__(self, escape_result=True):
-        self.escape_result = escape_result
-        self.escape_calls = 0
-
-    def send_escape(self):
-        self.escape_calls += 1
-        return self.escape_result
-
-
-class _DialogComponent(DialogCloserMixin):
-    STOP_CONTEXT = "unit testing"
-
-    def __init__(self, stop_check=None, escape_result=True):
-        self.logger = logging.getLogger("test_automation_base")
-        self.stop_check = stop_check
-        self.bluestacks = _FakeBlueStacks(escape_result)
 
 
 class TestStopCheckMixin:
@@ -85,24 +63,3 @@ class TestStopContextsPreserved:
         for cls, context in expected.items():
             assert issubclass(cls, StopCheckMixin)
             assert cls.STOP_CONTEXT == context
-
-
-class TestDialogCloserMixin:
-    @pytest.fixture(autouse=True)
-    def _no_sleep(self, monkeypatch):
-        monkeypatch.setattr(automation_base.time, "sleep", lambda seconds: None)
-
-    def test_returns_false_when_stop_requested(self):
-        component = _DialogComponent(stop_check=lambda: True)
-        assert component.close_dialogs() is False
-        assert component.bluestacks.escape_calls == 0
-
-    def test_sends_escape_and_returns_true(self):
-        component = _DialogComponent()
-        assert component.close_dialogs() is True
-        assert component.bluestacks.escape_calls == 1
-
-    def test_returns_true_even_if_escape_fails(self):
-        component = _DialogComponent(escape_result=False)
-        assert component.close_dialogs() is True
-        assert component.bluestacks.escape_calls == 1

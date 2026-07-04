@@ -12,7 +12,6 @@ from collections.abc import Callable
 from dataclasses import dataclass
 from functools import wraps
 
-import timings
 from automation_base import StopCheckMixin
 from screen_detector import GameScreen
 
@@ -30,7 +29,7 @@ class RecoveryManager(StopCheckMixin):
 
     STOP_CONTEXT = "recovery"
 
-    def __init__(self, screen_detector, bluestacks, coords,
+    def __init__(self, screen_detector, bluestacks, coords, router,
                  click_delay_ms=1000, stop_check_callback=None):
         """
         Initialize the recovery manager.
@@ -39,6 +38,7 @@ class RecoveryManager(StopCheckMixin):
             screen_detector: ScreenDetector instance for screen state checks
             bluestacks: BlueStacksController instance for input
             coords: CoordinateManager instance for coordinates
+            router: ScreenRouter instance for state-aware navigation
             click_delay_ms: Delay between clicks in milliseconds
             stop_check_callback: Optional callback to check if automation should stop
         """
@@ -46,12 +46,9 @@ class RecoveryManager(StopCheckMixin):
         self.screen = screen_detector
         self.bluestacks = bluestacks
         self.coords = coords
+        self.router = router
         self.click_delay_ms = click_delay_ms
         self.stop_check = stop_check_callback
-
-        # Navigation coordinates
-        self.map_button = coords.get_nav('map_button')
-        self.exit_dialog_cancel = coords.get_nav('exit_dialog_cancel')
 
     def get_current_screen(self) -> GameScreen:
         """
@@ -72,66 +69,20 @@ class RecoveryManager(StopCheckMixin):
 
     def return_to_home(self, max_attempts: int = 8) -> bool:
         """
-        Attempt to return to home village screen from any state.
+        Return to the home village screen from any state.
 
-        Strategy: spam the back button until the "Exit the game?" dialog
-        appears (meaning we've reached the outermost level), then dismiss
-        it.  After dismissal we're either in home village or on the map;
-        if on the map, toggle once to get home.
+        Delegates to ScreenRouter.goto(), which classifies the current
+        screen and takes state-aware steps (escape for dialogs/overlays,
+        the view toggle for the map) instead of blind back-button spam.
 
         Args:
-            max_attempts: Maximum number of back-button presses
+            max_attempts: Maximum number of navigation steps
 
         Returns:
             bool: True if successfully returned to home, False otherwise
         """
-        for attempt in range(max_attempts):
-            if self.check_stop_requested():
-                return False
-
-            current_screen = self.get_current_screen()
-            self.logger.info(
-                f"Recovery attempt {attempt + 1}/{max_attempts}: "
-                f"{current_screen.name}"
-            )
-
-            if current_screen == GameScreen.HOME_VILLAGE:
-                self.logger.info("Successfully returned to home village")
-                return True
-
-            if current_screen == GameScreen.EXIT_GAME_DIALOG:
-                self._dismiss_exit_dialog()
-                time.sleep(timings.ACTION_SETTLE_WAIT)
-
-                landed = self.get_current_screen()
-                if landed == GameScreen.HOME_VILLAGE:
-                    self.logger.info("Successfully returned to home village")
-                    return True
-                if landed == GameScreen.MAP_SCREEN:
-                    self.logger.info("Landed on map, toggling to home village")
-                    self.bluestacks.click(
-                        self.map_button['x'],
-                        self.map_button['y'],
-                        self.click_delay_ms,
-                    )
-                    time.sleep(timings.MAP_LOAD_WAIT)
-                    return True
-                continue
-
-            self.bluestacks.send_escape()
-            time.sleep(timings.ACTION_SETTLE_WAIT)
-
-        self.logger.error(f"Failed to return to home after {max_attempts} attempts")
-        return False
-
-    def _dismiss_exit_dialog(self):
-        """Click Cancel on the 'Exit the game?' dialog."""
-        self.logger.info("Exit dialog detected — clicking Cancel")
-        cancel = self.screen.ocr.detect_text_position(
-            ["CANCEL", "Cancel"],
-            self.coords.get_region('exit_dialog'),
-        ) or self.exit_dialog_cancel
-        self.bluestacks.click(cancel['x'], cancel['y'], self.click_delay_ms)
+        return self.router.goto(GameScreen.HOME_VILLAGE,
+                                max_steps=max_attempts)
 
 
 def with_retry(config: RetryConfig | None = None):

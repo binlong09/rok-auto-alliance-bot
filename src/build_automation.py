@@ -15,11 +15,11 @@ import time
 import cv2
 
 import timings
-from automation_base import DialogCloserMixin
+from automation_base import StopCheckMixin
 from screen_detector import GameScreen
 
 
-class BuildAutomation(DialogCloserMixin):
+class BuildAutomation(StopCheckMixin):
     """Automates alliance build participation workflow."""
 
     STOP_CONTEXT = "build automation"
