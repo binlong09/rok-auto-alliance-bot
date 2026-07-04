@@ -197,3 +197,12 @@ def test_deep_screen_off_path_backs_out():
                       escape_map={S.TECH: S.ALLIANCE_MENU})
     assert make_router(world).goto(S.TERRITORY) is True
     assert world.actions == ["escape", "Territory button"]
+
+
+def test_leftover_overlay_recognized_not_screen_beneath():
+    """Regression: routing home from the Markers overlay must identify
+    BOOKMARKS (and escape it), not misread the map visible beneath the
+    modal and click the map toggle under the overlay."""
+    world = FakeWorld(S.BOOKMARKS, escape_map={S.BOOKMARKS: S.MAP_SCREEN})
+    assert make_router(world).goto(S.HOME_VILLAGE) is True
+    assert world.actions == ["escape", "toggle"]

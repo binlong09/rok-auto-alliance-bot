@@ -79,6 +79,11 @@ class ScreenRouter(StopCheckMixin):
             (S.HOME_VILLAGE, S.CAMPAIGN): self._open_campaign,
             (S.CAMPAIGN, S.EXPEDITION): self._open_expedition,
         }
+        # Identify against every screen the router knows, not just the
+        # current path: a leftover overlay (e.g. Markers over the map)
+        # must be recognized as itself, not as the screen visible
+        # beneath it.
+        self._known_screens = set().union(*self._paths.values())
 
     # ------------------------------------------------------------------
     # Public API
@@ -100,7 +105,7 @@ class ScreenRouter(StopCheckMixin):
                              f"{sorted(s.name for s in self._paths)}")
 
         path = self._paths[target]
-        candidates = set(path) | {GameScreen.MAP_SCREEN, GameScreen.HOME_VILLAGE}
+        candidates = self._known_screens
 
         for step in range(1, max_steps + 1):
             if self.check_stop_requested():

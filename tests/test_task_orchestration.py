@@ -118,3 +118,50 @@ def test_expedition_chest_failure_still_returns_home(monkeypatch):
 
     assert task.perform_expedition_collection() is False
     assert router.calls == [S.EXPEDITION, S.HOME_VILLAGE]
+
+
+# ---------------------------------------------------------------------------
+# Build
+# ---------------------------------------------------------------------------
+
+def make_build(router):
+    from build_automation import BuildAutomation
+    task = object.__new__(BuildAutomation)
+    task.logger = logging.getLogger("test_build")
+    task.router = router
+    task.stop_check = None
+    return task
+
+
+def test_build_routes_dispatches_and_returns_home(monkeypatch):
+    router = FakeRouter()
+    task = make_build(router)
+    monkeypatch.setattr(task, "_join_build_from_bookmarks", lambda p: True,
+                        raising=False)
+
+    assert task.perform_build(1) is True
+    assert router.calls == [S.BOOKMARKS, S.HOME_VILLAGE]
+
+
+def test_build_bookmark_routing_failure_is_honest(monkeypatch):
+    """Regression: the old code returned True even when the bookmark
+    screen never opened, so failed builds were recorded as successes."""
+    router = FakeRouter(results={S.BOOKMARKS: False})
+    task = make_build(router)
+    called = []
+    monkeypatch.setattr(task, "_join_build_from_bookmarks",
+                        lambda p: called.append(1) or True, raising=False)
+
+    assert task.perform_build(1) is False
+    assert called == []
+    assert router.calls == [S.BOOKMARKS, S.HOME_VILLAGE]
+
+
+def test_build_no_marker_is_honest_failure(monkeypatch):
+    router = FakeRouter()
+    task = make_build(router)
+    monkeypatch.setattr(task, "_join_build_from_bookmarks", lambda p: False,
+                        raising=False)
+
+    assert task.perform_build(1) is False
+    assert router.calls == [S.BOOKMARKS, S.HOME_VILLAGE]

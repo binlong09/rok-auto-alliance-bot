@@ -372,7 +372,7 @@ class CharacterSwitcher(DialogCloserMixin):
 
         if self.will_perform_build:
             self.logger.info(f"Performing build for character {char_display}")
-            ok = self.build.perform_build(self.march_preset, navigate_to_map_callback=self.navigate_to_map)
+            ok = self.build.perform_build(self.march_preset)
             self._track_task("build", ok)
 
         if self.check_stop_requested():
