@@ -45,6 +45,14 @@ jobs:
           choco install tesseract --no-progress -y
           & "C:\Program Files\Tesseract-OCR\tesseract.exe" --version
 
+      # Full suite including screen-classification against real game
+      # screenshots (tests/fixtures) - needs Tesseract from the step above.
+      - name: Run tests
+        run: python -m pytest -q
+
+      - name: Lint
+        run: python -m ruff check src/ tests/
+
       - name: Build executable
         run: python build.py --no-zip
 

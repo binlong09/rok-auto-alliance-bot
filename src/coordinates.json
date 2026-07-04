@@ -88,6 +88,7 @@
     "check_mark": {"x": 720, "y": 250, "width": 100, "height": 400},
     "campaign_screen": {"x": 50, "y": 150, "width": 400, "height": 300},
     "exit_dialog": {"x": 370, "y": 175, "width": 540, "height": 250},
+    "dialog_title_band": {"x": 240, "y": 60, "width": 800, "height": 180},
     "rewards_dialog": {"x": 370, "y": 175, "width": 540, "height": 250},
     "loading_screen": {"x": 0, "y": 600, "width": 1280, "height": 120},
     "profile_menu": {"x": 850, "y": 450, "width": 430, "height": 250},
