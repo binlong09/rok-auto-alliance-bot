@@ -255,6 +255,7 @@ class ScreenRouter(StopCheckMixin):
             return False
         return self.nav.click_and_verify(
             "Campaign button",
+            template='campaign_icon',
             texts=["Campaign", "campaign"],
             region=self.coords.get_region('bottom_bar'),
             offset={'x': 0, 'y': -30},
@@ -267,6 +268,7 @@ class ScreenRouter(StopCheckMixin):
     def _open_expedition(self):
         return self.nav.click_and_verify(
             "Expedition banner",
+            template='expedition_banner',
             texts=["Expedition", "EXPEDITION"],
             region=self.coords.get_region('campaign_screen'),
             verify=self.screen.is_in_expedition_screen,

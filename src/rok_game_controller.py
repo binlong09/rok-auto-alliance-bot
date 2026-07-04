@@ -126,6 +126,7 @@ class RoKGameController(DialogCloserMixin):
             self.bluestacks,
             self.coords,
             self.navigator,
+            self.router,
             click_delay_ms=self.click_delay_ms,
             stop_check_callback=self.ocr.check_stop_requested
         )
@@ -142,6 +143,7 @@ class RoKGameController(DialogCloserMixin):
             self.bluestacks,
             self.coords,
             self.navigator,
+            self.router,
             click_delay_ms=self.click_delay_ms,
             stop_check_callback=self.ocr.check_stop_requested
         )
