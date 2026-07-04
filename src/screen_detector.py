@@ -32,6 +32,7 @@ class GameScreen(Enum):
     REWARDS_DIALOG = auto()
     COST_CONFIRM_DIALOG = auto()
     DONATE_DIALOG = auto()
+    EVENT_DIALOG = auto()       # event popups ("ENTRY CONFIRMATION", ...)
     PROFILE_MENU = auto()
     UNKNOWN = auto()
 
@@ -646,6 +647,34 @@ class ScreenDetector(StopCheckMixin):
 
         return result
 
+    def is_in_event_dialog(self, screenshot=None):
+        """
+        Detect event confirmation popups ("ENTRY CONFIRMATION" and kin).
+
+        These appear on login when a timed event is starting. They share
+        a parchment header ending in CONFIRMATION; escape dismisses them
+        (equivalent to No). Captured live from the router's
+        unknown-screen evidence and pinned by fixture.
+
+        Args:
+            screenshot (numpy array, optional): Pre-captured screenshot to reuse.
+
+        Returns:
+            bool: True if an event confirmation popup is showing
+        """
+        if self.check_stop_requested():
+            return False
+
+        keywords = ["CONFIRMATION", "Confirmation"]
+        region = self.coords.get_region('dialog_title_band')
+
+        result = self.ocr.detect_text_in_region(keywords, region,
+                                                screenshot=screenshot,
+                                                methods=self.FAST_METHODS)
+        if result:
+            self.logger.info("Event confirmation dialog detected")
+        return result
+
     def is_rewards_dialog(self, screenshot=None):
         """
         Detect if the "Rewards" dialog is showing.
@@ -725,6 +754,7 @@ class ScreenDetector(StopCheckMixin):
         GameScreen.COST_CONFIRM_DIALOG,
         GameScreen.REWARDS_DIALOG,
         GameScreen.DONATE_DIALOG,
+        GameScreen.EVENT_DIALOG,
     })
 
     def _ordered_checks(self):
@@ -734,6 +764,7 @@ class ScreenDetector(StopCheckMixin):
         CAMPAIGN, BOOKMARKS before MAP_SCREEN), then base screens."""
         return [
             (GameScreen.EXIT_GAME_DIALOG, self.is_exit_game_dialog),
+            (GameScreen.EVENT_DIALOG, self.is_in_event_dialog),
             (GameScreen.COST_CONFIRM_DIALOG, self.is_cost_confirm_dialog),
             (GameScreen.REWARDS_DIALOG, self.is_rewards_dialog),
             # Donate dialog opens on top of the tech screen.

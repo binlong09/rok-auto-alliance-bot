@@ -74,3 +74,18 @@ def test_unknown_modal_not_mistaken_for_task_screen(detector):
     would act on - UNKNOWN or a generic dialog state are both fine."""
     result = classify(detector, "scout_management.jpg")
     assert result not in TASK_SCREENS, f"misclassified as {result}"
+
+
+def test_event_confirmation_popup_classified(detector):
+    """Field capture: ENTRY CONFIRMATION popup blocked login on 22farms.
+    Must classify as EVENT_DIALOG so the router dismisses it in one step
+    instead of paying the full unknown-screen sweep."""
+    assert classify(detector, "entry_confirmation_dialog.jpg") == GameScreen.EVENT_DIALOG
+
+
+def test_claim_animation_not_misclassified(detector):
+    """Field capture: territory screen mid claim-animation (flying icons
+    over the title). Any of TERRITORY/UNKNOWN/DIALOG_OPEN is acceptable;
+    what must never happen is classifying it as a different task screen."""
+    result = classify(detector, "territory_claim_animation.jpg")
+    assert result not in (TASK_SCREENS - {GameScreen.TERRITORY}), f"misclassified as {result}"
