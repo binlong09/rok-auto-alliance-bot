@@ -676,24 +676,60 @@ class ScreenDetector(StopCheckMixin):
         """Take a single ADB screenshot for reuse across multiple checks."""
         return self.ocr.bluestacks.take_screenshot()
 
-    def detect_screen(self, screenshot=None) -> GameScreen:
+    # Modal dialogs are always checked by detect_screen, even with a
+    # candidates filter: the screen behind a modal is still partially
+    # detectable (e.g. the map anchor template matches under the Markers
+    # overlay), so dialogs must win.
+    DIALOG_SCREENS = frozenset({
+        GameScreen.EXIT_GAME_DIALOG,
+        GameScreen.COST_CONFIRM_DIALOG,
+        GameScreen.REWARDS_DIALOG,
+        GameScreen.DONATE_DIALOG,
+    })
+
+    def _ordered_checks(self):
+        """(GameScreen, predicate) pairs, most to least specific:
+        modal dialogs, full-screen states (deep screens before their
+        parents: TERRITORY/TECH before ALLIANCE_MENU, EXPEDITION before
+        CAMPAIGN, BOOKMARKS before MAP_SCREEN), then base screens."""
+        return [
+            (GameScreen.EXIT_GAME_DIALOG, self.is_exit_game_dialog),
+            (GameScreen.COST_CONFIRM_DIALOG, self.is_cost_confirm_dialog),
+            (GameScreen.REWARDS_DIALOG, self.is_rewards_dialog),
+            # Donate dialog opens on top of the tech screen.
+            (GameScreen.DONATE_DIALOG, self.is_in_donate_dialog),
+            (GameScreen.LOADING, self.is_loading_screen),
+            (GameScreen.CHARACTER_LOGIN, self.is_in_character_login),
+            (GameScreen.CHARACTER_SELECTION, self.is_in_character_selection),
+            (GameScreen.SETTINGS_MENU, self.is_in_settings_screen),
+            (GameScreen.BOOKMARKS, self.is_in_bookmark_screen),
+            (GameScreen.TERRITORY, self.is_in_territory_screen),
+            (GameScreen.TECH, self.is_in_tech_screen),
+            (GameScreen.EXPEDITION, self.is_in_expedition_screen),
+            (GameScreen.CAMPAIGN, self.is_in_campaign_screen),
+            (GameScreen.ALLIANCE_MENU, self.is_in_alliance_screen),
+            (GameScreen.PROFILE_MENU, self.is_in_profile_menu),
+            (GameScreen.HOME_VILLAGE, self.is_in_home_village),
+            (GameScreen.MAP_SCREEN, self.is_in_map_screen),
+            (GameScreen.DIALOG_OPEN, self.is_bottom_bar_expanded),
+        ]
+
+    def detect_screen(self, screenshot=None, candidates=None) -> GameScreen:
         """
         Detect which game screen is currently showing.
 
-        Takes ONE screenshot and runs all detection checks against it,
-        avoiding the cost of repeated ADB screencaps.
-
-        Ordering matters and goes from most to least specific:
-          1. Modal dialogs first - the screen behind a modal is still
-             partially detectable (e.g. the map anchor template matches
-             under the Markers overlay), so dialogs must win.
-          2. Deep screens before their parents (TERRITORY/TECH before
-             ALLIANCE_MENU, EXPEDITION before CAMPAIGN).
-          3. Base screens (home/map) last.
+        Takes ONE screenshot and runs the detection checks against it in
+        specificity order (see _ordered_checks), avoiding the cost of
+        repeated ADB screencaps.
 
         Args:
             screenshot (numpy array, optional): Pre-captured screenshot
                 to classify; a fresh one is taken when omitted.
+            candidates (set of GameScreen, optional): When given, only
+                these screens (plus the modal dialogs, which are always
+                checked) are tested. Returns UNKNOWN if none match -
+                callers wanting a full sweep afterwards can call again
+                without candidates, reusing the screenshot.
 
         Returns:
             GameScreen: The detected screen state
@@ -706,65 +742,11 @@ class ScreenDetector(StopCheckMixin):
         if screenshot is None:
             return GameScreen.UNKNOWN
 
-        # --- Modal dialogs ---
-        if self.is_exit_game_dialog(screenshot=screenshot):
-            return GameScreen.EXIT_GAME_DIALOG
-
-        if self.is_cost_confirm_dialog(screenshot=screenshot):
-            return GameScreen.COST_CONFIRM_DIALOG
-
-        if self.is_rewards_dialog(screenshot=screenshot):
-            return GameScreen.REWARDS_DIALOG
-
-        # Donate dialog opens on top of the tech screen - check it first.
-        if self.is_in_donate_dialog(screenshot=screenshot):
-            return GameScreen.DONATE_DIALOG
-
-        # --- Full-screen states ---
-        if self.is_loading_screen(screenshot=screenshot):
-            return GameScreen.LOADING
-
-        if self.is_in_character_login(screenshot=screenshot):
-            return GameScreen.CHARACTER_LOGIN
-
-        if self.is_in_character_selection(screenshot=screenshot):
-            return GameScreen.CHARACTER_SELECTION
-
-        if self.is_in_settings_screen(screenshot=screenshot):
-            return GameScreen.SETTINGS_MENU
-
-        # The Markers overlay sits on the map - check before MAP_SCREEN.
-        if self.is_in_bookmark_screen(screenshot=screenshot):
-            return GameScreen.BOOKMARKS
-
-        # Deep alliance screens before the alliance menu itself.
-        if self.is_in_territory_screen(screenshot=screenshot):
-            return GameScreen.TERRITORY
-
-        if self.is_in_tech_screen(screenshot=screenshot):
-            return GameScreen.TECH
-
-        # Expedition is reached through campaign - check before it.
-        if self.is_in_expedition_screen(screenshot=screenshot):
-            return GameScreen.EXPEDITION
-
-        if self.is_in_campaign_screen(screenshot=screenshot):
-            return GameScreen.CAMPAIGN
-
-        if self.is_in_alliance_screen(screenshot=screenshot):
-            return GameScreen.ALLIANCE_MENU
-
-        if self.is_in_profile_menu(screenshot=screenshot):
-            return GameScreen.PROFILE_MENU
-
-        # --- Base screens ---
-        if self.is_in_home_village(screenshot=screenshot):
-            return GameScreen.HOME_VILLAGE
-
-        if self.is_in_map_screen(screenshot=screenshot):
-            return GameScreen.MAP_SCREEN
-
-        if self.is_bottom_bar_expanded(screenshot=screenshot):
-            return GameScreen.DIALOG_OPEN
+        for screen, predicate in self._ordered_checks():
+            if (candidates is not None and screen not in candidates
+                    and screen not in self.DIALOG_SCREENS):
+                continue
+            if predicate(screenshot=screenshot):
+                return screen
 
         return GameScreen.UNKNOWN
