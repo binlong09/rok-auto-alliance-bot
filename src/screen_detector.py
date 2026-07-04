@@ -23,6 +23,16 @@ class GameScreen(Enum):
     ALLIANCE_MENU = auto()
     EXIT_GAME_DIALOG = auto()
     DIALOG_OPEN = auto()
+    LOADING = auto()
+    BOOKMARKS = auto()          # titled "Markers" in-game
+    TECH = auto()               # titled "Alliance Skill" in-game
+    TERRITORY = auto()
+    CAMPAIGN = auto()
+    EXPEDITION = auto()
+    REWARDS_DIALOG = auto()
+    COST_CONFIRM_DIALOG = auto()
+    DONATE_DIALOG = auto()
+    PROFILE_MENU = auto()
     UNKNOWN = auto()
 
 
@@ -231,6 +241,34 @@ class ScreenDetector(StopCheckMixin):
         return result
 
 
+    def is_in_alliance_screen(self, screenshot=None):
+        """
+        Detect the alliance menu screen (title "ALLIANCE", icon grid with
+        War/Territory/Technology/...).
+
+        Note: the ALLIANCE TERRITORY screen's title also contains
+        "ALLIANCE", so detect_screen() checks is_in_territory_screen
+        first; treat a True here as "alliance menu or deeper" when
+        calling this predicate standalone.
+
+        Args:
+            screenshot (numpy array, optional): Pre-captured screenshot to reuse.
+
+        Returns:
+            bool: True if the alliance screen is open
+        """
+        if self.check_stop_requested():
+            return False
+
+        keywords = ["ALLIANCE", "Alliance"]
+        region = self.coords.get_region('territory_screen')  # same title band
+
+        result = self.ocr.detect_text_in_region(keywords, region,
+                                                screenshot=screenshot)
+        self.logger.info("Alliance screen is open" if result
+                         else "Alliance screen not detected")
+        return result
+
     def is_in_profile_menu(self, screenshot=None):
         """
         Detect the profile/governor menu (opened by clicking the avatar).
@@ -291,7 +329,10 @@ class ScreenDetector(StopCheckMixin):
         if self.check_stop_requested():
             return False
 
-        keywords = ["Characters", "Power", "Kingdom", "Create"]
+        # No "Power"/"Kingdom": substring matching made "Power" hit the
+        # alliance screen's power stat and the tech screen's "powerful",
+        # and "Kingdom" hits map UI.
+        keywords = ["Characters", "Create"]
         region = self.coords.get_region('character_selection')
 
         result = self.ocr.detect_text_in_region(keywords, region,
@@ -313,7 +354,9 @@ class ScreenDetector(StopCheckMixin):
         if self.check_stop_requested():
             return False
 
-        keywords = ["Recommendation", "Recommended", "Research", "Donate"]
+        # No "Research": the home village shows a floating "Research"
+        # bubble over the academy that false-matched this predicate.
+        keywords = ["Recommendation", "Recommended", "Alliance Skill", "Donate"]
         region = self.coords.get_region('officer_recommendation')
 
         result = self.ocr.detect_text_in_region(keywords, region,
@@ -633,13 +676,24 @@ class ScreenDetector(StopCheckMixin):
         """Take a single ADB screenshot for reuse across multiple checks."""
         return self.ocr.bluestacks.take_screenshot()
 
-    def detect_screen(self) -> GameScreen:
+    def detect_screen(self, screenshot=None) -> GameScreen:
         """
         Detect which game screen is currently showing.
 
         Takes ONE screenshot and runs all detection checks against it,
-        avoiding the cost of repeated ADB screencaps. Template matches
-        run first (~5-20 ms each) before falling back to OCR.
+        avoiding the cost of repeated ADB screencaps.
+
+        Ordering matters and goes from most to least specific:
+          1. Modal dialogs first - the screen behind a modal is still
+             partially detectable (e.g. the map anchor template matches
+             under the Markers overlay), so dialogs must win.
+          2. Deep screens before their parents (TERRITORY/TECH before
+             ALLIANCE_MENU, EXPEDITION before CAMPAIGN).
+          3. Base screens (home/map) last.
+
+        Args:
+            screenshot (numpy array, optional): Pre-captured screenshot
+                to classify; a fresh one is taken when omitted.
 
         Returns:
             GameScreen: The detected screen state
@@ -647,12 +701,28 @@ class ScreenDetector(StopCheckMixin):
         if self.check_stop_requested():
             return GameScreen.UNKNOWN
 
-        screenshot = self.take_screenshot()
+        if screenshot is None:
+            screenshot = self.take_screenshot()
         if screenshot is None:
             return GameScreen.UNKNOWN
 
+        # --- Modal dialogs ---
         if self.is_exit_game_dialog(screenshot=screenshot):
             return GameScreen.EXIT_GAME_DIALOG
+
+        if self.is_cost_confirm_dialog(screenshot=screenshot):
+            return GameScreen.COST_CONFIRM_DIALOG
+
+        if self.is_rewards_dialog(screenshot=screenshot):
+            return GameScreen.REWARDS_DIALOG
+
+        # Donate dialog opens on top of the tech screen - check it first.
+        if self.is_in_donate_dialog(screenshot=screenshot):
+            return GameScreen.DONATE_DIALOG
+
+        # --- Full-screen states ---
+        if self.is_loading_screen(screenshot=screenshot):
+            return GameScreen.LOADING
 
         if self.is_in_character_login(screenshot=screenshot):
             return GameScreen.CHARACTER_LOGIN
@@ -663,6 +733,31 @@ class ScreenDetector(StopCheckMixin):
         if self.is_in_settings_screen(screenshot=screenshot):
             return GameScreen.SETTINGS_MENU
 
+        # The Markers overlay sits on the map - check before MAP_SCREEN.
+        if self.is_in_bookmark_screen(screenshot=screenshot):
+            return GameScreen.BOOKMARKS
+
+        # Deep alliance screens before the alliance menu itself.
+        if self.is_in_territory_screen(screenshot=screenshot):
+            return GameScreen.TERRITORY
+
+        if self.is_in_tech_screen(screenshot=screenshot):
+            return GameScreen.TECH
+
+        # Expedition is reached through campaign - check before it.
+        if self.is_in_expedition_screen(screenshot=screenshot):
+            return GameScreen.EXPEDITION
+
+        if self.is_in_campaign_screen(screenshot=screenshot):
+            return GameScreen.CAMPAIGN
+
+        if self.is_in_alliance_screen(screenshot=screenshot):
+            return GameScreen.ALLIANCE_MENU
+
+        if self.is_in_profile_menu(screenshot=screenshot):
+            return GameScreen.PROFILE_MENU
+
+        # --- Base screens ---
         if self.is_in_home_village(screenshot=screenshot):
             return GameScreen.HOME_VILLAGE
 
