@@ -15,16 +15,17 @@ import time
 import cv2
 
 import timings
-from automation_base import DialogCloserMixin
+from automation_base import StopCheckMixin
+from screen_detector import GameScreen
 
 
-class BuildAutomation(DialogCloserMixin):
+class BuildAutomation(StopCheckMixin):
     """Automates alliance build participation workflow."""
 
     STOP_CONTEXT = "build automation"
 
     def __init__(self, ocr_helper, screen_detector, bluestacks, coords, navigator,
-                 click_delay_ms=1000, stop_check_callback=None):
+                 router, click_delay_ms=1000, stop_check_callback=None):
         """
         Initialize the build automation.
 
@@ -34,6 +35,7 @@ class BuildAutomation(DialogCloserMixin):
             bluestacks: BlueStacksController instance for input
             coords: CoordinateManager instance for coordinates
             navigator: VerifiedNavigator instance for verified clicks
+            router: ScreenRouter instance for screen navigation
             click_delay_ms: Delay between clicks in milliseconds
             stop_check_callback: Optional callback to check if automation should stop
         """
@@ -43,24 +45,9 @@ class BuildAutomation(DialogCloserMixin):
         self.bluestacks = bluestacks
         self.coords = coords
         self.nav = navigator
+        self.router = router
         self.click_delay_ms = click_delay_ms
         self.stop_check = stop_check_callback
-
-    def navigate_to_bookmark(self):
-        """Navigate to bookmark screen from map screen and verify it opened."""
-        if self.check_stop_requested():
-            return False
-
-        self.logger.info("Navigating to bookmark screen")
-
-        return self.nav.click_and_verify(
-            "bookmark button",
-            template='bookmark_icon',
-            fallback_point=self.coords.get_nav('bookmark_button'),
-            verify=self.screen.is_in_bookmark_screen,
-            verify_timeout=8,
-            settle_wait=timings.SCREEN_TRANSITION_WAIT,
-        )
 
     def click_mid_of_screen(self):
         """Click at center of screen to select."""
@@ -279,54 +266,64 @@ class BuildAutomation(DialogCloserMixin):
         time.sleep(timings.SCREEN_TRANSITION_WAIT)
         return True
 
-    def perform_build(self, march_preset, navigate_to_map_callback=None):
+    def perform_build(self, march_preset):
         """
         Perform the build automation sequence.
 
+        Routes to the bookmark (Markers) screen, follows the "1 TROOP"
+        marker to the flag, presses BUILD and dispatches one troop with
+        the configured march preset, then routes back home.
+
         Args:
             march_preset: The march preset number to use
-            navigate_to_map_callback: Optional callback to navigate to map first
 
         Returns:
-            bool: True if successful, False otherwise
+            bool: True if the flag ends up filled by this account (a
+            troop was dispatched, or it already had one there); False
+            when any step failed or no march was available.
         """
         if self.check_stop_requested():
             return False
 
         self.logger.info("Starting build automation")
 
-        # Navigate to map if callback provided
-        if navigate_to_map_callback:
-            navigate_to_map_callback()
-
-        # Navigate to bookmark screen (verified)
-        if not self.navigate_to_bookmark():
+        success = False
+        if self.router.goto(GameScreen.BOOKMARKS):
+            success = self._join_build_from_bookmarks(march_preset)
+        else:
             self.logger.warning("Could not open bookmark screen")
-            self.close_dialogs()
+
+        # Always route back to known ground for the next task.
+        if not self.router.goto(GameScreen.HOME_VILLAGE):
+            self.logger.warning("Could not route back to home village")
+
+        self.logger.info("Build automation completed"
+                         if success else "Build automation failed")
+        return success
+
+    def _join_build_from_bookmarks(self, march_preset):
+        """From the open bookmark screen: follow the 1 TROOP marker and
+        dispatch. Returns True when the flag is filled by this account."""
+        if not self.find_and_click_one_troop_button():
+            self.logger.warning("Cannot find 1 troop marker")
+            return False
+
+        if not self.find_and_click_build_button():
+            # Flag already finished or invalid object selected
+            self.logger.warning("BUILD button not found on the flag panel")
+            return False
+
+        if not self.find_and_click_tap_to_join_button():
+            # This account already fills the flag - mission accomplished
+            self.logger.info("No 'tap to join' - flag already filled by this account")
             return True
 
-        # Find the word 1 troop on screen and click on Go button
-        # Then click on middle to select the flag
-        if self.find_and_click_one_troop_button():
-            # Find the word Building Progress on screen and use it to click on Build Button
-            # If the word Building Progress is not found, it means the flag is already finished or an invalid object
-            if self.find_and_click_build_button():
-                # Find the word Tap To Join on screen and click it
-                if self.find_and_click_tap_to_join_button():
-                    # Find and Click new troop button
-                    if self.find_and_click_new_troop_button():
-                        success = self.dispatch_troop_to_join_build(march_preset)
-                        if not success:
-                            self.logger.warning("Failed to dispatch troops")
-                    else:
-                        # If the word Dispatch is not found, it means there are no available marches
-                        self.close_dialogs()
-                else:
-                    # If Tap To Join is not found, this account already fills the flag
-                    self.close_dialogs()
-        else:
-            self.logger.warning("Cannot find 1 troop button")
-            self.close_dialogs()
+        if not self.find_and_click_new_troop_button():
+            # No available marches
+            return False
 
-        self.logger.info("Build automation completed")
+        if not self.dispatch_troop_to_join_build(march_preset):
+            self.logger.warning("Failed to dispatch troops")
+            return False
+
         return True

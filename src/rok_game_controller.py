@@ -11,7 +11,7 @@ import time
 
 import timings
 from account_switcher import AccountSwitcher
-from automation_base import DialogCloserMixin
+from automation_base import StopCheckMixin
 from build_automation import BuildAutomation
 from character_switcher import CharacterSwitcher
 from coordinate_manager import CoordinateManager
@@ -21,11 +21,12 @@ from navigation_helper import VerifiedNavigator
 from ocr_helper import OCRHelper
 from recovery_manager import RecoveryManager
 from screen_detector import ScreenDetector
+from screen_router import ScreenRouter
 from subprocess_utils import run_hidden
 from territory_automation import TerritoryAutomation
 
 
-class RoKGameController(DialogCloserMixin):
+class RoKGameController(StopCheckMixin):
     """Controller for Rise of Kingdoms game operations."""
 
     STOP_CONTEXT = "RoK operation"
@@ -102,12 +103,21 @@ class RoKGameController(DialogCloserMixin):
             click_delay_ms=self.click_delay_ms,
             stop_check_callback=self.ocr.check_stop_requested
         )
+        self.router = ScreenRouter(
+            self.screen,
+            self.bluestacks,
+            self.coords,
+            self.navigator,
+            click_delay_ms=self.click_delay_ms,
+            stop_check_callback=self.ocr.check_stop_requested
+        )
         self.build = BuildAutomation(
             self.ocr,
             self.screen,
             self.bluestacks,
             self.coords,
             self.navigator,
+            self.router,
             click_delay_ms=self.click_delay_ms,
             stop_check_callback=self.ocr.check_stop_requested
         )
@@ -117,6 +127,7 @@ class RoKGameController(DialogCloserMixin):
             self.bluestacks,
             self.coords,
             self.navigator,
+            self.router,
             click_delay_ms=self.click_delay_ms,
             stop_check_callback=self.ocr.check_stop_requested
         )
@@ -124,6 +135,7 @@ class RoKGameController(DialogCloserMixin):
             self.screen,
             self.bluestacks,
             self.coords,
+            self.router,
             click_delay_ms=self.click_delay_ms,
             stop_check_callback=self.ocr.check_stop_requested
         )
@@ -133,6 +145,7 @@ class RoKGameController(DialogCloserMixin):
             self.bluestacks,
             self.coords,
             self.navigator,
+            self.router,
             click_delay_ms=self.click_delay_ms,
             stop_check_callback=self.ocr.check_stop_requested
         )
@@ -142,6 +155,7 @@ class RoKGameController(DialogCloserMixin):
             self.bluestacks,
             self.coords,
             self.navigator,
+            self.router,
             click_delay_ms=self.click_delay_ms,
             stop_check_callback=self.ocr.check_stop_requested
         )

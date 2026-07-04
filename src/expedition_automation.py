@@ -43,6 +43,7 @@ import time
 
 import timings
 from automation_base import StopCheckMixin
+from screen_detector import GameScreen
 
 
 class ExpeditionAutomation(StopCheckMixin):
@@ -60,7 +61,7 @@ class ExpeditionAutomation(StopCheckMixin):
     STOP_CONTEXT = "expedition automation"
 
     def __init__(self, ocr_helper, screen_detector, bluestacks, coords, navigator,
-                 click_delay_ms=1000, stop_check_callback=None):
+                 router, click_delay_ms=1000, stop_check_callback=None):
         """
         Initialize the expedition automation.
 
@@ -70,6 +71,7 @@ class ExpeditionAutomation(StopCheckMixin):
             bluestacks: BlueStacksController instance for input (clicks, keys)
             coords: CoordinateManager instance for coordinates
             navigator: VerifiedNavigator instance for verified clicks
+            router: ScreenRouter instance for screen navigation
             click_delay_ms: Delay between clicks in milliseconds
             stop_check_callback: Optional callback to check if automation should stop
         """
@@ -79,21 +81,14 @@ class ExpeditionAutomation(StopCheckMixin):
         self.bluestacks = bluestacks
         self.coords = coords
         self.nav = navigator
+        self.router = router
         self.click_delay_ms = click_delay_ms
         self.stop_check = stop_check_callback
 
         # Load coordinates from coordinates.json
-        # Navigation buttons
-        self.expand_button = coords.get_nav('expand_button')
-        self.campaign_button = coords.get_nav('campaign_button')
-        self.expedition_button = coords.get_nav('expedition_button')
         self.expedition_chest_1 = coords.get_nav('expedition_chest_1')
         self.expedition_chest_2 = coords.get_nav('expedition_chest_2')
         self.expedition_collect = coords.get_nav('expedition_collect')
-        self.exit_dialog_cancel = coords.get_nav('exit_dialog_cancel')
-
-        # OCR regions
-        self.campaign_screen_region = coords.get_region('campaign_screen')
 
     def close_dialog(self):
         """
@@ -110,117 +105,6 @@ class ExpeditionAutomation(StopCheckMixin):
             time.sleep(timings.ACTION_SETTLE_WAIT)
             return True
         return False
-
-    def handle_exit_dialog(self):
-        """
-        Check for and handle the "Exit the game?" dialog.
-
-        If the exit dialog is showing, click Cancel to dismiss it.
-
-        Returns:
-            bool: True if dialog was handled (or not present), False on failure
-        """
-        if self.check_stop_requested():
-            return False
-
-        if self.screen.is_exit_game_dialog():
-            self.logger.info("Exit dialog detected, clicking Cancel to dismiss")
-            if not self.bluestacks.click(self.exit_dialog_cancel['x'],
-                                         self.exit_dialog_cancel['y'],
-                                         self.click_delay_ms):
-                self.logger.error("Failed to click Cancel on exit dialog")
-                return False
-            time.sleep(timings.ACTION_SETTLE_WAIT)
-            return True
-
-        return True  # No dialog present is also success
-
-    def expand_bottom_bar(self):
-        """
-        Expand the bottom navigation bar if it's not already expanded.
-
-        The bottom bar contains Campaign, Alliance, Commander, etc.
-
-        Returns:
-            bool: True if bottom bar is expanded, False on failure
-        """
-        if self.check_stop_requested():
-            return False
-
-        # Check if already expanded using screen detector
-        if self.screen.is_bottom_bar_expanded():
-            self.logger.info("Bottom bar is expanded")
-            return True
-
-        self.logger.info("Expanding bottom bar...")
-        return self.nav.click_and_verify(
-            "expand bottom bar button",
-            template='expand_button',
-            fallback_point=self.expand_button,
-            verify=self.screen.is_bottom_bar_expanded,
-            verify_timeout=5,
-        )
-
-    def click_campaign(self):
-        """
-        Click on the Campaign button to open Campaign screen, verifying
-        the campaign screen actually opened.
-
-        Returns:
-            bool: True if the campaign screen opened, False otherwise
-        """
-        if self.check_stop_requested():
-            return False
-
-        self.logger.info("Opening Campaign screen...")
-
-        # OCR text position doesn't align with the button here, so the
-        # priority is template image -> fixed coordinates, verified by the
-        # campaign screen actually appearing.
-        if not self.nav.click_and_verify(
-            "Campaign button",
-            template='campaign_icon',
-            fallback_point=self.campaign_button,
-            verify=self.screen.is_in_campaign_screen,
-            verify_timeout=8,
-            settle_wait=timings.SCREEN_TRANSITION_WAIT,
-        ):
-            self.logger.error("Campaign screen did not open")
-            return False
-
-        self.logger.info("Campaign screen opened")
-        return True
-
-    def click_expedition(self):
-        """
-        Click on Expedition from the Campaign screen and verify the
-        expedition screen opened.
-
-        Strategy: template image -> OCR "Expedition" text -> fixed position.
-
-        Returns:
-            bool: True if the expedition screen opened, False otherwise
-        """
-        if self.check_stop_requested():
-            return False
-
-        self.logger.info("Opening Expedition...")
-
-        if not self.nav.click_and_verify(
-            "Expedition banner",
-            template='expedition_banner',
-            texts=["Expedition", "expedition"],
-            region=self.campaign_screen_region,
-            fallback_point=self.expedition_button,
-            verify=self.screen.is_in_expedition_screen,
-            verify_timeout=8,
-            settle_wait=timings.SCREEN_TRANSITION_WAIT,
-        ):
-            self.logger.error("Expedition screen did not open")
-            return False
-
-        self.logger.info("Expedition screen opened")
-        return True
 
     def collect_expedition_chests(self):
         """
@@ -295,89 +179,39 @@ class ExpeditionAutomation(StopCheckMixin):
             return False
         time.sleep(timings.EXTENDED_SETTLE_WAIT)
 
-        # Check if rewards dialog appeared
-        rewards_dialog_appeared = self.screen.is_rewards_dialog()
-
-        if rewards_dialog_appeared:
-            self.logger.info("Rewards dialog detected - need 3 escapes")
-            num_escapes = 3
-        else:
-            self.logger.info("No rewards dialog (already collected) - need 2 escapes")
-            num_escapes = 2
-
-        # Navigate back with dynamic number of escapes
-        for i in range(num_escapes):
-            if self.check_stop_requested():
-                return False
-
-            self.logger.info(f"Escape {i + 1}/{num_escapes}")
-            self.close_dialog()
-
-            # Check for and handle exit dialog after each escape
-            if not self.handle_exit_dialog():
-                self.logger.error("Failed to handle exit dialog")
-                return False
-
-        # Wait for screen to fully return to home before next action
-        self.logger.info("Waiting for screen to settle after expedition...")
-        time.sleep(timings.LONG_TRANSITION_WAIT)
-
+        # The rewards dialog (if any) and the way back home are handled
+        # by the router in perform_expedition_collection - no blind
+        # escape-counting here anymore.
         return True
 
     def perform_expedition_collection(self):
         """
-        Main method: Perform full expedition reward collection.
-
-        This is the method to call from outside to run the full workflow.
-
-        Workflow:
-        1. Expand bottom bar
-        2. Click Campaign
-        3. Click Expedition
-        4. Collect chests
-        5. Collect rewards and return to home
+        Main method: route to the expedition screen, collect chests and
+        rewards, then route back to the home village.
 
         Returns:
             bool: True if completed successfully, False otherwise
         """
         self.logger.info("=== Starting Expedition Reward Collection ===")
 
-        # Step 1: Expand bottom bar
-        if not self.expand_bottom_bar():
-            self.logger.error("Failed to expand bottom bar")
-            return False
+        collected = False
+        if self.router.goto(GameScreen.EXPEDITION):
+            if self.collect_expedition_chests():
+                collected = self.collect_expedition_rewards()
+                if not collected:
+                    self.logger.error("Failed to collect rewards")
+            else:
+                self.logger.error("Failed to collect expedition chests")
+        else:
+            self.logger.error("Could not reach the expedition screen")
 
-        if self.check_stop_requested():
-            return False
+        # Always route back to known ground for the next task. This also
+        # dismisses the rewards dialog when one is open.
+        if not self.router.goto(GameScreen.HOME_VILLAGE):
+            self.logger.warning("Could not route back to home village")
 
-        # Step 2: Click Campaign
-        if not self.click_campaign():
-            self.logger.error("Failed to open Campaign screen")
-            return False
-
-        if self.check_stop_requested():
-            return False
-
-        # Step 3: Click Expedition
-        if not self.click_expedition():
-            self.logger.error("Failed to open Expedition")
-            return False
-
-        if self.check_stop_requested():
-            return False
-
-        # Step 4: Collect chests
-        if not self.collect_expedition_chests():
-            self.logger.error("Failed to collect expedition chests")
-            return False
-
-        if self.check_stop_requested():
-            return False
-
-        # Step 5: Collect rewards and navigate back
-        if not self.collect_expedition_rewards():
-            self.logger.error("Failed to collect rewards")
-            return False
-
-        self.logger.info("=== Expedition Reward Collection Complete ===")
-        return True
+        if collected:
+            self.logger.info("=== Expedition Reward Collection Complete ===")
+        else:
+            self.logger.info("=== Expedition Reward Collection failed ===")
+        return collected

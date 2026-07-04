@@ -12,11 +12,11 @@ import time
 import numpy as np
 
 import timings
-from automation_base import DialogCloserMixin
+from automation_base import StopCheckMixin
 from recovery_manager import RetryConfig, with_retry
 
 
-class CharacterSwitcher(DialogCloserMixin):
+class CharacterSwitcher(StopCheckMixin):
     """Automates character switching workflow with recovery support."""
 
     STOP_CONTEXT = "character switching"
@@ -372,7 +372,7 @@ class CharacterSwitcher(DialogCloserMixin):
 
         if self.will_perform_build:
             self.logger.info(f"Performing build for character {char_display}")
-            ok = self.build.perform_build(self.march_preset, navigate_to_map_callback=self.navigate_to_map)
+            ok = self.build.perform_build(self.march_preset)
             self._track_task("build", ok)
 
         if self.check_stop_requested():
