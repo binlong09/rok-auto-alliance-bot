@@ -424,7 +424,10 @@ class ScreenDetector(StopCheckMixin):
         if self.check_stop_requested():
             return False
 
-        keywords = ["Bookmark", "Bookmarks", "Favorites", "troop"]
+        # The screen is titled "Markers" in current game versions (verified
+        # on Gamota); older versions used "Bookmarks"/"Favorites". "troop"
+        # matches the 1 TROOP marker itself when it is visible.
+        keywords = ["Markers", "Marker", "Bookmark", "Bookmarks", "Favorites", "troop"]
         region = self.coords.get_region('bookmark_screen')
 
         result = self.ocr.detect_text_in_region(keywords, region,

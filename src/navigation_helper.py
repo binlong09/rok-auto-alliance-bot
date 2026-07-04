@@ -169,13 +169,18 @@ class VerifiedNavigator(StopCheckMixin):
                 f"(attempt {attempt}/{attempts})"
             )
 
-            # Safety net: a stray click (e.g. a stale fixed coordinate) can
-            # open a gems purchase confirmation. Dismiss it with escape (=No)
-            # before retrying so the retry can't land on the Confirm button.
-            if attempt < attempts and self.screen.is_cost_confirm_dialog():
+            # Safety net: verification can fail because a blocking dialog is
+            # covering the screen, in which case re-clicking the same spot
+            # lands under the modal and can never succeed. Two known cases:
+            #   - a stray click opened a gems purchase confirmation
+            #   - a task's trailing escapes overshot onto the home screen and
+            #     opened the "Exit the game?" dialog
+            # Dismiss with escape (= No/Cancel on both) before retrying.
+            if attempt < attempts and (self.screen.is_cost_confirm_dialog()
+                                       or self.screen.is_exit_game_dialog()):
                 self.logger.warning(
-                    "Cost-confirmation dialog opened by the previous click - "
-                    "dismissing it before retrying"
+                    "Blocking dialog opened over the screen - dismissing it "
+                    "with escape before retrying"
                 )
                 self.bluestacks.send_escape()
                 time.sleep(timings.ACTION_SETTLE_WAIT)
