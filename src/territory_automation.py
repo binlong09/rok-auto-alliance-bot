@@ -3,30 +3,32 @@
 Territory Automation - Claims alliance territory resource earnings.
 
 Alliance territory (fortresses, resource centers) continuously produces
-resources for every member. This module opens Alliance > Territory and
-presses the CLAIM button on the "Territory Resource Earnings" row, banking
-the accumulated corn/wood/stone/gold.
+resources for every member. This module routes to Alliance > Territory
+and presses the CLAIM button on the "Territory Resource Earnings" row,
+banking the accumulated corn/wood/stone/gold.
 
 Runs every cycle (like tech donation): claiming is idempotent - once
 everything is claimed the button simply has nothing left to give.
 
-Every navigation step verifies the resulting screen state (template
-matching / OCR) before moving on.
+Navigation is delegated to the ScreenRouter, so the task can start from
+any screen (including leftover dialogs) and always ends back on the
+home village for the next task.
 """
 import logging
 import time
 
 import timings
-from automation_base import AllianceScreenMixin
+from automation_base import StopCheckMixin
+from screen_detector import GameScreen
 
 
-class TerritoryAutomation(AllianceScreenMixin):
+class TerritoryAutomation(StopCheckMixin):
     """Automates alliance territory resource claiming."""
 
     STOP_CONTEXT = "territory claim"
 
     def __init__(self, ocr_helper, screen_detector, bluestacks, coords, navigator,
-                 click_delay_ms=1000, stop_check_callback=None):
+                 router, click_delay_ms=1000, stop_check_callback=None):
         """
         Initialize the territory automation.
 
@@ -36,6 +38,7 @@ class TerritoryAutomation(AllianceScreenMixin):
             bluestacks: BlueStacksController instance for input
             coords: CoordinateManager instance for coordinates
             navigator: VerifiedNavigator instance for verified clicks
+            router: ScreenRouter instance for screen navigation
             click_delay_ms: Delay between clicks in milliseconds
             stop_check_callback: Optional callback to check if automation should stop
         """
@@ -45,34 +48,9 @@ class TerritoryAutomation(AllianceScreenMixin):
         self.bluestacks = bluestacks
         self.coords = coords
         self.nav = navigator
+        self.router = router
         self.click_delay_ms = click_delay_ms
         self.stop_check = stop_check_callback
-
-    def open_territory_screen(self):
-        """
-        Click the Territory button on the alliance screen and verify the
-        Alliance Territory screen opened.
-
-        Returns:
-            bool: True if the territory screen opened, False otherwise
-        """
-        if self.check_stop_requested():
-            return False
-
-        self.logger.info("Looking for Territory button...")
-
-        return self.nav.click_and_verify(
-            "Territory button",
-            template='territory_icon',
-            texts=["Territory", "territory"],
-            region=self.coords.get_region('alliance_menu'),
-            # The label sits below the icon: click above the detected text
-            offset={'x': 0, 'y': -50},
-            fallback_point=self.coords.get_nav('territory_button'),
-            verify=self.screen.is_in_territory_screen,
-            verify_timeout=10,
-            settle_wait=timings.SCREEN_TRANSITION_WAIT,
-        )
 
     def claim_resources(self):
         """
@@ -104,37 +82,26 @@ class TerritoryAutomation(AllianceScreenMixin):
 
     def perform_territory_claim(self):
         """
-        Main method: open Alliance > Territory, claim resource earnings and
-        return to the home screen.
+        Main method: route to Alliance > Territory, claim resource
+        earnings and route back to the home village.
 
         Returns:
-            bool: True if the claim flow completed, False otherwise
+            bool: True if resources were claimed, False otherwise
+            (routing failure and nothing-to-claim both return False)
         """
         self.logger.info("=== Starting Territory Resource Claim ===")
 
-        if not self.open_alliance_screen():
-            self.logger.error("Could not open alliance screen (character may not be in an alliance)")
-            self.close_dialogs()
-            return False
+        claimed = False
+        if self.router.goto(GameScreen.TERRITORY):
+            claimed = self.claim_resources()
+        else:
+            self.logger.error("Could not reach the territory screen")
 
-        self.logger.info("Alliance screen opened")
-
-        if not self.open_territory_screen():
-            self.logger.error("Failed to open territory screen")
-            for _ in range(2):
-                self.close_dialogs()
-            return False
-
-        self.logger.info("Territory screen opened")
-
-        claimed = self.claim_resources()
-
-        # Exit back to the home screen: territory -> alliance -> game.
-        # Exactly two escapes - a third would land on the home screen and
-        # open the "Exit the game?" dialog (the claim reward animates into
-        # the resource bar without any dialog to dismiss).
-        for _ in range(2):
-            self.close_dialogs()
+        # Always route back to known ground for the next task, even
+        # after a failure - this is what keeps one task's mess from
+        # cascading into the next.
+        if not self.router.goto(GameScreen.HOME_VILLAGE):
+            self.logger.warning("Could not route back to home village")
 
         if claimed:
             self.logger.info("=== Territory Resource Claim Complete ===")
