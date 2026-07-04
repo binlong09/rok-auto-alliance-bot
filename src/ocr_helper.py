@@ -120,7 +120,7 @@ class OCRHelper(StopCheckMixin):
         }
 
     def _prepare_region_images(self, text_region, upscale=False, debug_name=None,
-                               screenshot=None):
+                               screenshot=None, methods=None):
         """
         Shared pipeline for region-based OCR: take a screenshot, clamp the
         region to the screen bounds, crop, and preprocess.
@@ -170,9 +170,18 @@ class OCRHelper(StopCheckMixin):
         else:
             processed_images = {'original': cropped}
 
+        # Restrict to the requested preprocessing variants (fixture-measured
+        # subsets make repeated screen-identity checks ~3x cheaper).
+        if methods:
+            filtered = {m: img for m, img in processed_images.items()
+                        if m in methods}
+            if filtered:
+                processed_images = filtered
+
         return processed_images, region_x, region_y, screenshot
 
-    def detect_text_in_region(self, keywords, text_region=None, screenshot=None):
+    def detect_text_in_region(self, keywords, text_region=None, screenshot=None,
+                              methods=None):
         """
         Detect if any of the keywords appear in the specified text region of the screen.
 
@@ -192,7 +201,8 @@ class OCRHelper(StopCheckMixin):
             # and does not return any coordinates, unlike detect_text_position().
             prepared = self._prepare_region_images(text_region, upscale=True,
                                                    debug_name="text_region.png",
-                                                   screenshot=screenshot)
+                                                   screenshot=screenshot,
+                                                   methods=methods)
             if prepared is None:
                 return False
             processed_images, _, _, _ = prepared
@@ -222,7 +232,7 @@ class OCRHelper(StopCheckMixin):
             return False
 
     def detect_pattern_in_region(self, pattern, text_region=None, min_matches=1,
-                                screenshot=None):
+                                screenshot=None, methods=None):
         """
         Detect if a regex pattern matches enough times in the specified text region.
 
@@ -246,7 +256,8 @@ class OCRHelper(StopCheckMixin):
             # Upscale 2x for better OCR accuracy on small UI text.
             prepared = self._prepare_region_images(text_region, upscale=True,
                                                    debug_name="text_region.png",
-                                                   screenshot=screenshot)
+                                                   screenshot=screenshot,
+                                                   methods=methods)
             if prepared is None:
                 return False
             processed_images, _, _, _ = prepared

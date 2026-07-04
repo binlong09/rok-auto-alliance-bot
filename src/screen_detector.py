@@ -41,6 +41,29 @@ class ScreenDetector(StopCheckMixin):
 
     STOP_CONTEXT = "screen detection"
 
+    # Preprocessing variants used for screen-identity keyword checks.
+    # Measured against tests/fixtures: otsu+adaptive detect every known
+    # screen (adaptive is the only method that reads the Markers title);
+    # white_text covers the loading screen. Running 3 variants instead
+    # of all 6 makes every detect_screen() step ~2-3x faster.
+    FAST_METHODS = ('otsu', 'adaptive', 'white_text')
+
+    # Title-bar template anchors, cropped from tests/fixtures. In the
+    # detect_screen() sweep a template match (~20ms) replaces the OCR
+    # keyword check (~1s) entirely - including trusting its absence.
+    # The standalone is_in_* predicates keep their OCR fallbacks for
+    # click verification. ALLIANCE_MENU's anchor also matches inside
+    # ALLIANCE TERRITORY's title; the sweep checks TERRITORY first.
+    ANCHOR_TEMPLATES = {
+        GameScreen.EXIT_GAME_DIALOG: 'exit_notice_title',
+        GameScreen.BOOKMARKS: 'markers_title',
+        GameScreen.TERRITORY: 'territory_title',
+        GameScreen.TECH: 'tech_title',
+        GameScreen.EXPEDITION: 'expedition_title',
+        GameScreen.CAMPAIGN: 'campaign_title',
+        GameScreen.ALLIANCE_MENU: 'alliance_title',
+    }
+
     def __init__(self, ocr_helper, coords, stop_check_callback=None):
         """
         Initialize the screen detector.
@@ -264,7 +287,8 @@ class ScreenDetector(StopCheckMixin):
         region = self.coords.get_region('territory_screen')  # same title band
 
         result = self.ocr.detect_text_in_region(keywords, region,
-                                                screenshot=screenshot)
+                                                screenshot=screenshot,
+                                                methods=self.FAST_METHODS)
         self.logger.info("Alliance screen is open" if result
                          else "Alliance screen not detected")
         return result
@@ -288,7 +312,8 @@ class ScreenDetector(StopCheckMixin):
         region = self.coords.get_region('profile_menu')
 
         result = self.ocr.detect_text_in_region(keywords, region,
-                                                screenshot=screenshot)
+                                                screenshot=screenshot,
+                                                methods=self.FAST_METHODS)
         self.logger.info("Profile menu is open" if result else "Profile menu not detected")
         return result
 
@@ -309,7 +334,8 @@ class ScreenDetector(StopCheckMixin):
         region = self.coords.get_region('settings_screen')
 
         result = self.ocr.detect_text_in_region(keywords, region,
-                                                screenshot=screenshot)
+                                                screenshot=screenshot,
+                                                methods=self.FAST_METHODS)
         self.logger.info("Settings screen is open" if result else "Settings screen not detected")
         return result
 
@@ -336,7 +362,8 @@ class ScreenDetector(StopCheckMixin):
         region = self.coords.get_region('character_selection')
 
         result = self.ocr.detect_text_in_region(keywords, region,
-                                                screenshot=screenshot)
+                                                screenshot=screenshot,
+                                                methods=self.FAST_METHODS)
         self.logger.info("Character selection screen is open" if result
                          else "Character selection screen not detected")
         return result
@@ -360,7 +387,8 @@ class ScreenDetector(StopCheckMixin):
         region = self.coords.get_region('officer_recommendation')
 
         result = self.ocr.detect_text_in_region(keywords, region,
-                                                screenshot=screenshot)
+                                                screenshot=screenshot,
+                                                methods=self.FAST_METHODS)
         self.logger.info("Alliance tech screen is open" if result
                          else "Alliance tech screen not detected")
         return result
@@ -385,7 +413,8 @@ class ScreenDetector(StopCheckMixin):
         region = self.coords.get_region('territory_screen')
 
         result = self.ocr.detect_text_in_region(keywords, region,
-                                                screenshot=screenshot)
+                                                screenshot=screenshot,
+                                                methods=self.FAST_METHODS)
         self.logger.info("Alliance territory screen is open" if result
                          else "Alliance territory screen not detected")
         return result
@@ -407,7 +436,8 @@ class ScreenDetector(StopCheckMixin):
         region = self.coords.get_region('donate_dialog')
 
         result = self.ocr.detect_text_in_region(keywords, region,
-                                                screenshot=screenshot)
+                                                screenshot=screenshot,
+                                                methods=self.FAST_METHODS)
         self.logger.info("Donate dialog is open" if result else "Donate dialog not detected")
         return result
 
@@ -428,7 +458,8 @@ class ScreenDetector(StopCheckMixin):
         region = self.coords.get_region('campaign_screen')
 
         result = self.ocr.detect_text_in_region(keywords, region,
-                                                screenshot=screenshot)
+                                                screenshot=screenshot,
+                                                methods=self.FAST_METHODS)
         self.logger.info("Campaign screen is open" if result else "Campaign screen not detected")
         return result
 
@@ -450,7 +481,8 @@ class ScreenDetector(StopCheckMixin):
         region = self.coords.get_region('expedition_screen')
 
         result = self.ocr.detect_text_in_region(keywords, region,
-                                                screenshot=screenshot)
+                                                screenshot=screenshot,
+                                                methods=self.FAST_METHODS)
         self.logger.info("Expedition screen is open" if result else "Expedition screen not detected")
         return result
 
@@ -474,7 +506,8 @@ class ScreenDetector(StopCheckMixin):
         region = self.coords.get_region('bookmark_screen')
 
         result = self.ocr.detect_text_in_region(keywords, region,
-                                                screenshot=screenshot)
+                                                screenshot=screenshot,
+                                                methods=self.FAST_METHODS)
         self.logger.info("Bookmark screen is open" if result else "Bookmark screen not detected")
         return result
 
@@ -498,7 +531,8 @@ class ScreenDetector(StopCheckMixin):
         region = self.coords.get_region('account_screen')
 
         result = self.ocr.detect_text_in_region(keywords, region,
-                                                screenshot=screenshot)
+                                                screenshot=screenshot,
+                                                methods=self.FAST_METHODS)
         self.logger.info("Account screen is open" if result else "Account screen not detected")
         return result
 
@@ -523,7 +557,8 @@ class ScreenDetector(StopCheckMixin):
         region = self.coords.get_region('switch_accounts_dialog')
 
         result = self.ocr.detect_text_in_region(keywords, region,
-                                                screenshot=screenshot)
+                                                screenshot=screenshot,
+                                                methods=self.FAST_METHODS)
         self.logger.info("Switch Accounts dialog is open" if result
                          else "Switch Accounts dialog not detected")
         return result
@@ -545,7 +580,8 @@ class ScreenDetector(StopCheckMixin):
         region = self.coords.get_region('login_screen')
 
         result = self.ocr.detect_text_in_region(keywords, region,
-                                                screenshot=screenshot)
+                                                screenshot=screenshot,
+                                                methods=self.FAST_METHODS)
         self.logger.info("Account login screen detected" if result
                          else "Account login screen not detected")
         return result
@@ -569,7 +605,8 @@ class ScreenDetector(StopCheckMixin):
         region = self.coords.get_region('exit_dialog')
 
         result = self.ocr.detect_text_in_region(keywords, region,
-                                                screenshot=screenshot)
+                                                screenshot=screenshot,
+                                                methods=self.FAST_METHODS)
 
         if result:
             self.logger.warning("Cost-confirmation dialog detected (gems purchase)")
@@ -599,7 +636,8 @@ class ScreenDetector(StopCheckMixin):
         region = self.coords.get_region('exit_dialog')
 
         result = self.ocr.detect_text_in_region(keywords, region,
-                                                screenshot=screenshot)
+                                                screenshot=screenshot,
+                                                methods=self.FAST_METHODS)
 
         if result:
             self.logger.info("Exit game dialog detected")
@@ -631,7 +669,8 @@ class ScreenDetector(StopCheckMixin):
         region = self.coords.get_region('rewards_dialog')
 
         result = self.ocr.detect_text_in_region(keywords, region,
-                                                screenshot=screenshot)
+                                                screenshot=screenshot,
+                                                methods=self.FAST_METHODS)
 
         if result:
             self.logger.info("Rewards dialog detected (CONFIRM button found)")
@@ -659,7 +698,8 @@ class ScreenDetector(StopCheckMixin):
         region = self.coords.get_region('loading_screen')
 
         result = self.ocr.detect_text_in_region(keywords, region,
-                                                screenshot=screenshot)
+                                                screenshot=screenshot,
+                                                methods=self.FAST_METHODS)
 
         if result:
             self.logger.debug("Loading screen detected")
@@ -745,6 +785,11 @@ class ScreenDetector(StopCheckMixin):
         for screen, predicate in self._ordered_checks():
             if (candidates is not None and screen not in candidates
                     and screen not in self.DIALOG_SCREENS):
+                continue
+            anchor = self.ANCHOR_TEMPLATES.get(screen)
+            if anchor and self.ocr.templates.has_template(anchor):
+                if self.ocr.find_template(anchor, screenshot=screenshot):
+                    return screen
                 continue
             if predicate(screenshot=screenshot):
                 return screen
